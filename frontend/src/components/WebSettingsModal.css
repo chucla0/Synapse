@@ -1,0 +1,81 @@
+.settings-section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.settings-section h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-md);
+  color: var(--text-secondary);
+}
+
+.theme-options {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.theme-option {
+  flex: 1;
+  padding: var(--spacing-md);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.theme-option:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--bg-hover);
+}
+
+.theme-option.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white; /* Or dark text depending on contrast, sticking to white for active state usually safe or dark if accent is light */
+  color: #333; /* Since accents are pastel, dark text is better */
+}
+
+.theme-option.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--bg-main);
+  border-style: dashed;
+}
+
+.color-options {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.color-swatch {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.color-swatch:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-md);
+}
+
+.color-swatch.active {
+  border-color: var(--text-main);
+  transform: scale(1.1);
+}
+
+.check-icon {
+  color: rgba(0, 0, 0, 0.6);
+  font-weight: bold;
+  font-size: 1.2rem;
+}

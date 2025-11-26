@@ -19,12 +19,10 @@
 }
 
 .auth-logo {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: var(--radius-lg);
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
   margin-bottom: var(--spacing-md);
-  box-shadow: var(--shadow-card); /* Changed */
 }
 
 .auth-header h1 {
@@ -61,16 +59,48 @@
   border-top: 1px solid var(--border);
 }
 
+/* Gradient styles for Auth elements (since no user session/theme yet) */
+.auth-container .btn-primary {
+  /* Orange, Yellow, Mint, Blue, Lavender, Pink */
+  background: linear-gradient(135deg, #FFC3A0 0%, #FFEAA7 20%, #9FE6B6 40%, #93C5FD 60%, #C4B5FD 80%, #FCA5A5 100%);
+  border: none;
+  color: #333;
+  background-size: 300% 300%; /* Increased size for smoother animation across more colors */
+  animation: gradientAnimation 8s ease infinite; /* Slower animation for more colors */
+}
+
+.auth-container .btn-primary:hover {
+  filter: brightness(0.95);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(147, 197, 253, 0.3);
+}
+
 .link {
-  color: var(--accent); /* Changed */
+  background: linear-gradient(135deg, #FFC3A0 0%, #FFEAA7 20%, #9FE6B6 40%, #93C5FD 60%, #C4B5FD 80%, #FCA5A5 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
   text-decoration: none;
-  font-weight: 500;
-  transition: color var(--transition-fast);
+  transition: opacity var(--transition-fast);
+  background-size: 200% 200%; /* Ensure gradient is visible on text */
 }
 
 .link:hover {
-  color: var(--accent-hover); /* Changed */
-  text-decoration: underline;
+  opacity: 0.8;
+  text-decoration: none;
+}
+
+@keyframes gradientAnimation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .alert {

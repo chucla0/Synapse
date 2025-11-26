@@ -35,7 +35,10 @@ function AgendaSettingsModal({ agenda, onClose }) {
   // Mutations
   const updateAgendaMutation = useMutation({
     mutationFn: (updatedData) => api.put(`/agendas/${agenda.id}`, updatedData),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['agendas'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agendas'] });
+      onClose(); // Close modal after successful update and query invalidation
+    },
   });
   const deleteAgendaMutation = useMutation({
     mutationFn: () => api.delete(`/agendas/${agenda.id}`),

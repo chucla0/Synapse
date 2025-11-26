@@ -1,129 +1,185 @@
+/* Global box-sizing for this component context */
+.week-view * {
+  box-sizing: border-box;
+}
+
 .week-view {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--bg-card); /* Changed */
+  background: var(--bg-main);
+  overflow: hidden;
 }
 
-.week-header {
+/* Scrollable Container that holds BOTH Header and Body */
+.week-grid-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
   display: flex;
-  background: var(--bg-card); /* Changed */
-  border-bottom: 1px solid var(--border);
+  flex-direction: column;
+  background-color: var(--bg-main);
+}
+
+/* 
+  Unified Grid Layout Strategy 
+  Both Header and Body use the exact same grid definition.
+  Column 1: 60px fixed (Time)
+  Columns 2-8: 1fr each (Days)
+*/
+
+.week-header {
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 20; /* High z-index to stay on top of events */
+  display: grid;
+  grid-template-columns: 60px repeat(7, 1fr); /* The Master Grid */
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02); /* Subtle shadow for depth */
 }
 
 .week-timeline-spacer {
-  width: 60px;
-  flex-shrink: 0;
+  /* Column 1 */
   border-right: 1px solid var(--border);
+  background: var(--bg-main);
 }
 
 .week-days-header {
-  flex: 1;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  /* Columns 2-8 */
+  display: contents; 
+}
+   
+.week-day-header {
+  padding: var(--spacing-sm);
+  text-align: center;
+  border-right: 1px solid var(--border);
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-.week-day-header {
-  padding: var(--spacing-md);
-  text-align: center;
-  border-left: 1px solid var(--border);
+.week-day-header:last-child {
+  border-right: none;
 }
 
 .day-name {
   text-transform: uppercase;
-  font-size: 0.7rem; /* Adjusted */
+  font-size: 0.75rem;
   font-weight: 600;
-  color: var(--text-muted); /* Changed */
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
 }
 
 .day-number {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  margin-top: var(--spacing-xs);
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  color: var(--text-secondary); /* Changed */
+  color: var(--text-main);
+  transition: all var(--transition-fast);
 }
 
 .day-number.today {
-  background: var(--accent); /* Changed */
-  color: white;
+  background: var(--accent);
+  color: #333333;
+  box-shadow: 0 2px 5px rgba(159, 230, 182, 0.4);
 }
 
-.week-grid-container {
-  flex: 1;
-  overflow: auto;
-  display: flex;
-  background-color: var(--bg-main); /* Added */
+/* Body Wrapper containing Timeline and Grid */
+.week-body {
+  display: grid;
+  grid-template-columns: 60px repeat(7, 1fr); /* Same Master Grid */
+  position: relative;
 }
 
+/* Time Column (Column 1) */
 .week-timeline {
-  width: 60px;
-  flex-shrink: 0;
-  background: var(--bg-card); /* Changed */
+  display: flex;
+  flex-direction: column;
   border-right: 1px solid var(--border);
+  background: var(--bg-main);
 }
 
 .week-timeline .timeline-hour {
-  height: 40px;
-  padding: var(--spacing-xs);
-  font-size: 0.7rem;
-  color: var(--text-muted);
+  height: 60px; /* Taller slots for better visibility */
+  padding-right: var(--spacing-sm);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
   text-align: right;
-  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: start;
+  justify-content: flex-end;
+  transform: translateY(-50%); /* Center label on the line */
 }
 
+/* The Grid of Days (Columns 2-8) */
 .week-grid {
-  flex: 1;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  min-height: 960px; /* 24 hours * 40px */
+  display: contents; 
 }
 
 .week-day-column {
   position: relative;
-  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  background: var(--bg-card);
+  min-height: 1440px; /* 24 hours * 60px */
 }
 
+.week-day-column:last-child {
+  border-right: none;
+}
+
+/* Horizontal Hour Lines */
 .week-hour-slot {
-  height: 40px;
-  border-bottom: 1px dashed var(--border); /* Changed to dashed */
+  height: 60px; /* Match timeline-hour height */
+  border-bottom: 1px solid var(--border);
+  box-sizing: border-box;
 }
 
+/* Events */
 .week-event {
   position: absolute;
-  left: 4px; /* Adjusted */
-  right: 4px; /* Adjusted */
-  border-radius: var(--radius-sm);
-  padding: 4px;
-  color: var(--event-text); /* Changed */
-  background-color: var(--event-bg-2); /* Changed */
-  box-shadow: var(--shadow-card); /* Added */
+  left: 2px;
+  right: 2px;
+  border-radius: 4px;
+  padding: 4px 6px;
+  color: var(--text-main);
+  background-color: var(--event-bg-2); /* Default fallback */
   font-size: 0.75rem;
   overflow: hidden;
   cursor: pointer;
   transition: all var(--transition-fast);
-  z-index: 1;
-  border: 1px solid transparent;
+  z-index: 10;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .week-event:hover {
-  z-index: 2;
-  box-shadow: var(--shadow-card-hover);
-  transform: scale(1.02); /* Added */
-  border-color: var(--accent); /* Added */
+  z-index: 20;
+  transform: scale(1.02);
+  filter: brightness(0.95);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
 .week-event .event-title {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 0.8rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.week-event .event-time {
+  font-size: 0.7rem;
+  opacity: 0.8;
 }

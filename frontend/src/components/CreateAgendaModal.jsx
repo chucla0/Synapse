@@ -11,16 +11,12 @@ const AGENDA_TYPES = [
   { value: 'COLABORATIVA', label: 'Colaborativa', description: 'Cualquier miembro puede añadir eventos' }
 ];
 
-const PRESET_COLORS = [
-  '#3B82F6', // Blue
-  '#EF4444', // Red
-  '#10B981', // Green
-  '#F59E0B', // Orange
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
-  '#06B6D4', // Cyan
-  '#F97316', // Orange
-];
+const AGENDA_COLORS = {
+  PERSONAL: '#FFC3A0',     // Melocotón Suave
+  LABORAL: '#A0CFFF',      // Azul Cielo Pastel
+  EDUCATIVA: '#FFEAA7',    // Amarillo Crema Pastel
+  COLABORATIVA: '#F5A9B8'  // Rosa Algodón Suave
+};
 
 function CreateAgendaModal({ onClose }) {
   const { t } = useTranslation();
@@ -29,7 +25,7 @@ function CreateAgendaModal({ onClose }) {
     name: '',
     description: '',
     type: 'PERSONAL',
-    color: PRESET_COLORS[0],
+    color: AGENDA_COLORS.PERSONAL,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
   });
   const [errors, setErrors] = useState({});
@@ -52,15 +48,21 @@ function CreateAgendaModal({ onClose }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    if (name === 'type') {
+      setFormData(prev => ({ 
+        ...prev, 
+        [name]: value,
+        color: AGENDA_COLORS[value] || AGENDA_COLORS.PERSONAL
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+
     // Clear error for this field
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: null }));
     }
-  };
-
-  const handleColorSelect = (color) => {
-    setFormData(prev => ({ ...prev, color }));
   };
 
   const handleSubmit = (e) => {
@@ -123,37 +125,34 @@ function CreateAgendaModal({ onClose }) {
           {/* Type */}
           <div className="form-group">
             <label htmlFor="type">{t('agendaTypeLabel')}</label>
-            <select
-              id="type"
-              name="type"
-              value={formData.type}
-              onChange={handleChange}
-              className="input"
-              disabled={createMutation.isPending}
-            >
-              {AGENDA_TYPES.map(type => (
-                <option key={type.value} value={type.value}>
-                  {type.label} - {type.description}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Color Picker */}
-          <div className="form-group">
-            <label>{t('colorLabel')}</label>
-            <div className="color-picker">
-              {PRESET_COLORS.map(color => (
-                <button
-                  key={color}
-                  type="button"
-                  className={`color-option ${formData.color === color ? 'selected' : ''}`}
-                  style={{ backgroundColor: color }}
-                  onClick={() => handleColorSelect(color)}
-                  disabled={createMutation.isPending}
-                  aria-label={`Color ${color}`}
-                />
-              ))}
+            <div className="type-selector-container" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <select
+                id="type"
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+                className="input"
+                disabled={createMutation.isPending}
+                style={{ flex: 1 }}
+              >
+                {AGENDA_TYPES.map(type => (
+                  <option key={type.value} value={type.value}>
+                    {type.label} - {type.description}
+                  </option>
+                ))}
+              </select>
+              <div 
+                className="color-preview" 
+                style={{ 
+                  width: '40px', 
+                  height: '40px', 
+                  backgroundColor: formData.color, 
+                  borderRadius: '8px',
+                  border: '1px solid var(--border)',
+                  flexShrink: 0
+                }}
+                title={`Color asignado: ${formData.color}`}
+              />
             </div>
           </div>
 

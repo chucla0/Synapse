@@ -8,6 +8,7 @@ import CalendarView from './Calendar/CalendarView';
 import CreateAgendaModal from './CreateAgendaModal';
 import ProfileSettingsModal from './ProfileSettingsModal';
 import AgendaSettingsModal from './AgendaSettingsModal';
+import WebSettingsModal from './WebSettingsModal';
 import './Dashboard.css';
 
 const lngs = {
@@ -21,6 +22,7 @@ function Dashboard({ onLogout }) {
   const [selectedAgenda, setSelectedAgenda] = useState(null);
   const [showCreateAgenda, setShowCreateAgenda] = useState(false);
   const [showProfileSettings, setShowProfileSettings] = useState(false);
+  const [showWebSettings, setShowWebSettings] = useState(false);
   const [editingAgenda, setEditingAgenda] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Default to open
   const navigate = useNavigate();
@@ -28,7 +30,7 @@ function Dashboard({ onLogout }) {
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
-  const isAnyModalOpen = showCreateAgenda || showProfileSettings || editingAgenda;
+  const isAnyModalOpen = showCreateAgenda || showProfileSettings || showWebSettings || editingAgenda;
 
   // Fetch agendas
   const { data: agendasData, isLoading: agendasLoading } = useQuery({
@@ -84,7 +86,7 @@ function Dashboard({ onLogout }) {
           <button 
             className="btn-settings"
             onClick={() => setShowProfileSettings(true)}
-            title="Configuración de perfil"
+            title={t('profileSettings')}
           >
             ⚙️
           </button>
@@ -94,9 +96,9 @@ function Dashboard({ onLogout }) {
           <h3 className="nav-title text-sm text-muted">{t('myAgendas')}</h3>
           
           {agendasLoading ? (
-            <div className="loading-agendas">Cargando...</div>
+            <div className="loading-agendas">{t('loading')}</div>
           ) : agendas.length === 0 ? (
-            <p className="text-sm text-muted">No tienes agendas</p>
+            <p className="text-sm text-muted">{t('noAgendas')}</p>
           ) : (
             <ul className="agenda-list">
               {agendas.map(agenda => (
@@ -112,7 +114,7 @@ function Dashboard({ onLogout }) {
                   <button 
                     className="btn-agenda-settings"
                     onClick={() => setEditingAgenda(agenda)}
-                    title="Configuración de agenda"
+                    title={t('agendaSettings')}
                   >
                     ⚙️
                   </button>
@@ -145,29 +147,38 @@ function Dashboard({ onLogout }) {
           </div>
           <button 
             className="btn btn-secondary btn-block"
+            onClick={() => setShowWebSettings(true)}
+            title={t('webSettingsTitle')}
+          >
+            🎨 {t('webSettingsButton')}
+          </button>
+          <button 
+            className="btn btn-secondary btn-block"
             onClick={handleLogout}
           >
-                            {t('logout')}
-                              </button>
-                            </div>
-                          </aside>
-                    
-                          <button
-                            className="btn-sidebar-toggle"
-                            onClick={toggleSidebar}
-                            title={isSidebarOpen ? "Cerrar barra lateral" : "Abrir barra lateral"}
-                            disabled={isAnyModalOpen}
-                          >
-                            {isSidebarOpen ? '❮' : '❯'} {/* Simple arrow icons for now */}
-                          </button>      {/* Main Content */}
+            {t('logout')}
+          </button>
+        </div>
+      </aside>
+
+      <button
+        className="btn-sidebar-toggle"
+        onClick={toggleSidebar}
+        title={isSidebarOpen ? t('closeSidebar') : t('openSidebar')}
+        disabled={isAnyModalOpen}
+      >
+        {isSidebarOpen ? '❮' : '❯'} {/* Simple arrow icons for now */}
+      </button>
+
+      {/* Main Content */}
       <main className="main-content">
         {currentAgenda ? (
           <CalendarView agenda={currentAgenda} />
         ) : (
           <div className="empty-state">
-            <h2>Bienvenido a Synapse Agenda</h2>
+            <h2>{t('welcomeTitle')}</h2>
             <p className="text-muted">
-              Selecciona una agenda o crea una nueva para empezar
+              {t('welcomeSubtitle')}
             </p>
           </div>
         )}
@@ -179,6 +190,9 @@ function Dashboard({ onLogout }) {
       )}
       {showProfileSettings && (
         <ProfileSettingsModal onClose={() => setShowProfileSettings(false)} />
+      )}
+      {showWebSettings && (
+        <WebSettingsModal onClose={() => setShowWebSettings(false)} />
       )}
       {editingAgenda && (
         <AgendaSettingsModal 

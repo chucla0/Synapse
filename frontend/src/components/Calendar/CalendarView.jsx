@@ -96,7 +96,7 @@ function CalendarView({ agenda }) {
             </button>
           </div>
           <h2 className="calendar-title">
-            {format(currentDate, 'LLLL yyyy', { locale })}
+            {agenda.name}
           </h2>
         </div>
 
