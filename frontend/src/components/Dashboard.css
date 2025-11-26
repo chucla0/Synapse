@@ -6,8 +6,8 @@
 
 .sidebar {
   width: 280px;
-  background: var(--bg-secondary);
-  border-right: 1px solid var(--border);
+  background: var(--bg-card);
+  border-right: 4px solid var(--border); /* Increased border width again */
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -31,10 +31,7 @@
 .sidebar-header h2 {
   font-size: 1.25rem;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text-main);
 }
 
 .sidebar-user {
@@ -45,17 +42,53 @@
   gap: var(--spacing-md);
 }
 
+.btn-settings {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  padding: var(--spacing-xs);
+  border-radius: 50%;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.btn-settings:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-main);
+}
+
 .user-avatar {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: var(--bg-main);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.user-avatar-initials {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
   font-weight: 700;
   color: white;
+  background: var(--accent);
 }
 
 .user-info {
@@ -68,12 +101,14 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--text-main);
 }
 
 .user-email {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--text-secondary);
 }
 
 .sidebar-nav {
@@ -87,6 +122,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: var(--spacing-md);
+  color: var(--text-muted);
 }
 
 .agenda-list {
@@ -98,25 +134,63 @@
   width: 100%;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: none;
-  background: transparent;
-  color: var(--text-primary);
+  padding: 0;
   border-radius: var(--radius-md);
-  cursor: pointer;
   transition: all var(--transition-fast);
   margin-bottom: var(--spacing-xs);
-  text-align: left;
+}
+
+.agenda-item-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  cursor: pointer;
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
 }
 
 .agenda-item:hover {
-  background: var(--bg-dark);
+  background: var(--bg-main);
+}
+.agenda-item:hover .agenda-item-main {
+  color: var(--text-main);
 }
 
 .agenda-item.active {
-  background: var(--bg-dark);
-  box-shadow: inset 0 0 0 2px var(--primary);
+  background: var(--bg-main);
+  box-shadow: inset 2px 0 0 0 var(--accent);
+}
+.agenda-item.active .agenda-item-main {
+  color: var(--text-main);
+}
+
+.btn-agenda-settings {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1rem;
+  padding: var(--spacing-sm);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all var(--transition-fast);
+  margin-right: var(--spacing-sm);
+}
+
+.agenda-item:hover .btn-agenda-settings {
+  opacity: 1;
+}
+
+.btn-agenda-settings:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-main);
 }
 
 .agenda-color {
@@ -138,20 +212,29 @@
 .agenda-badge {
   font-size: 0.75rem;
   padding: 2px 6px;
-  background: var(--bg-card);
+  background: var(--bg-main);
   border-radius: var(--radius-sm);
   color: var(--text-muted);
+  border: 1px solid var(--border);
 }
 
 .sidebar-footer {
   padding: var(--spacing-lg);
   border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
 }
+
+.language-switcher {
+  width: 100%;
+}
+
 
 .main-content {
   flex: 1;
   overflow: hidden;
-  background: var(--bg-dark);
+  background: var(--bg-main);
 }
 
 .empty-state {
@@ -167,6 +250,7 @@
 .empty-state h2 {
   font-size: 1.5rem;
   margin-bottom: var(--spacing-md);
+  color: var(--text-main);
 }
 
 .loading-agendas {
@@ -175,30 +259,106 @@
   color: var(--text-muted);
 }
 
-/* Modal */
+/* Modal is now styled globally in index.css, but we can keep overlay for specificity */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 1050; /* Increased z-index to cover the sidebar toggle button */
 }
 
 .modal-content {
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-xl);
+  /* This class is a global .card now, but can be extended */
   max-width: 500px;
   width: 90%;
-  box-shadow: var(--shadow-xl);
-  border: 1px solid var(--border);
 }
+
 
 .modal-content h2 {
   margin-bottom: var(--spacing-md);
+  color: var(--text-main);
+}
+
+/* Sidebar Overlay - FINALIZED */
+.sidebar {
+  position: fixed; /* Overlay on content */
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 1000; /* Ensure it's above other content */
+  background: var(--bg-card); /* RESTORED */
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* RESTORED */
+  width: 280px; /* Explicit width */
+  transform: translateX(0); /* Start visible */
+  transition: transform 0.3s ease-in-out;
+}
+
+.sidebar.collapsed {
+  transform: translateX(-100%); /* Corrected for smooth transition */
+  border-right: none;
+}
+
+/* Toggle Button - Rediseñado para la integración */
+.btn-sidebar-toggle {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1001; /* Above sidebar, below modal overlay */
+  
+  /* Appearance */
+  background-color: var(--bg-card); /* Match sidebar background */
+  border: 1px solid var(--border);
+  border-left: none; /* No left border to blend with sidebar */
+  border-radius: 0 var(--radius-md) var(--radius-md) 0; /* Rounded right side */
+  padding: var(--spacing-sm) var(--spacing-xs); /* Smaller padding */
+  width: 30px; /* Fixed width */
+  height: 60px; /* Taller height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted); /* Softer color */
+  font-size: 1.2rem;
+  transition: left 0.3s ease-in-out, background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+  
+  /* Positioning based on sidebar state */
+  left: 280px; /* Position when sidebar is open */
+}
+
+/* When sidebar is collapsed, button moves to left: 0 */
+.sidebar.collapsed + .btn-sidebar-toggle {
+  left: 0;
+  /* border-radius: var(--radius-md) 0 0 var(--radius-md); /* Removed to keep consistent shape */
+  border-right: 1px solid var(--border); /* Add right border back */
+  border-left: none; /* No left border */
+  color: var(--text-main); /* More prominent when collapsed */
+}
+
+.btn-sidebar-toggle:hover {
+  background-color: var(--accent);
+  color: white;
+}
+
+.btn-sidebar-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none; /* Disable click events */
+}
+
+/* Main Content should always take full width - FINALIZED */
+.main-content {
+  flex: 1;
+  overflow: hidden; /* Keep to prevent content overflow */
+  background: var(--bg-main);
+  position: relative; /* Keep for general positioning, if needed */
+  width: 100%; /* Ensure it takes full width */
 }

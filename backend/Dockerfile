@@ -1,48 +1,24 @@
-# Build stage
-FROM node:18-alpine AS builder
-
-# Install OpenSSL for Prisma
-RUN apk add --no-cache openssl
-
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-COPY prisma ./prisma/
-
-# Install dependencies
-RUN npm install
-
-# Copy source code
-COPY . .
-
-# Generate Prisma Client
-RUN npx prisma generate
-
-# Production stage
+# Use an official Node.js runtime as a parent image
 FROM node:18-alpine
 
-# Install OpenSSL for Prisma
+# Install OpenSSL for Prisma, which is required on Alpine
 RUN apk add --no-cache openssl
 
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy package files
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install production dependencies only
-RUN npm install --only=production
+# Install all dependencies, including devDependencies
+RUN npm install
 
-# Copy prisma schema and generated client
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-
-# Copy source code
+# Copy the rest of the application's code
 COPY . .
 
-# Expose port
+# Expose the port the app runs on
 EXPOSE 3000
 
-# Start the application
-CMD ["npm", "start"]
+# The command from docker-compose.yml will override this,
+# but it serves as a good default for running the container directly.
+CMD ["npm", "run", "dev"]

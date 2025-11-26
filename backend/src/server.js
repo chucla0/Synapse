@@ -1,10 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const prisma = require('./lib/prisma');
-
-// Load environment variables
-dotenv.config();
 
 // Initialize Express app
 const app = express();
@@ -22,6 +18,9 @@ app.use(cors({
 // Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files from the 'public' directory
+app.use(express.static('public'));
 
 // Request logging
 app.use((req, res, next) => {
@@ -47,12 +46,14 @@ const authRoutes = require('./routes/auth.routes');
 const agendaRoutes = require('./routes/agenda.routes');
 const eventRoutes = require('./routes/event.routes');
 const notificationRoutes = require('./routes/notification.routes');
+const uploadRoutes = require('./routes/upload.routes');
 
 // Mount routes
 app.use('/api/auth', authRoutes);
 app.use('/api/agendas', agendaRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 // ============================================
 // ERROR HANDLING

@@ -62,10 +62,9 @@ router.delete('/:agendaId/users/:userId',
 
 /**
  * PUT /api/agendas/:agendaId/users/:userId/role
- * Update user role in agenda (owner only)
+ * Update user role in agenda (special permissions apply)
  */
 router.put('/:agendaId/users/:userId/role', 
-  requireAgendaRole(['OWNER']), 
   agendaController.updateUserRole
 );
 

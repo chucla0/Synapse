@@ -1,20 +1,27 @@
+/* 
+  Styling for this modal is now primarily handled by global classes 
+  in index.css (.card, .input, .btn, etc.)
+  This file is for overrides and specific layout.
+*/
+
 .event-modal {
   max-width: 600px;
 }
 
 .event-form {
-  padding: 1.5rem;
+  padding: 0; /* Padding is on the .card */
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: var(--spacing-lg);
 }
 
 .checkbox-group {
   display: flex;
   align-items: center;
+  margin-top: var(--spacing-sm);
 }
 
 .checkbox-group label {
@@ -24,40 +31,34 @@
   cursor: pointer;
   margin-bottom: 0;
   font-weight: 400;
+  color: var(--text-secondary);
 }
 
 .checkbox-group input[type="checkbox"] {
   width: auto;
   cursor: pointer;
   margin: 0;
+  accent-color: var(--accent);
 }
 
 .checkbox-group span {
   user-select: none;
 }
 
+/* 
+  datetime-local input inherits from .input in index.css, 
+  but needs some overrides for the calendar picker icon.
+*/
 input[type="datetime-local"] {
-  width: 100%;
-  padding: 0.625rem 0.875rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  transition: all 0.2s;
-  font-family: inherit;
-}
-
-input[type="datetime-local"]:focus {
-  outline: none;
-  border-color: var(--primary-color, #3B82F6);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  /* Inherits from .input */
 }
 
 input[type="datetime-local"].error {
-  border-color: #ef4444;
+  border-color: var(--error);
 }
 
 input[type="datetime-local"]:disabled {
-  background-color: #f3f4f6;
+  background-color: var(--bg-main);
   cursor: not-allowed;
 }
 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import api from '../utils/api';
 import './CreateEventModal.css';
 
@@ -9,6 +10,7 @@ const EVENT_STATUS_OPTIONS = [
 ];
 
 function CreateEventModal({ agenda, onClose, initialDate = null }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     title: '',
@@ -25,7 +27,7 @@ function CreateEventModal({ agenda, onClose, initialDate = null }) {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const response = await api.post(`/agendas/${agenda.id}/events`, data);
+      const response = await api.post('/events', data);
       return response.data;
     },
     onSuccess: () => {
@@ -54,16 +56,16 @@ function CreateEventModal({ agenda, onClose, initialDate = null }) {
     
     const newErrors = {};
     if (!formData.title.trim()) {
-      newErrors.title = 'El título es requerido';
+      newErrors.title = t('titleIsRequired');
     }
     if (!formData.startTime) {
-      newErrors.startTime = 'La fecha de inicio es requerida';
+      newErrors.startTime = t('startIsRequired');
     }
     if (!formData.endTime) {
-      newErrors.endTime = 'La fecha de fin es requerida';
+      newErrors.endTime = t('endIsRequired');
     }
     if (formData.startTime && formData.endTime && new Date(formData.startTime) >= new Date(formData.endTime)) {
-      newErrors.endTime = 'La fecha de fin debe ser posterior a la de inicio';
+      newErrors.endTime = t('endDateAfterStart');
     }
     
     if (Object.keys(newErrors).length > 0) {
@@ -71,9 +73,10 @@ function CreateEventModal({ agenda, onClose, initialDate = null }) {
       return;
     }
 
-    // Convert to ISO format
+    // Convert to ISO format and add agendaId
     const eventData = {
       ...formData,
+      agendaId: agenda.id,
       startTime: new Date(formData.startTime).toISOString(),
       endTime: new Date(formData.endTime).toISOString()
     };
@@ -83,24 +86,24 @@ function CreateEventModal({ agenda, onClose, initialDate = null }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content event-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content event-modal card" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Crear Nuevo Evento</h2>
+          <h2>{t('createEventTitle')}</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
 
         <form onSubmit={handleSubmit} className="event-form">
           {/* Title */}
           <div className="form-group">
-            <label htmlFor="title">Título *</label>
+            <label htmlFor="title">{t('titleLabel')} *</label>
             <input
               type="text"
               id="title"
               name="title"
               value={formData.title}
               onChange={handleChange}
-              placeholder="Reunión, Tarea, etc."
-              className={errors.title ? 'error' : ''}
+              placeholder={t('titlePlaceholder')}
+              className={`input ${errors.title ? 'error' : ''}`}
               disabled={createMutation.isPending}
             />
             {errors.title && <span className="error-message">{errors.title}</span>}
@@ -109,28 +112,28 @@ function CreateEventModal({ agenda, onClose, initialDate = null }) {
           {/* Time Range */}
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="startTime">Fecha y Hora de Inicio *</label>
+              <label htmlFor="startTime">{t('startDateTimeLabel')} *</label>
               <input
                 type="datetime-local"
                 id="startTime"
                 name="startTime"
                 value={formData.startTime}
                 onChange={handleChange}
-                className={errors.startTime ? 'error' : ''}
+                className={`input ${errors.startTime ? 'error' : ''}`}
                 disabled={createMutation.isPending || formData.isAllDay}
               />
               {errors.startTime && <span className="error-message">{errors.startTime}</span>}
             </div>
 
             <div className="form-group">
-              <label htmlFor="endTime">Fecha y Hora de Fin *</label>
+              <label htmlFor="endTime">{t('endDateTimeLabel')} *</label>
               <input
                 type="datetime-local"
                 id="endTime"
                 name="endTime"
                 value={formData.endTime}
                 onChange={handleChange}
-                className={errors.endTime ? 'error' : ''}
+                className={`input ${errors.endTime ? 'error' : ''}`}
                 disabled={createMutation.isPending || formData.isAllDay}
               />
               {errors.endTime && <span className="error-message">{errors.endTime}</span>}
@@ -147,34 +150,36 @@ function CreateEventModal({ agenda, onClose, initialDate = null }) {
                 onChange={handleChange}
                 disabled={createMutation.isPending}
               />
-              <span>Evento de todo el día</span>
+              <span>{t('allDayEventLabel')}</span>
             </label>
           </div>
 
           {/* Description */}
           <div className="form-group">
-            <label htmlFor="description">Descripción</label>
+            <label htmlFor="description">{t('descriptionLabel')}</label>
             <textarea
               id="description"
               name="description"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Detalles del evento..."
+              placeholder={t('descriptionPlaceholder')}
               rows="3"
+              className="input"
               disabled={createMutation.isPending}
             />
           </div>
 
           {/* Location */}
           <div className="form-group">
-            <label htmlFor="location">Ubicación</label>
+            <label htmlFor="location">{t('locationLabel')}</label>
             <input
               type="text"
               id="location"
               name="location"
               value={formData.location}
               onChange={handleChange}
-              placeholder="Sala de conferencias, URL, etc."
+              placeholder={t('locationPlaceholder')}
+              className="input"
               disabled={createMutation.isPending}
             />
           </div>
@@ -182,12 +187,13 @@ function CreateEventModal({ agenda, onClose, initialDate = null }) {
           {/* Status (for LABORAL agendas) */}
           {agenda.type === 'LABORAL' && (
             <div className="form-group">
-              <label htmlFor="status">Estado</label>
+              <label htmlFor="status">{t('statusLabel')}</label>
               <select
                 id="status"
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
+                className="input"
                 disabled={createMutation.isPending}
               >
                 {EVENT_STATUS_OPTIONS.map(opt => (
@@ -209,7 +215,7 @@ function CreateEventModal({ agenda, onClose, initialDate = null }) {
                 onChange={handleChange}
                 disabled={createMutation.isPending}
               />
-              <span>Evento privado</span>
+              <span>{t('privateEventLabel')}</span>
             </label>
           </div>
 
@@ -228,14 +234,14 @@ function CreateEventModal({ agenda, onClose, initialDate = null }) {
               onClick={onClose}
               disabled={createMutation.isPending}
             >
-              Cancelar
+              {t('cancelButton')}
             </button>
             <button
               type="submit"
               className="btn btn-primary"
               disabled={createMutation.isPending}
             >
-              {createMutation.isPending ? 'Creando...' : 'Crear Evento'}
+              {createMutation.isPending ? t('creatingEventButton') : t('createEventButton')}
             </button>
           </div>
         </form>

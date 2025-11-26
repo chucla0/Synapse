@@ -1,11 +1,19 @@
-import { getMonthDays, groupEventsByDay, isSameDay, isSameMonth, isToday } from '../../utils/date';
-import { format } from 'date-fns';
+import { getMonthDays, groupEventsByDay, isSameMonth, isToday } from '../../utils/date';
+import { format, eachDayOfInterval, startOfWeek, endOfWeek } from 'date-fns';
+import { useDateFnsLocale } from '../../contexts/LocaleContext';
 import './MonthView.css';
 
 function MonthView({ date, events, agendaColor }) {
+  const locale = useDateFnsLocale();
   const monthDays = getMonthDays(date);
   const groupedEvents = groupEventsByDay(events);
-  const weekDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+
+  // Dynamically generate week days based on locale
+  const weekStartsOn = locale.options?.weekStartsOn || 0;
+  const weekDays = eachDayOfInterval({
+    start: startOfWeek(new Date(), { weekStartsOn }),
+    end: endOfWeek(new Date(), { weekStartsOn }),
+  }).map(day => format(day, 'eee', { locale }));
 
   return (
     <div className="month-view">
@@ -32,7 +40,7 @@ function MonthView({ date, events, agendaColor }) {
               className={`month-day ${!isCurrentMonth ? 'other-month' : ''} ${isDayToday ? 'today' : ''}`}
             >
               <div className="day-header">
-                <span className="day-number">{format(day, 'd')}</span>
+                <span className="day-number">{format(day, 'd', { locale })}</span>
               </div>
 
               <div className="day-events">
@@ -41,9 +49,8 @@ function MonthView({ date, events, agendaColor }) {
                     key={event.id}
                     className="month-event"
                     style={{ backgroundColor: event.color || agendaColor }}
-                    title={`${event.title}\n${format(new Date(event.startTime), 'HH:mm')} - ${format(new Date(event.endTime), 'HH:mm')}`}
+                    title={`${event.title}\n${format(new Date(event.startTime), 'p', { locale })} - ${format(new Date(event.endTime), 'p', { locale })}`}
                   >
-                    <span className="event-dot" />
                     <span className="event-title">{event.title}</span>
                   </div>
                 ))}

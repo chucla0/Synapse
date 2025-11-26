@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '../utils/api';
 import { setAuthData } from '../utils/auth';
 import './Auth.css';
 
 function Register({ onRegister }) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -69,14 +71,14 @@ function Register({ onRegister }) {
 
   return (
     <div className="auth-container">
-      <div className="auth-card">
+      <div className="auth-card card">
         <div className="auth-header">
           <img 
             src="/synapse_logo.jpg" 
             alt="Synapse Logo" 
             className="auth-logo"
           />
-          <h1>Synapse Agenda</h1>
+          <h1>{t('registerTitle')}</h1>
           <p className="text-muted">Crea tu cuenta</p>
         </div>
 
@@ -88,7 +90,7 @@ function Register({ onRegister }) {
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label htmlFor="name">Nombre</label>
+            <label htmlFor="name">{t('nameLabel')}</label>
             <input
               id="name"
               type="text"
@@ -103,7 +105,7 @@ function Register({ onRegister }) {
           </div>
 
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">{t('emailLabel')}</label>
             <input
               id="email"
               type="email"
@@ -118,7 +120,7 @@ function Register({ onRegister }) {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Contraseña</label>
+            <label htmlFor="password">{t('passwordLabel')}</label>
             <input
               id="password"
               type="password"
@@ -133,7 +135,7 @@ function Register({ onRegister }) {
           </div>
 
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirmar Contraseña</label>
+            <label htmlFor="confirmPassword">{t('passwordLabel')}</label>
             <input
               id="confirmPassword"
               type="password"
@@ -152,15 +154,15 @@ function Register({ onRegister }) {
             className="btn btn-primary btn-block"
             disabled={loading}
           >
-            {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
+            {loading ? t('creatingAccount') : t('registerButton')}
           </button>
         </form>
 
         <div className="auth-footer">
           <p className="text-muted text-sm">
-            ¿Ya tienes cuenta?{' '}
+            {t('alreadyAccountPrompt')}{' '}
             <Link to="/login" className="link">
-              Inicia sesión
+              {t('loginLink')}
             </Link>
           </p>
         </div>

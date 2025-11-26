@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import api from '../utils/api';
 import './CreateAgendaModal.css';
 
 const AGENDA_TYPES = [
   { value: 'PERSONAL', label: 'Personal', description: 'Agenda personal privada' },
+  { value: 'LABORAL', label: 'Laboral', description: 'Para equipos de trabajo' },
   { value: 'EDUCATIVA', label: 'Educativa', description: 'Para profesores y estudiantes' },
-  { value: 'LABORAL', label: 'Laboral', description: 'Para equipos de trabajo' }
+  { value: 'COLABORATIVA', label: 'Colaborativa', description: 'Cualquier miembro puede añadir eventos' }
 ];
 
 const PRESET_COLORS = [
@@ -21,6 +23,7 @@ const PRESET_COLORS = [
 ];
 
 function CreateAgendaModal({ onClose }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     name: '',
@@ -66,7 +69,7 @@ function CreateAgendaModal({ onClose }) {
     // Validate
     const newErrors = {};
     if (!formData.name.trim()) {
-      newErrors.name = 'El nombre es requerido';
+      newErrors.name = t('nameIsRequired');
     }
     
     if (Object.keys(newErrors).length > 0) {
@@ -79,24 +82,24 @@ function CreateAgendaModal({ onClose }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content card" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Crear Nueva Agenda</h2>
+          <h2>{t('createAgendaTitle')}</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
 
         <form onSubmit={handleSubmit} className="agenda-form">
           {/* Name */}
           <div className="form-group">
-            <label htmlFor="name">Nombre *</label>
+            <label htmlFor="name">{t('agendaNameLabel')} *</label>
             <input
               type="text"
               id="name"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="Mi Agenda"
-              className={errors.name ? 'error' : ''}
+              placeholder={t('agendaNamePlaceholder')}
+              className={`input ${errors.name ? 'error' : ''}`}
               disabled={createMutation.isPending}
             />
             {errors.name && <span className="error-message">{errors.name}</span>}
@@ -104,26 +107,28 @@ function CreateAgendaModal({ onClose }) {
 
           {/* Description */}
           <div className="form-group">
-            <label htmlFor="description">Descripción</label>
+            <label htmlFor="description">{t('descriptionLabel')}</label>
             <textarea
               id="description"
               name="description"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Describe tu agenda..."
+              placeholder={t('descriptionPlaceholder')}
               rows="3"
+              className="input"
               disabled={createMutation.isPending}
             />
           </div>
 
           {/* Type */}
           <div className="form-group">
-            <label htmlFor="type">Tipo de Agenda</label>
+            <label htmlFor="type">{t('agendaTypeLabel')}</label>
             <select
               id="type"
               name="type"
               value={formData.type}
               onChange={handleChange}
+              className="input"
               disabled={createMutation.isPending}
             >
               {AGENDA_TYPES.map(type => (
@@ -136,7 +141,7 @@ function CreateAgendaModal({ onClose }) {
 
           {/* Color Picker */}
           <div className="form-group">
-            <label>Color</label>
+            <label>{t('colorLabel')}</label>
             <div className="color-picker">
               {PRESET_COLORS.map(color => (
                 <button
@@ -170,14 +175,14 @@ function CreateAgendaModal({ onClose }) {
               onClick={onClose}
               disabled={createMutation.isPending}
             >
-              Cancelar
+              {t('cancelButton')}
             </button>
             <button
               type="submit"
               className="btn btn-primary"
               disabled={createMutation.isPending}
             >
-              {createMutation.isPending ? 'Creando...' : 'Crear Agenda'}
+              {createMutation.isPending ? t('creatingAgendaButton') : t('createAgendaButton')}
             </button>
           </div>
         </form>

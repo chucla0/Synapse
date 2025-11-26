@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs');
 const prisma = require('../lib/prisma');
 const authService = require('../services/auth.service');
+const fs = require('fs');
+const path = require('path');
 
 /**
  * Login controller
@@ -215,9 +217,84 @@ async function getProfile(req, res) {
   }
 }
 
+/**
+ * Update current user profile
+ */
+async function updateProfile(req, res) {
+  try {
+    const userId = req.user.id;
+    const { name, avatar, currentPassword, newPassword } = req.body;
+
+    const updateData = {};
+    const currentUser = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (name) updateData.name = name;
+
+    // If a new avatar is provided, delete the old one first.
+    if (avatar !== undefined) {
+      if (currentUser.avatar && currentUser.avatar !== avatar) {
+        const oldAvatarPath = path.join(__dirname, '../../public', currentUser.avatar);
+        fs.unlink(oldAvatarPath, (err) => {
+          if (err) console.error(`Failed to delete old avatar: ${oldAvatarPath}`, err);
+        });
+      }
+      updateData.avatar = avatar;
+    }
+
+    // Handle password change
+    if (newPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({
+          error: 'Validation error',
+          message: 'Current password is required to set a new password'
+        });
+      }
+
+      const isPasswordValid = await bcrypt.compare(currentPassword, currentUser.password);
+
+      if (!isPasswordValid) {
+        return res.status(400).json({
+          error: 'Validation error',
+          message: 'Incorrect current password'
+        });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({
+          error: 'Validation error',
+          message: 'New password must be at least 6 characters long'
+        });
+      }
+
+      updateData.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    // Update user in database
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+    });
+
+    const { password, ...userWithoutPassword } = updatedUser;
+
+    res.json({
+      message: 'Profile updated successfully',
+      user: userWithoutPassword
+    });
+
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({
+      error: 'Failed to update profile',
+      message: 'Internal server error'
+    });
+  }
+}
+
 module.exports = {
   login,
   register,
   refreshToken,
-  getProfile
+  getProfile,
+  updateProfile
 };

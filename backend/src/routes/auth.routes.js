@@ -27,4 +27,10 @@ router.post('/refresh', authController.refreshToken);
  */
 router.get('/profile', authenticateToken, authController.getProfile);
 
+/**
+ * PUT /api/auth/profile
+ * Update current user profile (protected route)
+ */
+router.put('/profile', authenticateToken, authController.updateProfile);
+
 module.exports = router;

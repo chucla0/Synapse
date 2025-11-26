@@ -1,20 +1,28 @@
-import { format, addMonths, startOfMonth, getMonthDays, groupEventsByDay } from '../../utils/date';
-import { es } from 'date-fns/locale';
+import { getMonthDays, groupEventsByDay, isToday } from '../../utils/date';
+import { format, eachDayOfInterval, startOfWeek, endOfWeek } from 'date-fns';
+import { useDateFnsLocale } from '../../contexts/LocaleContext';
 import './YearView.css';
 
 function YearView({ date, events, agendaColor }) {
+  const locale = useDateFnsLocale();
   const year = date.getFullYear();
+
   const months = Array.from({ length: 12 }, (_, i) => {
     const monthDate = new Date(year, i, 1);
     return {
       date: monthDate,
-      name: format(monthDate, 'MMMM', { locale: es }),
+      name: format(monthDate, 'LLLL', { locale }),
       days: getMonthDays(monthDate),
     };
   });
 
   const groupedEvents = groupEventsByDay(events);
-  const weekDaysShort = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+  
+  const weekStartsOn = locale.options?.weekStartsOn || 0;
+  const weekDaysShort = eachDayOfInterval({
+    start: startOfWeek(new Date(), { weekStartsOn }),
+    end: endOfWeek(new Date(), { weekStartsOn }),
+  }).map(day => format(day, 'EEEEEE', { locale }));
 
   return (
     <div className="year-view">
@@ -44,8 +52,8 @@ function YearView({ date, events, agendaColor }) {
               <div className="year-month-grid">
                 {/* Week day headers */}
                 <div className="year-weekdays">
-                  {weekDaysShort.map(day => (
-                    <div key={day} className="year-weekday">
+                  {weekDaysShort.map((day, i) => (
+                    <div key={i} className="year-weekday">
                       {day}
                     </div>
                   ))}
@@ -57,15 +65,14 @@ function YearView({ date, events, agendaColor }) {
                     const dateKey = format(day, 'yyyy-MM-dd');
                     const dayEvents = groupedEvents[dateKey] || [];
                     const isCurrentMonth = day.getMonth() === index;
-                    const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
 
                     return (
                       <div
                         key={day.toString()}
-                        className={`year-day ${!isCurrentMonth ? 'other-month' : ''} ${isToday ? 'today' : ''} ${dayEvents.length > 0 ? 'has-events' : ''}`}
+                        className={`year-day ${!isCurrentMonth ? 'other-month' : ''} ${isToday(day) ? 'today' : ''} ${dayEvents.length > 0 ? 'has-events' : ''}`}
                         title={dayEvents.length > 0 ? `${dayEvents.length} evento(s)` : ''}
                       >
-                        {format(day, 'd')}
+                        {format(day, 'd', { locale })}
                         {dayEvents.length > 0 && (
                           <div 
                             className="year-day-dot"

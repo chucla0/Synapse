@@ -17,12 +17,12 @@
 }
 
 .month-weekday {
-  background: var(--bg-secondary);
-  padding: var(--spacing-md);
+  background: var(--bg-card); /* Changed */
+  padding: var(--spacing-sm) var(--spacing-md); /* Adjusted */
   text-align: center;
-  font-size: 0.875rem;
+  font-size: 0.75rem; /* Adjusted */
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-muted); /* Changed */
   text-transform: uppercase;
 }
 
@@ -30,7 +30,7 @@
   flex: 1;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: repeat(auto-fill, minmax(100px, 1fr));
+  grid-auto-rows: minmax(120px, 1fr); /* Changed */
   gap: 1px;
   background: var(--border);
   border: 1px solid var(--border);
@@ -40,26 +40,26 @@
 }
 
 .month-day {
-  background: var(--bg-secondary);
+  background: var(--bg-card); /* Changed */
   padding: var(--spacing-sm);
   display: flex;
   flex-direction: column;
-  min-height: 100px;
   overflow: hidden;
   transition: background var(--transition-fast);
 }
 
 .month-day:hover {
-  background: var(--bg-card);
+  background: var(--bg-hover); /* Changed */
 }
 
 .month-day.other-month {
-  opacity: 0.4;
+  background-color: var(--bg-main); /* Changed */
+  opacity: 0.6;
 }
 
 .month-day.today {
-  background: rgba(99, 102, 241, 0.1);
-  border: 2px solid var(--primary);
+  background: var(--accent-light); /* Changed */
+  border: 1px solid var(--accent); /* Changed */
   margin: -1px;
 }
 
@@ -76,10 +76,11 @@
   border-radius: 50%;
   font-size: 0.875rem;
   font-weight: 600;
+  color: var(--text-secondary); /* Changed */
 }
 
 .month-day.today .day-number {
-  background: var(--primary);
+  background: var(--accent); /* Changed */
   color: white;
 }
 
@@ -87,18 +88,22 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px; /* Increased gap */
   overflow: hidden;
+  padding-top: var(--spacing-xs);
 }
 
 .month-event {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 6px;
+  padding: 4px 6px; /* Adjusted padding */
   border-radius: var(--radius-sm);
   font-size: 0.75rem;
-  color: white;
+  color: var(--event-text); /* Changed */
+  background-color: var(--event-bg-1); /* Changed */
+  box-shadow: var(--shadow-card); /* Added */
+  border: 1px solid transparent; /* Added */
   cursor: pointer;
   transition: all var(--transition-fast);
   white-space: nowrap;
@@ -106,22 +111,20 @@
 }
 
 .month-event:hover {
-  transform: scale(1.02);
-  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--accent); /* Added */
 }
 
 .event-dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: white;
-  flex-shrink: 0;
+  /* No longer needed, replaced by full background color */
 }
 
 .event-title {
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 500;
 }
 
 .more-events {
@@ -129,20 +132,22 @@
   color: var(--text-muted);
   font-weight: 500;
   cursor: pointer;
+  font-size: 0.7rem;
 }
 
 .more-events:hover {
-  color: var(--primary-light);
+  color: var(--accent); /* Changed */
+  text-decoration: underline;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .month-grid {
-    grid-template-rows: repeat(auto-fill, minmax(80px, 1fr));
+    grid-auto-rows: minmax(100px, 1fr); /* Adjusted */
   }
 
   .month-day {
-    min-height: 80px;
+    min-height: 100px; /* Adjusted */
   }
 
   .month-event {

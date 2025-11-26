@@ -349,24 +349,71 @@ async function removeUserFromAgenda(req, res) {
  */
 async function updateUserRole(req, res) {
   try {
-    const { agendaId, userId } = req.params;
-    const { role } = req.body;
+    const { agendaId, userId: targetUserId } = req.params;
+    const { role: newRole } = req.body;
+    const requestingUserId = req.user.id;
 
-    if (!role) {
+    if (!newRole) {
       return res.status(400).json({ 
         error: 'Validation error',
         message: 'Role is required' 
       });
     }
 
-    const agendaUser = await prisma.agendaUser.update({
+    const agenda = await prisma.agenda.findUnique({ where: { id: agendaId } });
+    if (!agenda) {
+      return res.status(404).json({ error: 'Agenda not found' });
+    }
+
+    // A user cannot change their own role
+    if (targetUserId === requestingUserId) {
+      return res.status(403).json({ error: 'Permission denied', message: 'You cannot change your own role.' });
+    }
+
+    const requestingUserMembership = await prisma.agendaUser.findUnique({
+      where: { agendaId_userId: { agendaId, userId: requestingUserId } }
+    });
+
+    const targetUserMembership = await prisma.agendaUser.findUnique({
+      where: { agendaId_userId: { agendaId, userId: targetUserId } }
+    });
+
+    const isOwner = agenda.ownerId === requestingUserId;
+    const requesterRole = isOwner ? 'OWNER' : requestingUserMembership?.role;
+
+    if (!requesterRole) {
+      return res.status(403).json({ error: 'Access denied', message: 'You are not a member of this agenda.' });
+    }
+    
+    // --- PERMISSION LOGIC ---
+    let canUpdate = false;
+
+    if (isOwner) {
+      // Owner can do almost anything
+      canUpdate = true;
+      if (agenda.type === 'EDUCATIVA') {
+        return res.status(403).json({ error: 'Permission denied', message: 'Roles cannot be changed in educational agendas.' });
+      }
+    } else if (agenda.type === 'LABORAL' && requesterRole === 'CHIEF') {
+      // A chief can only promote an employee to chief. They cannot manage other chiefs.
+      if (targetUserMembership?.role === 'EMPLOYEE') {
+        canUpdate = true;
+      }
+    }
+    
+    if (!canUpdate) {
+      return res.status(403).json({ error: 'Permission denied', message: 'You do not have permission to change this user\'s role.' });
+    }
+
+    // Update the role
+    const updatedAgendaUser = await prisma.agendaUser.update({
       where: {
         agendaId_userId: {
           agendaId,
-          userId
+          userId: targetUserId
         }
       },
-      data: { role },
+      data: { role: newRole },
       include: {
         user: {
           select: { id: true, name: true, email: true, avatar: true }
@@ -376,7 +423,7 @@ async function updateUserRole(req, res) {
 
     res.json({
       message: 'User role updated successfully',
-      agendaUser
+      agendaUser: updatedAgendaUser
     });
 
   } catch (error) {

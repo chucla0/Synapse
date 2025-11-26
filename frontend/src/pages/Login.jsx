@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '../utils/api';
 import { setAuthData } from '../utils/auth';
 import './Auth.css';
 
 function Login({ onLogin }) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -48,14 +50,14 @@ function Login({ onLogin }) {
 
   return (
     <div className="auth-container">
-      <div className="auth-card">
+      <div className="auth-card card">
         <div className="auth-header">
           <img 
             src="/synapse_logo.jpg" 
             alt="Synapse Logo" 
             className="auth-logo"
           />
-          <h1>Synapse Agenda</h1>
+          <h1>{t('loginTitle')}</h1>
           <p className="text-muted">Inicia sesión en tu cuenta</p>
         </div>
 
@@ -67,7 +69,7 @@ function Login({ onLogin }) {
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">{t('emailLabel')}</label>
             <input
               id="email"
               type="email"
@@ -82,7 +84,7 @@ function Login({ onLogin }) {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Contraseña</label>
+            <label htmlFor="password">{t('passwordLabel')}</label>
             <input
               id="password"
               type="password"
@@ -101,15 +103,15 @@ function Login({ onLogin }) {
             className="btn btn-primary btn-block"
             disabled={loading}
           >
-            {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+            {loading ? t('loggingIn') : t('loginButton')}
           </button>
         </form>
 
         <div className="auth-footer">
           <p className="text-muted text-sm">
-            ¿No tienes cuenta?{' '}
+            {t('noAccountPrompt')}{' '}
             <Link to="/register" className="link">
-              Regístrate
+              {t('registerLink')}
             </Link>
           </p>
         </div>

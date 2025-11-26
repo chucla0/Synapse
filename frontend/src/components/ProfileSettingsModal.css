@@ -1,0 +1,43 @@
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.avatar-upload-area {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.avatar-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border);
+  background-color: var(--bg-main);
+}
+
+.avatar-preview-default {
+  /* Ensure content is centered for default letter avatar */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  background: var(--accent);
+  color: white;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: var(--spacing-sm) 0;
+}
+
+.form-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: calc(-1 * var(--spacing-md));
+}

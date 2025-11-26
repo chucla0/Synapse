@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './components/Dashboard';
 import { getToken } from './utils/auth';
+import { DateFnsLocaleProvider } from './contexts/LocaleContext';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -31,24 +32,26 @@ function App() {
   }
 
   return (
-    <Routes>
-      <Route 
-        path="/login" 
-        element={!isAuthenticated ? <Login onLogin={() => setIsAuthenticated(true)} /> : <Navigate to="/dashboard" />} 
-      />
-      <Route 
-        path="/register" 
-        element={!isAuthenticated ? <Register onRegister={() => setIsAuthenticated(true)} /> : <Navigate to="/dashboard" />} 
-      />
-      <Route 
-        path="/dashboard/*" 
-        element={isAuthenticated ? <Dashboard onLogout={() => setIsAuthenticated(false)} /> : <Navigate to="/login" />} 
-      />
-      <Route 
-        path="/" 
-        element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} 
-      />
-    </Routes>
+    <DateFnsLocaleProvider>
+      <Routes>
+        <Route 
+          path="/login" 
+          element={!isAuthenticated ? <Login onLogin={() => setIsAuthenticated(true)} /> : <Navigate to="/dashboard" />} 
+        />
+        <Route 
+          path="/register" 
+          element={!isAuthenticated ? <Register onRegister={() => setIsAuthenticated(true)} /> : <Navigate to="/dashboard" />} 
+        />
+        <Route 
+          path="/dashboard/*" 
+          element={isAuthenticated ? <Dashboard onLogout={() => setIsAuthenticated(false)} /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/" 
+          element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} 
+        />
+      </Routes>
+    </DateFnsLocaleProvider>
   );
 }
 

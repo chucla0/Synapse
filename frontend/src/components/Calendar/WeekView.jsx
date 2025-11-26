@@ -1,8 +1,10 @@
 import { getWeekDays, formatTime, groupEventsByDay, isSameDay } from '../../utils/date';
 import { format } from 'date-fns';
+import { useDateFnsLocale } from '../../contexts/LocaleContext';
 import './WeekView.css';
 
 function WeekView({ date, events, agendaColor }) {
+  const locale = useDateFnsLocale();
   const weekDays = getWeekDays(date);
   const groupedEvents = groupEventsByDay(events);
 
@@ -14,10 +16,10 @@ function WeekView({ date, events, agendaColor }) {
           {weekDays.map(day => (
             <div key={day.toString()} className="week-day-header">
               <div className="day-name text-sm text-muted">
-                {format(day, 'EEE', { locale: { code: 'es' } })}
+                {format(day, 'EEE', { locale })}
               </div>
               <div className={`day-number ${isSameDay(day, new Date()) ? 'today' : ''}`}>
-                {format(day, 'd')}
+                {format(day, 'd', { locale })}
               </div>
             </div>
           ))}
@@ -28,7 +30,7 @@ function WeekView({ date, events, agendaColor }) {
         <div className="week-timeline">
           {Array.from({ length: 24 }, (_, hour) => (
             <div key={hour} className="timeline-hour">
-              {formatTime(new Date().setHours(hour, 0))}
+              {format(new Date().setHours(hour, 0), 'p', { locale })}
             </div>
           ))}
         </div>
@@ -63,7 +65,7 @@ function WeekView({ date, events, agendaColor }) {
                         height: `${Math.max(height, 20)}px`,
                         backgroundColor: event.color || agendaColor,
                       }}
-                      title={`${event.title}\n${formatTime(new Date(event.startTime))} - ${formatTime(new Date(event.endTime))}`}
+                      title={`${event.title}\n${format(new Date(event.startTime), 'p', { locale })} - ${format(new Date(event.endTime), 'p', { locale })}`}
                     >
                       <div className="event-title">{event.title}</div>
                     </div>

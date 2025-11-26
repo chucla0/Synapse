@@ -1,8 +1,10 @@
-import { getDayHours, formatTime, groupEventsByDay } from '../../utils/date';
+import { getDayHours, groupEventsByDay } from '../../utils/date';
 import { format } from 'date-fns';
+import { useDateFnsLocale } from '../../contexts/LocaleContext';
 import './DayView.css';
 
 function DayView({ date, events, agendaColor }) {
+  const locale = useDateFnsLocale();
   const hours = getDayHours();
   const dateKey = format(date, 'yyyy-MM-dd');
   const dayEvents = groupEventsByDay(events)[dateKey] || [];
@@ -11,11 +13,7 @@ function DayView({ date, events, agendaColor }) {
     <div className="day-view">
       <div className="day-header">
         <div className="day-title">
-          {date.toLocaleDateString('es-ES', { 
-            weekday: 'long', 
-            day: 'numeric', 
-            month: 'long' 
-          })}
+          {format(date, 'PPPP', { locale })}
         </div>
       </div>
 
@@ -23,7 +21,7 @@ function DayView({ date, events, agendaColor }) {
         <div className="day-timeline">
           {hours.map(hour => (
             <div key={hour} className="timeline-hour">
-              {formatTime(new Date().setHours(hour, 0))}
+              {format(new Date().setHours(hour, 0), 'p', { locale })}
             </div>
           ))}
         </div>
@@ -57,7 +55,7 @@ function DayView({ date, events, agendaColor }) {
               >
                 <div className="event-title">{event.title}</div>
                 <div className="event-time text-sm">
-                  {formatTime(new Date(event.startTime))} - {formatTime(new Date(event.endTime))}
+                  {format(new Date(event.startTime), 'p', { locale })} - {format(new Date(event.endTime), 'p', { locale })}
                 </div>
               </div>
             );

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { format } from 'date-fns';
 import api from '../../utils/api';
 import DayView from './DayView';
 import WeekView from './WeekView';
@@ -7,6 +9,7 @@ import MonthView from './MonthView';
 import YearView from './YearView';
 import CreateEventModal from '../CreateEventModal';
 import { addDays, addWeeks, addMonths } from '../../utils/date';
+import { useDateFnsLocale } from '../../contexts/LocaleContext';
 import './CalendarView.css';
 
 const VIEW_TYPES = {
@@ -17,6 +20,8 @@ const VIEW_TYPES = {
 };
 
 function CalendarView({ agenda }) {
+  const { t } = useTranslation();
+  const locale = useDateFnsLocale();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewType, setViewType] = useState(VIEW_TYPES.MONTH);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
@@ -80,7 +85,7 @@ function CalendarView({ agenda }) {
       <div className="calendar-header">
         <div className="calendar-controls">
           <button className="btn btn-secondary" onClick={handleToday}>
-            Hoy
+            {t('today')}
           </button>
           <div className="calendar-nav">
             <button className="btn btn-secondary nav-btn" onClick={handlePrevious}>
@@ -91,28 +96,27 @@ function CalendarView({ agenda }) {
             </button>
           </div>
           <h2 className="calendar-title">
-            {currentDate.toLocaleDateString('es-ES', { 
-              month: 'long', 
-              year: 'numeric' 
-            })}
+            {format(currentDate, 'LLLL yyyy', { locale })}
           </h2>
         </div>
 
-        <button 
-          className="btn btn-primary"
-          onClick={() => setShowCreateEvent(true)}
-        >
-          + Nuevo Evento
-        </button>
+        <div className="header-actions">
+          <button 
+            className="btn btn-primary"
+            onClick={() => setShowCreateEvent(true)}
+          >
+            {t('newEvent')}
+          </button>
+        </div>
 
         <div className="view-selector">
-          {Object.entries(VIEW_TYPES).map(([key, value]) => (
+          {Object.values(VIEW_TYPES).map((view) => (
             <button
-              key={value}
-              className={`view-btn ${viewType === value ? 'active' : ''}`}
-              onClick={() => setViewType(value)}
+              key={view}
+              className={`view-btn ${viewType === view ? 'active' : ''}`}
+              onClick={() => setViewType(view)}
             >
-              {key}
+              {t(`view${view.charAt(0).toUpperCase() + view.slice(1)}`)}
             </button>
           ))}
         </div>
@@ -122,7 +126,7 @@ function CalendarView({ agenda }) {
       <div className="calendar-content">
         {isLoading ? (
           <div className="calendar-loading">
-            Cargando eventos...
+            {t('loadingEvents')}
           </div>
         ) : (
           <>
