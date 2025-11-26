@@ -1,0 +1,78 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: synapse-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-synapse}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-synapse_password}
+      POSTGRES_DB: ${POSTGRES_DB:-synapse_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - synapse-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-synapse}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API (Node.js + Express + Prisma)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: synapse-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-synapse}:${POSTGRES_PASSWORD:-synapse_password}@postgres:5432/${POSTGRES_DB:-synapse_db}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - /app/prisma/migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - synapse-network
+    command: sh -c "npx prisma generate && npm run dev"
+
+  # Frontend (React + Vite)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: ${FRONTEND_TARGET:-development}
+    container_name: synapse-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - synapse-network
+    stdin_open: true
+    tty: true
+
+networks:
+  synapse-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

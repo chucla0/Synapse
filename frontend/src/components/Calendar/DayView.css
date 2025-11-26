@@ -1,0 +1,85 @@
+.day-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-dark);
+}
+
+.day-header {
+  padding: var(--spacing-lg);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.day-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.day-grid-container {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+}
+
+.day-timeline {
+  width: 80px;
+  flex-shrink: 0;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+}
+
+.timeline-hour {
+  height: 60px;
+  padding: var(--spacing-sm);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+}
+
+.day-grid {
+  flex: 1;
+  position: relative;
+  min-height: 1440px; /* 24 hours * 60px */
+}
+
+.day-hour-slot {
+  height: 60px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.day-event {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm);
+  color: white;
+  font-size: 0.875rem;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  z-index: 1;
+}
+
+.day-event:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-lg);
+  z-index: 2;
+}
+
+.event-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-time {
+  opacity: 0.9;
+}

@@ -1,0 +1,185 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum AgendaType {
+  PERSONAL
+  LABORAL
+  EDUCATIVA
+  FAMILIAR
+}
+
+enum AgendaRole {
+  OWNER
+  CHIEF
+  EMPLOYEE
+  PROFESSOR
+  STUDENT
+  VIEWER
+  EDITOR
+}
+
+enum EventStatus {
+  CONFIRMED
+  PENDING_APPROVAL
+  REJECTED
+  CANCELLED
+}
+
+enum NotificationType {
+  EVENT_APPROVAL_REQUEST
+  EVENT_APPROVED
+  EVENT_REJECTED
+  EVENT_STATUS_CHANGE
+  AGENDA_INVITATION
+  NEW_EVENT_NOTIFICATION
+  EVENT_REMINDER
+}
+
+// ============================================
+// MODELS
+// ============================================
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  ownedAgendas  Agenda[]       @relation("AgendaOwner")
+  agendaUsers   AgendaUser[]
+  events        Event[]
+  notifications Notification[]
+
+  @@map("users")
+}
+
+model Agenda {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  type        AgendaType @default(PERSONAL)
+  color       String     @default("#3B82F6") // Default blue color
+  timezone    String     @default("UTC")
+  ownerId     String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  owner       User         @relation("AgendaOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  agendaUsers AgendaUser[]
+  events      Event[]
+
+  @@index([ownerId])
+  @@map("agendas")
+}
+
+model AgendaUser {
+  id        String     @id @default(uuid())
+  agendaId  String
+  userId    String
+  role      AgendaRole @default(VIEWER)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations
+  agenda Agenda @relation(fields: [agendaId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([agendaId, userId])
+  @@index([agendaId])
+  @@index([userId])
+  @@map("agenda_users")
+}
+
+model Event {
+  id          String      @id @default(uuid())
+  title       String
+  description String?
+  location    String?
+  agendaId    String
+  creatorId   String
+  startTime   DateTime
+  endTime     DateTime
+  isAllDay    Boolean     @default(false)
+  status      EventStatus @default(CONFIRMED)
+
+  // Recurrence fields (iCalendar RRULE format)
+  isRecurring   Boolean  @default(false)
+  recurrenceRule String? // RRULE string
+  parentEventId String? // For recurring event instances
+
+  // Metadata
+  color       String?
+  isPrivate   Boolean  @default(false)
+  timezone    String   @default("UTC")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  approvedBy  String? // User ID who approved (for LABORAL agendas)
+  approvedAt  DateTime?
+
+  // Relations
+  agenda        Agenda        @relation(fields: [agendaId], references: [id], onDelete: Cascade)
+  creator       User          @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  parentEvent   Event?        @relation("RecurringEvents", fields: [parentEventId], references: [id], onDelete: Cascade)
+  childEvents   Event[]       @relation("RecurringEvents")
+  exceptions    Exception[]
+  notifications Notification[]
+
+  @@index([agendaId])
+  @@index([creatorId])
+  @@index([startTime])
+  @@index([endTime])
+  @@index([parentEventId])
+  @@map("events")
+}
+
+model Exception {
+  id              String   @id @default(uuid())
+  eventId         String
+  exceptionDate   DateTime // The date/time that should be excluded from recurrence
+  reason          String? // Optional reason for the exception
+  createdAt       DateTime @default(now())
+
+  // Relations
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@map("exceptions")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  eventId   String?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  // Relations
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event? @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([eventId])
+  @@index([isRead])
+  @@map("notifications")
+}

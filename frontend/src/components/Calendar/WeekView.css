@@ -1,0 +1,120 @@
+.week-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-dark);
+}
+
+.week-header {
+  display: flex;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.week-timeline-spacer {
+  width: 60px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+}
+
+.week-days-header {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.week-day-header {
+  padding: var(--spacing-md);
+  text-align: center;
+  border-left: 1px solid var(--border);
+}
+
+.day-name {
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.day-number {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: var(--spacing-xs);
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.day-number.today {
+  background: var(--primary);
+  color: white;
+}
+
+.week-grid-container {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+}
+
+.week-timeline {
+  width: 60px;
+  flex-shrink: 0;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+}
+
+.week-timeline .timeline-hour {
+  height: 40px;
+  padding: var(--spacing-xs);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+}
+
+.week-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  min-height: 960px; /* 24 hours * 40px */
+}
+
+.week-day-column {
+  position: relative;
+  border-left: 1px solid var(--border);
+}
+
+.week-hour-slot {
+  height: 40px;
+  border-bottom: 1px solid var(--border);
+}
+
+.week-event {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  color: white;
+  font-size: 0.75rem;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  z-index: 1;
+}
+
+.week-event:hover {
+  z-index: 2;
+  box-shadow: var(--shadow-md);
+}
+
+.week-event .event-title {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -1,0 +1,151 @@
+.month-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-md);
+  overflow: auto;
+}
+
+.month-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  overflow: hidden;
+}
+
+.month-weekday {
+  background: var(--bg-secondary);
+  padding: var(--spacing-md);
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.month-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  overflow: hidden;
+}
+
+.month-day {
+  background: var(--bg-secondary);
+  padding: var(--spacing-sm);
+  display: flex;
+  flex-direction: column;
+  min-height: 100px;
+  overflow: hidden;
+  transition: background var(--transition-fast);
+}
+
+.month-day:hover {
+  background: var(--bg-card);
+}
+
+.month-day.other-month {
+  opacity: 0.4;
+}
+
+.month-day.today {
+  background: rgba(99, 102, 241, 0.1);
+  border: 2px solid var(--primary);
+  margin: -1px;
+}
+
+.day-header {
+  margin-bottom: var(--spacing-xs);
+}
+
+.day-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.month-day.today .day-number {
+  background: var(--primary);
+  color: white;
+}
+
+.day-events {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.month-event {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  color: white;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.month-event:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-sm);
+}
+
+.event-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: white;
+  flex-shrink: 0;
+}
+
+.event-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.more-events {
+  padding: 2px 6px;
+  color: var(--text-muted);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.more-events:hover {
+  color: var(--primary-light);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .month-grid {
+    grid-template-rows: repeat(auto-fill, minmax(80px, 1fr));
+  }
+
+  .month-day {
+    min-height: 80px;
+  }
+
+  .month-event {
+    font-size: 0.7rem;
+  }
+}

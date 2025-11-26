@@ -1,0 +1,158 @@
+.year-view {
+  height: 100%;
+  overflow: auto;
+  padding: var(--spacing-lg);
+  background: var(--bg-dark);
+}
+
+.year-title {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.year-title h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.year-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.year-month {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  border: 1px solid var(--border);
+  transition: all var(--transition-fast);
+}
+
+.year-month:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary);
+}
+
+.year-month-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--border);
+}
+
+.month-name {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.month-event-count {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  background: var(--primary);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+}
+
+.year-month-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.year-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: var(--spacing-xs);
+}
+
+.year-weekday {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.year-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.year-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+  padding: 2px;
+}
+
+.year-day:hover {
+  background: var(--bg-dark);
+  transform: scale(1.1);
+  z-index: 1;
+}
+
+.year-day.other-month {
+  opacity: 0.3;
+}
+
+.year-day.today {
+  background: var(--primary);
+  color: white;
+  font-weight: 700;
+}
+
+.year-day.has-events {
+  font-weight: 600;
+}
+
+.year-day-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  margin-top: 2px;
+  position: absolute;
+  bottom: 2px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .year-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .year-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+  }
+
+  .year-month {
+    padding: var(--spacing-sm);
+  }
+
+  .year-title h2 {
+    font-size: 1.5rem;
+  }
+}
