@@ -1,4 +1,5 @@
 const prisma = require('../lib/prisma');
+const NotificationService = require('../services/notification.service.js');
 
 /**
  * Get all agendas for current user
@@ -186,7 +187,7 @@ async function updateAgenda(req, res) {
     const { agendaId } = req.params;
     const { name, description, color, timezone } = req.body;
 
-    const agenda = await prisma.agenda.update({
+    const updatedAgenda = await prisma.agenda.update({
       where: { id: agendaId },
       data: {
         ...(name && { name }),
@@ -197,13 +198,24 @@ async function updateAgenda(req, res) {
       include: {
         owner: {
           select: { id: true, name: true, email: true, avatar: true }
-        }
+        },
+        agendaUsers: true, // Include agendaUsers to send notifications
       }
     });
 
+    // Send notification to all agenda members (excluding the updater)
+    if (updatedAgenda.type !== 'PERSONAL') {
+      await NotificationService.createNotificationsForAgendaMembers({
+        agendaId: updatedAgenda.id,
+        senderId: req.user.id,
+        type: 'AGENDA_UPDATED',
+        excludeSender: true,
+      });
+    }
+
     res.json({
       message: 'Agenda updated successfully',
-      agenda
+      agenda: updatedAgenda
     });
 
   } catch (error) {
@@ -221,6 +233,32 @@ async function updateAgenda(req, res) {
 async function deleteAgenda(req, res) {
   try {
     const { agendaId } = req.params;
+
+    const agenda = await prisma.agenda.findUnique({
+      where: { id: agendaId },
+      include: {
+        agendaUsers: true, // Include agendaUsers to send notifications
+        owner: true,
+      },
+    });
+
+    if (!agenda) {
+      return res.status(404).json({
+        error: 'Agenda not found',
+        message: 'Agenda to delete not found',
+      });
+    }
+
+    // Send notification to all agenda members (excluding the deleter)
+    if (agenda.type !== 'PERSONAL') {
+      await NotificationService.createNotificationsForAgendaMembers({
+        agendaId: agenda.id,
+        senderId: req.user.id,
+        type: 'AGENDA_DELETED',
+        excludeSender: true,
+        data: { agendaName: agenda.name },
+      });
+    }
 
     await prisma.agenda.delete({
       where: { id: agendaId }
@@ -292,13 +330,11 @@ async function addUserToAgenda(req, res) {
     });
 
     // Create notification
-    await prisma.notification.create({
-      data: {
-        userId: user.id,
-        type: 'AGENDA_INVITATION',
-        title: 'Agenda Invitation',
-        message: `You have been invited to join an agenda`,
-      }
+    await NotificationService.createNotification({
+      recipientId: user.id,
+      senderId: req.user.id,
+      type: 'AGENDA_INVITE',
+      agendaId: agendaId,
     });
 
     res.status(201).json({
@@ -421,10 +457,22 @@ async function updateUserRole(req, res) {
       }
     });
 
+    // Create notification for any role change in a LABORAL agenda
+    if (agenda.type === 'LABORAL') {
+      await NotificationService.createNotification({
+        recipientId: targetUserId,
+        senderId: requestingUserId,
+        type: 'ROLE_CHANGED',
+        agendaId: agendaId,
+        data: { newRole: newRole },
+      });
+    }
+
     res.json({
       message: 'User role updated successfully',
       agendaUser: updatedAgendaUser
     });
+
 
   } catch (error) {
     console.error('Update user role error:', error);
@@ -432,6 +480,62 @@ async function updateUserRole(req, res) {
       error: 'Failed to update user role',
       message: 'Internal server error' 
     });
+  }
+}
+
+async function acceptInvitation(req, res) {
+  try {
+    const { notificationId } = req.body;
+    const userId = req.user.id;
+
+    const notification = await prisma.notification.findUnique({
+      where: { id: notificationId },
+    });
+
+    if (!notification || notification.recipientId !== userId || notification.type !== 'AGENDA_INVITE') {
+      return res.status(404).json({ error: 'Invitation not found' });
+    }
+
+    await prisma.agendaUser.create({
+      data: {
+        agendaId: notification.agendaId,
+        userId: userId,
+        role: 'VIEWER', // Default role for invitation
+      },
+    });
+
+    await prisma.notification.delete({
+      where: { id: notificationId },
+    });
+
+    res.json({ message: 'Invitation accepted successfully' });
+  } catch (error) {
+    console.error('Accept invitation error:', error);
+    res.status(500).json({ error: 'Failed to accept invitation' });
+  }
+}
+
+async function declineInvitation(req, res) {
+  try {
+    const { notificationId } = req.body;
+    const userId = req.user.id;
+
+    const notification = await prisma.notification.findUnique({
+      where: { id: notificationId },
+    });
+
+    if (!notification || notification.recipientId !== userId || notification.type !== 'AGENDA_INVITE') {
+      return res.status(404).json({ error: 'Invitation not found' });
+    }
+
+    await prisma.notification.delete({
+      where: { id: notificationId },
+    });
+
+    res.json({ message: 'Invitation declined successfully' });
+  } catch (error) {
+    console.error('Decline invitation error:', error);
+    res.status(500).json({ error: 'Failed to decline invitation' });
   }
 }
 
@@ -443,5 +547,7 @@ module.exports = {
   deleteAgenda,
   addUserToAgenda,
   removeUserFromAgenda,
-  updateUserRole
+  updateUserRole,
+  acceptInvitation,
+  declineInvitation,
 };

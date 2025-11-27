@@ -1,4 +1,5 @@
 const prisma = require('../lib/prisma');
+const NotificationService = require('../services/notification.service.js');
 
 /**
  * Get all events with filters
@@ -56,6 +57,9 @@ async function getAllEvents(req, res) {
         },
         creator: {
           select: { id: true, name: true, email: true, avatar: true }
+        },
+        _count: {
+          select: { attachments: true, links: true }
         }
       },
       orderBy: { startTime: 'asc' }
@@ -89,7 +93,9 @@ async function getEventById(req, res) {
         creator: {
           select: { id: true, name: true, email: true, avatar: true }
         },
-        exceptions: true
+        exceptions: true,
+        attachments: true,
+        links: true
       }
     });
 
@@ -146,7 +152,9 @@ async function createEvent(req, res) {
       recurrenceRule,
       color,
       isPrivate,
-      timezone
+      timezone,
+      attachments, // Array of { url, filename, mimeType, size }
+      links        // Array of { url, title, description, imageUrl }
     } = req.body;
 
     // Validate required fields
@@ -254,7 +262,13 @@ async function createEvent(req, res) {
         recurrenceRule,
         color,
         isPrivate: isPrivate || false,
-        timezone: timezone || 'UTC'
+        timezone: timezone || 'UTC',
+        attachments: {
+          create: attachments || []
+        },
+        links: {
+          create: links || []
+        }
       },
       include: {
         agenda: {
@@ -266,16 +280,13 @@ async function createEvent(req, res) {
       }
     });
 
-    // Create notification if event needs approval
-    if (eventStatus === 'PENDING_APPROVAL') {
-      await prisma.notification.create({
-        data: {
-          userId: agenda.ownerId,
-          type: 'EVENT_APPROVAL_REQUEST',
-          title: 'Event Approval Request',
-          message: `${req.user.name} created an event "${title}" that requires your approval`,
-          eventId: event.id
-        }
+    // Create notification for agenda members
+    if (agenda.type !== 'PERSONAL') {
+      await NotificationService.createNotificationsForAgendaMembers({
+        agendaId,
+        senderId: userId,
+        type: 'EVENT_CREATED',
+        eventId: event.id,
       });
     }
 
@@ -345,9 +356,58 @@ async function updateEvent(req, res) {
       }
     });
 
+    // Handle attachments and links updates if provided
+    if (updateData.attachments) {
+      // Delete existing and recreate (simple approach)
+      // In a real app, we might want to be smarter to avoid re-uploading or losing data
+      // But since attachments are just references to files, this updates the references.
+      // Ideally frontend sends "newAttachments" and we keep old ones, or sends full list.
+      // Let's assume frontend sends the FULL list of desired attachments.
+      
+      // Actually, for simplicity and safety, let's just ADD new ones if provided separate from existing?
+      // No, let's go with: if attachments is provided, we replace the list (delete all for this event, create new).
+      // WARN: This deletes DB records. Files remain in storage.
+      await prisma.attachment.deleteMany({ where: { eventId } });
+      if (updateData.attachments.length > 0) {
+        await prisma.attachment.createMany({
+          data: updateData.attachments.map(a => ({ ...a, eventId }))
+        });
+      }
+    }
+
+    if (updateData.links) {
+      await prisma.link.deleteMany({ where: { eventId } });
+      if (updateData.links.length > 0) {
+        await prisma.link.createMany({
+          data: updateData.links.map(l => ({ ...l, eventId }))
+        });
+      }
+    }
+    
+    // Refetch to get everything
+    const finalEvent = await prisma.event.findUnique({
+      where: { id: eventId },
+      include: {
+        agenda: { select: { id: true, name: true, color: true, type: true } },
+        creator: { select: { id: true, name: true, email: true, avatar: true } },
+        attachments: true,
+        links: true
+      }
+    });
+
+    // Create notification for agenda members
+    if (event.agenda.type !== 'PERSONAL') {
+      await NotificationService.createNotificationsForAgendaMembers({
+        agendaId: event.agendaId,
+        senderId: userId,
+        type: 'EVENT_UPDATED',
+        eventId: event.id,
+      });
+    }
+
     res.json({
       message: 'Event updated successfully',
-      event: updatedEvent
+      event: finalEvent
     });
 
   } catch (error) {
@@ -365,12 +425,18 @@ async function updateEvent(req, res) {
 async function deleteEvent(req, res) {
   try {
     const { eventId } = req.params;
-    const userId = req.user.id;
-
+    const userId = req.user.id; // Re-added userId declaration
     // Get event with agenda
     const event = await prisma.event.findUnique({
       where: { id: eventId },
-      include: { agenda: true }
+      include: { 
+        agenda: {
+          include: {
+            agendaUsers: true,
+            owner: true,
+          }
+        }
+      }
     });
 
     if (!event) {
@@ -390,6 +456,18 @@ async function deleteEvent(req, res) {
     await prisma.event.delete({
       where: { id: eventId }
     });
+
+    // Send notification to all agenda members (excluding the deleter)
+    if (event.agenda.type !== 'PERSONAL') {
+      await NotificationService.createNotificationsForAgendaMembers({
+        agendaId: event.agenda.id,
+        senderId: userId,
+        type: 'EVENT_DELETED',
+        eventId: null, // Set eventId to null as the event no longer exists
+        excludeSender: true,
+        data: { eventTitle: event.title, agendaName: event.agenda.name },
+      });
+    }
 
     res.json({
       message: 'Event deleted successfully'
@@ -466,13 +544,14 @@ async function approveEvent(req, res) {
     });
 
     // Notify creator
-    await prisma.notification.create({
+    await NotificationService.createNotification({
+      recipientId: event.creatorId,
+      senderId: userId,
+      type: 'EVENT_APPROVED',
+      eventId: event.id,
+      agendaId: event.agendaId,
       data: {
-        userId: event.creatorId,
-        type: 'EVENT_APPROVED',
-        title: 'Event Approved',
-        message: `Your event "${event.title}" has been approved`,
-        eventId: event.id
+        message: `Your event "${event.title}" has been approved`
       }
     });
 
@@ -543,13 +622,15 @@ async function rejectEvent(req, res) {
     });
 
     // Notify creator
-    await prisma.notification.create({
+    await NotificationService.createNotification({
+      recipientId: event.creatorId,
+      senderId: userId,
+      type: 'EVENT_REJECTED',
+      eventId: event.id,
+      agendaId: event.agendaId,
       data: {
-        userId: event.creatorId,
-        type: 'EVENT_REJECTED',
-        title: 'Event Rejected',
-        message: `Your event "${event.title}" has been rejected${reason ? `: ${reason}` : ''}`,
-        eventId: event.id
+        message: `Your event "${event.title}" has been rejected`,
+        reason: reason
       }
     });
 

@@ -1,0 +1,83 @@
+.home-view {
+  padding: var(--spacing-lg);
+}
+
+.home-header {
+  margin-bottom: var(--spacing-lg);
+}
+
+.home-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.home-content {
+  text-align: left;
+  padding: 0;
+}
+
+.notification-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notification-item {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.notification-item:hover {
+  background-color: var(--bg-hover);
+}
+
+.notification-item.unread {
+  background-color: var(--accent-light);
+  border-left: 3px solid var(--accent);
+}
+
+.notification-icon.user-avatar {
+  background: var(--bg-main); /* Fallback background for avatar */
+  border: 1px solid var(--border); /* Consistent border */
+  overflow: hidden; /* Ensure image fits */
+}
+
+.notification-icon.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.notification-icon.user-avatar .user-avatar-initials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem; /* Larger font for initials */
+  font-weight: 700;
+  color: white;
+  background: var(--accent); /* Accent color for initials background */
+}
+
+
+.notification-body {
+  flex: 1;
+}
+
+.notification-text {
+  margin: 0;
+  color: var(--text-main);
+}
+
+.notification-date {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}

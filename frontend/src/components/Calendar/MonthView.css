@@ -77,10 +77,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-main);
 }
@@ -164,4 +164,27 @@
     padding: 2px 4px;
     font-size: 0.7rem;
   }
+}
+
+.event-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+}
+
+.event-icons {
+  display: flex;
+  gap: 4px;
+  font-size: 0.7rem;
+  opacity: 0.9;
+}
+
+.event-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.3);
+  padding: 0 3px;
+  border-radius: 3px;
 }

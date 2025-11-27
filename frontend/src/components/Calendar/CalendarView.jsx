@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import api from '../../utils/api';
@@ -8,8 +8,12 @@ import WeekView from './WeekView';
 import MonthView from './MonthView';
 import YearView from './YearView';
 import CreateEventModal from '../CreateEventModal';
+import EventDetailsModal from '../EventDetailsModal';
+import ConfirmDeleteModal from '../ConfirmDeleteModal';
 import { addDays, addWeeks, addMonths } from '../../utils/date';
 import { useDateFnsLocale } from '../../contexts/LocaleContext';
+
+import { rrulestr } from 'rrule';
 import './CalendarView.css';
 
 const VIEW_TYPES = {
@@ -22,9 +26,37 @@ const VIEW_TYPES = {
 function CalendarView({ agenda }) {
   const { t } = useTranslation();
   const locale = useDateFnsLocale();
+  const queryClient = useQueryClient();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewType, setViewType] = useState(VIEW_TYPES.MONTH);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [editingEvent, setEditingEvent] = useState(null);
+  const [eventToDelete, setEventToDelete] = useState(null);
+
+  const deleteMutation = useMutation({
+    mutationFn: (eventId) => api.delete(`/events/${eventId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events', agenda.id] });
+      setSelectedEvent(null); // Close the main details modal as well
+    },
+  });
+
+  const handleDelete = (event) => {
+    setEventToDelete(event); // Open confirmation modal
+  };
+
+  const executeDelete = () => {
+    if (!eventToDelete) return;
+    const eventId = eventToDelete.originalEventId || eventToDelete.id;
+    deleteMutation.mutate(eventId, {
+      onSuccess: () => {
+        setEventToDelete(null); // Close confirmation modal
+        setSelectedEvent(null); // Close details modal
+        queryClient.invalidateQueries({ queryKey: ['events', agenda.id] });
+      }
+    });
+  };
 
   // Fetch events for current agenda
   const { data: eventsData, isLoading } = useQuery({
@@ -40,6 +72,66 @@ function CalendarView({ agenda }) {
   });
 
   const events = eventsData?.events || [];
+
+  // Expand recurring events
+  const expandedEvents = events.flatMap(event => {
+    if (!event.isRecurring || !event.recurrenceRule) {
+      return [event];
+    }
+
+    try {
+      const rule = rrulestr(event.recurrenceRule);
+      
+      // Calculate range for expansion (e.g., current view range +/- buffer)
+      // For simplicity, let's use a wide range or the current view's range
+      // Ideally, we should use the start/end of the current view (month/week/day)
+      let startRange = new Date(currentDate);
+      let endRange = new Date(currentDate);
+
+      if (viewType === VIEW_TYPES.MONTH) {
+        startRange = addMonths(startRange, -1);
+        endRange = addMonths(endRange, 2);
+      } else if (viewType === VIEW_TYPES.WEEK) {
+        startRange = addWeeks(startRange, -1);
+        endRange = addWeeks(endRange, 2);
+      } else if (viewType === VIEW_TYPES.DAY) {
+        startRange = addDays(startRange, -1);
+        endRange = addDays(endRange, 2);
+      } else {
+        startRange = addMonths(startRange, -6);
+        endRange = addMonths(endRange, 6);
+      }
+
+      // Get occurrences between startRange and endRange
+      const dates = rule.between(startRange, endRange);
+
+      return dates.map(date => {
+        // Calculate duration to set correct end time
+        const duration = new Date(event.endTime).getTime() - new Date(event.startTime).getTime();
+        const instanceStart = new Date(date);
+        // Adjust time if it's not all day (RRule might return 00:00 if not handled carefully, 
+        // but rrulestr usually preserves time from DTSTART if included, or we force it)
+        // Actually, RRule generates dates based on the rule. If DTSTART was in the rule, it respects it.
+        // But our rule string from CreateEventModal might not have DTSTART.
+        // So we manually set the time from the original event.
+        instanceStart.setHours(new Date(event.startTime).getHours());
+        instanceStart.setMinutes(new Date(event.startTime).getMinutes());
+        
+        const instanceEnd = new Date(instanceStart.getTime() + duration);
+
+        return {
+          ...event,
+          id: `${event.id}_${instanceStart.toISOString()}`, // Unique ID for instance
+          startTime: instanceStart.toISOString(),
+          endTime: instanceEnd.toISOString(),
+          originalEventId: event.id
+        };
+      });
+    } catch (e) {
+      console.error('Error parsing recurrence rule', e);
+      return [event];
+    }
+  });
 
   const handlePrevious = () => {
     switch (viewType) {
@@ -77,6 +169,17 @@ function CalendarView({ agenda }) {
 
   const handleToday = () => {
     setCurrentDate(new Date());
+  };
+
+  const handleEventClick = async (event) => {
+    // Fetch full event details including attachments/links
+    try {
+      const eventId = event.originalEventId || event.id;
+      const response = await api.get(`/events/${eventId}`);
+      setSelectedEvent(response.data.event);
+    } catch (error) {
+      console.error('Error fetching event details:', error);
+    }
   };
 
   return (
@@ -133,29 +236,33 @@ function CalendarView({ agenda }) {
             {viewType === VIEW_TYPES.DAY && (
               <DayView 
                 date={currentDate} 
-                events={events}
+                events={expandedEvents}
                 agendaColor={agenda.color}
+                onEventClick={handleEventClick}
               />
             )}
             {viewType === VIEW_TYPES.WEEK && (
               <WeekView 
                 date={currentDate} 
-                events={events}
+                events={expandedEvents}
                 agendaColor={agenda.color}
+                onEventClick={handleEventClick}
               />
             )}
             {viewType === VIEW_TYPES.MONTH && (
               <MonthView 
                 date={currentDate} 
-                events={events}
+                events={expandedEvents}
                 agendaColor={agenda.color}
+                onEventClick={handleEventClick}
               />
             )}
             {viewType === VIEW_TYPES.YEAR && (
               <YearView 
                 date={currentDate} 
-                events={events}
+                events={expandedEvents}
                 agendaColor={agenda.color}
+                onEventClick={handleEventClick}
               />
             )}
           </>
@@ -167,7 +274,45 @@ function CalendarView({ agenda }) {
         <CreateEventModal 
           agenda={agenda}
           initialDate={currentDate}
-          onClose={() => setShowCreateEvent(false)} 
+          event={editingEvent}
+          onClose={() => {
+            setShowCreateEvent(false);
+            setEditingEvent(null);
+          }} 
+        />
+      )}
+
+      {/* Event Details Modal */}
+      {selectedEvent && (
+        <EventDetailsModal
+          event={selectedEvent}
+          agenda={agenda}
+          onClose={() => setSelectedEvent(null)}
+          onEdit={(eventToEdit) => {
+            setSelectedEvent(null); // Close details
+            // If it's a recurring instance, we might want to edit the original or just this one.
+            // For now, let's assume we edit the original event data, but maybe pre-fill with instance data?
+            // The backend update usually updates the master event.
+            // Let's pass the full event object.
+            // We need to make sure we pass the original ID if it's an instance
+            const eventData = { ...eventToEdit, id: eventToEdit.originalEventId || eventToEdit.id };
+            // We'll reuse showCreateEvent but we need a way to pass the event data.
+            // Let's add a new state for 'editingEvent'
+            setEditingEvent(eventData);
+            setShowCreateEvent(true);
+          }}
+          onDelete={handleDelete}
+        />
+      )}
+
+      {eventToDelete && (
+        <ConfirmDeleteModal
+          message={t('confirmDeleteEvent', '¿Estás seguro de que quieres eliminar este evento?')}
+          onConfirm={executeDelete}
+          onCancel={() => setEventToDelete(null)}
+          isDeleting={deleteMutation.isPending}
+          confirmText={t('deleteButton', 'Eliminar')}
+          deletingText={t('deletingButton', 'Eliminando...')}
         />
       )}
     </div>

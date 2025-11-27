@@ -9,5 +9,6 @@ const { authenticateToken } = require('../middleware/auth');
  * This route is protected.
  */
 router.post('/avatar', authenticateToken, uploadController.uploadAvatar);
+router.post('/file', authenticateToken, uploadController.uploadAttachment);
 
 module.exports = router;

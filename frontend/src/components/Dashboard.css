@@ -7,10 +7,14 @@
 .sidebar {
   width: 280px;
   background: var(--bg-card);
-  border-right: 4px solid var(--border); /* Increased border width again */
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  transition: transform 0.3s ease-in-out;
+  transform: translateX(0);
+  z-index: 1000;
+  flex-shrink: 0;
 }
 
 .sidebar-header {
@@ -113,20 +117,118 @@
 
 .sidebar-nav {
   flex: 1;
-  padding: var(--spacing-lg);
   overflow-y: auto;
+  padding: 0 var(--spacing-md);
+}
+
+.main-nav-links {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-link {
+  background: none;
+  border: none;
+  padding: var(--spacing-md) 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  position: relative;
+  transition: color var(--transition-fast);
+}
+
+.nav-link:hover {
+  color: var(--text-main);
+}
+
+.nav-link.active {
+  color: var(--accent);
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--accent);
 }
 
 .nav-title {
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   margin-bottom: var(--spacing-md);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-size: 0.75rem;
   color: var(--text-muted);
+}
+
+.agenda-search-container {
+  display: flex;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+}
+
+.search-input {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.9rem;
+  transition: border-color var(--transition-fast);
+  min-width: 0; /* Prevent flex overflow */
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.sort-dropdown-container {
+  width: 80px; /* Fixed width for sort */
+}
+
+.sort-select {
+  width: 100%;
+  height: 100%;
+  padding: 0 var(--spacing-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.8rem;
+  cursor: pointer;
+  outline: none;
+}
+
+.sort-select:focus {
+  border-color: var(--accent);
+}
+
+.agenda-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.agenda-group-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: var(--spacing-sm);
+  padding-left: var(--spacing-xs);
 }
 
 .agenda-list {
   list-style: none;
+  padding: 0;
+  margin: 0;
   margin-bottom: var(--spacing-lg);
 }
 
@@ -139,7 +241,7 @@
   padding: 0;
   border-radius: var(--radius-md);
   transition: all var(--transition-fast);
-  margin-bottom: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
 }
 
 .agenda-item-main {
@@ -230,11 +332,145 @@
   width: 100%;
 }
 
+.custom-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.dropdown-toggle {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all var(--transition-fast);
+}
+
+.dropdown-toggle:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--accent);
+}
+
+.dropdown-arrow {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%; /* Change from bottom: 100% */
+  left: 0;
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card-hover);
+  list-style: none;
+  padding: var(--spacing-xs);
+  margin-top: var(--spacing-sm); /* Change from margin-bottom */
+  z-index: 100;
+  animation: slideDown 0.2s ease-out; /* Changed animation to slideDown */
+}
+
+@keyframes slideDown { /* New animation for sliding down */
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-item {
+  padding: var(--spacing-sm) var(--spacing-md);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.dropdown-item:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.dropdown-item.active {
+  color: #333;
+  font-weight: 600;
+}
+
+.dropdown-item-es.active {
+  background-color: var(--agenda-1);
+}
+
+.dropdown-item-en.active {
+  background-color: var(--agenda-2);
+}
+
+.dropdown-item-ca.active {
+  background-color: var(--agenda-3);
+}
+
+.dropdown-item-es:hover {
+  background-color: var(--agenda-1);
+  color: #333;
+}
+
+.dropdown-item-en:hover {
+  background-color: var(--agenda-2);
+  color: #333;
+}
+
+.dropdown-item-ca:hover {
+  background-color: var(--agenda-3);
+  color: #333;
+}
+
+.dashboard {
+  display: flex;
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+}
 
 .main-content {
-  flex: 1;
-  overflow: hidden;
+  flex-grow: 1;
+  overflow-y: auto;
   background: var(--bg-main);
+  transition: margin-left 0.3s ease-in-out;
+}
+
+.sidebar.collapsed {
+  transform: translateX(-100%);
+  position: absolute;
+}
+
+.btn-sidebar-toggle {
+  position: absolute;
+  top: 50%;
+  left: 280px;
+  transform: translateY(-50%);
+  z-index: 1001;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: none;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  padding: var(--spacing-sm) var(--spacing-xs);
+  width: 30px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  transition: left 0.3s ease-in-out, background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+}
+
+.sidebar.collapsed ~ .btn-sidebar-toggle {
+  left: 0;
 }
 
 .empty-state {
@@ -285,81 +521,4 @@
   color: var(--text-main);
 }
 
-/* Sidebar Overlay - FINALIZED */
-.sidebar {
-  position: fixed; /* Overlay on content */
-  top: 0;
-  left: 0;
-  height: 100vh;
-  z-index: 1000; /* Ensure it's above other content */
-  background: var(--bg-card); /* RESTORED */
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto; /* RESTORED */
-  width: 280px; /* Explicit width */
-  transform: translateX(0); /* Start visible */
-  transition: transform 0.3s ease-in-out;
-}
 
-.sidebar.collapsed {
-  transform: translateX(-100%); /* Corrected for smooth transition */
-  border-right: none;
-}
-
-/* Toggle Button - Rediseñado para la integración */
-.btn-sidebar-toggle {
-  position: fixed;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 1001; /* Above sidebar, below modal overlay */
-  
-  /* Appearance */
-  background-color: var(--bg-card); /* Match sidebar background */
-  border: 1px solid var(--border);
-  border-left: none; /* No left border to blend with sidebar */
-  border-radius: 0 var(--radius-md) var(--radius-md) 0; /* Rounded right side */
-  padding: var(--spacing-sm) var(--spacing-xs); /* Smaller padding */
-  width: 30px; /* Fixed width */
-  height: 60px; /* Taller height */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--text-muted); /* Softer color */
-  font-size: 1.2rem;
-  transition: left 0.3s ease-in-out, background-color 0.3s ease-in-out, color 0.3s ease-in-out;
-  
-  /* Positioning based on sidebar state */
-  left: 280px; /* Position when sidebar is open */
-}
-
-/* When sidebar is collapsed, button moves to left: 0 */
-.sidebar.collapsed + .btn-sidebar-toggle {
-  left: 0;
-  /* border-radius: var(--radius-md) 0 0 var(--radius-md); /* Removed to keep consistent shape */
-  border-right: 1px solid var(--border); /* Add right border back */
-  border-left: none; /* No left border */
-  color: var(--text-main); /* More prominent when collapsed */
-}
-
-.btn-sidebar-toggle:hover {
-  background-color: var(--accent);
-  filter: brightness(0.95);
-  color: #333333; /* Dark text for pastel background */
-}
-
-.btn-sidebar-toggle:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none; /* Disable click events */
-}
-
-/* Main Content should always take full width - FINALIZED */
-.main-content {
-  flex: 1;
-  overflow: hidden; /* Keep to prevent content overflow */
-  background: var(--bg-main);
-  position: relative; /* Keep for general positioning, if needed */
-  width: 100%; /* Ensure it takes full width */
-}

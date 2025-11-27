@@ -1,0 +1,8 @@
+.confirm-delete-modal {
+  max-width: 400px;
+}
+
+.confirm-delete-modal .modal-body {
+  padding: var(--spacing-lg) 0;
+  color: var(--text-secondary);
+}

@@ -1,0 +1,56 @@
+.checkbox-wrapper input[type="checkbox"] {
+  visibility: hidden;
+  display: none;
+}
+
+.checkbox-wrapper *,
+.checkbox-wrapper ::after,
+.checkbox-wrapper ::before {
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.checkbox-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.checkbox-wrapper .label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkbox-wrapper .check {
+  width: 50px;
+  height: 50px;
+  position: absolute;
+  opacity: 0;
+}
+
+.checkbox-wrapper .label svg {
+  vertical-align: middle;
+  width: 30px; /* Adjusted size for better fit */
+  height: 30px;
+}
+
+.checkbox-wrapper .path1 {
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  transition: .5s stroke-dashoffset;
+  opacity: 0;
+  stroke: var(--accent); /* Use current accent color */
+}
+
+.checkbox-wrapper input:checked + .label svg g path {
+  stroke-dashoffset: 0;
+  opacity: 1;
+}
+
+.checkbox-text {
+  font-size: 1rem;
+  color: var(--text-main);
+}

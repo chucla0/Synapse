@@ -209,7 +209,7 @@ Si encuentras algún problema:
 2. Verifica que los puertos estén libres: `lsof -i:3000` y `lsof -i:5173`
 3. Reconstruye desde cero: `docker compose down -v && docker compose up --build`
 
-**Email**: iizan.cruzz@gmail.com | a23izadelesp@inspedralbes.cat
+**Email**: iizan.cruzz@gmail.com
 
 ---
 

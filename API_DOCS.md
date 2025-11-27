@@ -770,6 +770,6 @@ curl -X POST http://localhost:3000/api/events \\
 
 ---
 
-**Última actualización**: Enero 2024  
+**Última actualización**: NOVIEMBRE 2025
 **Versión API**: v1  
-**Contacto**: a23izadelesp@inspedralbes.cat
+**Contacto**: iizan.cruz@gmail.com

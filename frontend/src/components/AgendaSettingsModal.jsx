@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import api from '../utils/api';
 import { getUser } from '../utils/auth';
+import ConfirmDeleteModal from './ConfirmDeleteModal';
 import './AgendaSettingsModal.css';
 
 const ROLES_BY_TYPE = {
@@ -20,6 +21,7 @@ function AgendaSettingsModal({ agenda, onClose }) {
   const [activeTab, setActiveTab] = useState('general');
   const [formData, setFormData] = useState({ name: agenda.name, description: agenda.description || '' });
   const [inviteEmail, setInviteEmail] = useState('');
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   
   const availableRoles = useMemo(() => ROLES_BY_TYPE[agenda.type] || [], [agenda.type]);
   const [inviteRole, setInviteRole] = useState(availableRoles[1] || availableRoles[0]); // Default to lesser role
@@ -69,9 +71,17 @@ function AgendaSettingsModal({ agenda, onClose }) {
   };
 
   const handleDelete = () => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar la agenda "${agenda.name}"? Esta acción es irreversible.`)) {
-      deleteAgendaMutation.mutate();
-    }
+    setShowConfirmDelete(true);
+  };
+
+  const executeDelete = () => {
+    deleteAgendaMutation.mutate(undefined, {
+      onSuccess: () => {
+        setShowConfirmDelete(false);
+        onClose();
+        queryClient.invalidateQueries({ queryKey: ['agendas'] });
+      }
+    });
   };
 
   const handleInvite = (e) => {
@@ -226,6 +236,17 @@ function AgendaSettingsModal({ agenda, onClose }) {
           )}
         </div>
       </div>
+
+      {showConfirmDelete && (
+        <ConfirmDeleteModal
+          message={t('confirmDeleteAgenda', { name: agenda.name })}
+          onConfirm={executeDelete}
+          onCancel={() => setShowConfirmDelete(false)}
+          isDeleting={deleteAgendaMutation.isPending}
+          confirmText={t('deleteButton', 'Eliminar')}
+          deletingText={t('deletingAgendaButton', 'Eliminando agenda...')}
+        />
+      )}
     </div>
   );
 }

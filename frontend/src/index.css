@@ -187,6 +187,31 @@ body {
   opacity: 0.7;
 }
 
+/* Date & Time Input Styling */
+input[type="date"],
+input[type="datetime-local"] {
+  font-family: 'Nunito', sans-serif;
+  color: var(--text-main);
+  cursor: text;
+}
+
+::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all var(--transition-fast);
+  padding: 4px;
+  border-radius: 4px;
+}
+
+::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  background-color: var(--bg-hover);
+  transform: scale(1.1);
+}
+
+/* Try to colorize the icon using filter (approximation for dark grey/accent) */
+/* This is tricky without SVG replacement, but we can make it look cleaner */
+
 /* Grid System */
 .grid {
   display: grid;

@@ -18,6 +18,112 @@
   gap: var(--spacing-lg);
 }
 
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+}
+
+/* Attachments */
+.file-upload-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.file-input {
+  display: none;
+}
+
+.attachments-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 0.5rem;
+}
+
+.attachment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f3f4f6;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.btn-icon-sm {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0 0.5rem;
+}
+
+/* Links */
+.link-input-container {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.links-list {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.link-preview-card {
+  display: flex;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.link-image {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+}
+
+.link-info {
+  padding: 0.5rem;
+  flex: 1;
+  overflow: hidden;
+}
+
+.link-title {
+  font-weight: bold;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.link-desc {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0.2rem 0;
+}
+
+.link-url {
+  font-size: 0.75rem;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.remove-link {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: rgba(255,255,255,0.8);
+  border-radius: 0 0 0 0.5rem;
+}
+
 .checkbox-group {
   display: flex;
   align-items: center;
@@ -73,4 +179,79 @@ input[type="datetime-local"]:disabled {
     height: 100vh;
     border-radius: 0;
   }
+}
+
+.recurrence-options {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+}
+
+.recurrence-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.days-selector {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.day-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.day-btn.active {
+  background: var(--accent);
+  color: #333;
+  border-color: var(--accent);
+}
+
+.day-btn:hover:not(.active) {
+  background: var(--bg-hover);
+}
+
+.color-options-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--spacing-sm);
+}
+
+.color-swatch-btn {
+  width: 30px; /* Reduced size */
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem; /* Smaller checkmark */
+  color: white;
+}
+
+.color-swatch-btn.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.color-swatch-btn:hover:not(.active) {
+  transform: scale(1.1);
 }

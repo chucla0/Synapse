@@ -68,4 +68,16 @@ router.put('/:agendaId/users/:userId/role',
   agendaController.updateUserRole
 );
 
+/**
+ * POST /api/agendas/invitations/accept
+ * Accept an agenda invitation
+ */
+router.post('/invitations/accept', agendaController.acceptInvitation);
+
+/**
+ * POST /api/agendas/invitations/decline
+ * Decline an agenda invitation
+ */
+router.post('/invitations/decline', agendaController.declineInvitation);
+
 module.exports = router;

@@ -521,5 +521,5 @@ Almacena la zona horaria original del creador para:
 
 ---
 
-**Última actualización**: Enero 2024  
+**Última actualización**: NOVIEMBRE 2025  
 **Mantenido por**: Synapse Team

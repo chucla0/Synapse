@@ -3,7 +3,7 @@ import { format, eachDayOfInterval, startOfWeek, endOfWeek } from 'date-fns';
 import { useDateFnsLocale } from '../../contexts/LocaleContext';
 import './MonthView.css';
 
-function MonthView({ date, events, agendaColor }) {
+function MonthView({ date, events, agendaColor, onEventClick }) {
   const locale = useDateFnsLocale();
   const monthDays = getMonthDays(date);
   const groupedEvents = groupEventsByDay(events);
@@ -48,10 +48,20 @@ function MonthView({ date, events, agendaColor }) {
                   <div
                     key={event.id}
                     className="month-event"
-                    style={{ backgroundColor: event.color || agendaColor }}
+                    style={{ backgroundColor: event.color || agendaColor, cursor: 'pointer' }}
                     title={`${event.title}\n${format(new Date(event.startTime), 'p', { locale })} - ${format(new Date(event.endTime), 'p', { locale })}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEventClick && onEventClick(event);
+                    }}
                   >
-                    <span className="event-title">{event.title}</span>
+                    <div className="event-content">
+                      <span className="event-title">{event.title}</span>
+                      <div className="event-icons">
+                        {event._count?.links > 0 && <span className="event-icon" title={`${event._count.links} enlaces`}>🔗 {event._count.links}</span>}
+                        {event._count?.attachments > 0 && <span className="event-icon" title={`${event._count.attachments} archivos`}>📎 {event._count.attachments}</span>}
+                      </div>
+                    </div>
                   </div>
                 ))}
                 {dayEvents.length > 3 && (

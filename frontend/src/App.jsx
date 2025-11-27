@@ -7,15 +7,24 @@ import { getToken } from './utils/auth';
 import { DateFnsLocaleProvider } from './contexts/LocaleContext';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!getToken());
+  const [sessionKey, setSessionKey] = useState(0); // Key to force re-mount
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is authenticated
-    const token = getToken();
-    setIsAuthenticated(!!token);
+    // This effect now simply handles the initial loading state
     setIsLoading(false);
   }, []);
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    setSessionKey(prev => prev + 1);
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setSessionKey(prev => prev + 1);
+  };
 
   if (isLoading) {
     return (
@@ -36,15 +45,15 @@ function App() {
       <Routes>
         <Route 
           path="/login" 
-          element={!isAuthenticated ? <Login onLogin={() => setIsAuthenticated(true)} /> : <Navigate to="/dashboard" />} 
+          element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />} 
         />
         <Route 
           path="/register" 
-          element={!isAuthenticated ? <Register onRegister={() => setIsAuthenticated(true)} /> : <Navigate to="/dashboard" />} 
+          element={!isAuthenticated ? <Register onRegister={handleLogin} /> : <Navigate to="/dashboard" />} 
         />
         <Route 
           path="/dashboard/*" 
-          element={isAuthenticated ? <Dashboard onLogout={() => setIsAuthenticated(false)} /> : <Navigate to="/login" />} 
+          element={isAuthenticated ? <Dashboard key={sessionKey} sessionKey={sessionKey} onLogout={handleLogout} /> : <Navigate to="/login" />} 
         />
         <Route 
           path="/" 

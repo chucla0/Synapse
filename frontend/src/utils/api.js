@@ -65,4 +65,13 @@ api.interceptors.response.use(
   }
 );
 
+// Add these functions to your api object or export them
+export const acceptInvitation = (notificationId) => {
+  return api.post('/agendas/invitations/accept', { notificationId });
+};
+
+export const declineInvitation = (notificationId) => {
+  return api.post('/agendas/invitations/decline', { notificationId });
+};
+
 export default api;

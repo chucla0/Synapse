@@ -47,6 +47,7 @@ const agendaRoutes = require('./routes/agenda.routes');
 const eventRoutes = require('./routes/event.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const uploadRoutes = require('./routes/upload.routes');
+const linkRoutes = require('./routes/link.routes');
 
 // Mount routes
 app.use('/api/auth', authRoutes);
@@ -54,6 +55,7 @@ app.use('/api/agendas', agendaRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/uploads', uploadRoutes);
+app.use('/api/links', linkRoutes);
 
 // ============================================
 // ERROR HANDLING

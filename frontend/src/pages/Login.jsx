@@ -1,122 +1,104 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '../utils/api';
 import { setAuthData } from '../utils/auth';
+import AuthLayout from '../components/AuthLayout';
 import './Auth.css';
 
 function Login({ onLogin }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const [error, setError] = useState(null);
+
+  const loginMutation = useMutation({
+    mutationFn: async (data) => {
+      const response = await api.post('/auth/login', data);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      const { tokens, user } = data;
+      setAuthData({
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        user,
+      });
+      onLogin();
+      navigate('/dashboard');
+    },
+    onError: (err) => {
+      setError(err.response?.data?.message || 'Error al iniciar sesión');
+    },
+  });
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setError('');
+    if (error) setError(null);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      const response = await api.post('/auth/login', formData);
-      const { tokens, user } = response.data;
-
-      // Save auth data
-      setAuthData({
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
-        user,
-      });
-
-      onLogin();
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Error al iniciar sesión');
-    } finally {
-      setLoading(false);
-    }
+    loginMutation.mutate(formData);
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card card">
-        <div className="auth-header">
-          <img 
-            src="/synapse_logo.jpg" 
-            alt="Synapse Logo" 
-            className="auth-logo"
+    <AuthLayout 
+      title={t('loginTitle')}
+      subtitle={t('welcomeSubtitle')}
+    >
+      <form className="auth-form" onSubmit={handleSubmit}>
+        {error && <div className="auth-error">{error}</div>}
+        
+        <div className="form-group">
+          <label htmlFor="email">{t('emailLabel')}</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            className="input"
+            placeholder="tu@email.com"
+            value={formData.email}
+            onChange={handleChange}
+            required
           />
-          <h1>{t('loginTitle')}</h1>
-          <p className="text-muted">Inicia sesión en tu cuenta</p>
         </div>
 
-        {error && (
-          <div className="alert alert-error">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="email">{t('emailLabel')}</label>
-            <input
-              id="email"
-              type="email"
-              name="email"
-              className="input"
-              placeholder="tu@email.com"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              autoComplete="email"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">{t('passwordLabel')}</label>
-            <input
-              id="password"
-              type="password"
-              name="password"
-              className="input"
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              autoComplete="current-password"
-            />
-          </div>
-
-          <button 
-            type="submit" 
-            className="btn btn-primary btn-block"
-            disabled={loading}
-          >
-            {loading ? t('loggingIn') : t('loginButton')}
-          </button>
-        </form>
-
-        <div className="auth-footer">
-          <p className="text-muted text-sm">
-            {t('noAccountPrompt')}{' '}
-            <Link to="/register" className="link">
-              {t('registerLink')}
-            </Link>
-          </p>
+        <div className="form-group">
+          <label htmlFor="password">{t('passwordLabel')}</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            className="input"
+            placeholder="••••••••"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
         </div>
-      </div>
-    </div>
+
+        <button 
+          type="submit" 
+          className="btn btn-primary btn-block btn-lg"
+          disabled={loginMutation.isPending}
+        >
+          {loginMutation.isPending ? t('loading') : t('loginButton')}
+        </button>
+
+        <div className="auth-footer-link">
+          {t('noAccountPrompt')} <Link to="/register">{t('registerLink')}</Link>
+        </div>
+      </form>
+    </AuthLayout>
   );
 }
 
