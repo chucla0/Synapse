@@ -278,8 +278,9 @@ docker-compose exec postgres psql -U synapse -d synapse_db
 
 ## 📚 Documentación
 
-- [**Arquitectura Detallada**](./ARCHITECTURE.md) - Decisiones de diseño y flujos de trabajo
-- [**Documentación de API**](./API_DOCS.md) - Endpoints, ejemplos y esquemas
+- [**Arquitectura Detallada**](./docs/ARCHITECTURE.md) - Decisiones de diseño y flujos de trabajo
+- [**Documentación de API**](./docs/API_DOCS.md) - Endpoints, ejemplos y esquemas
+- [**Guía de Testing**](./docs/TESTING.md) - Credenciales de prueba y flujos de verificación
 
 ### Endpoints Principales
 

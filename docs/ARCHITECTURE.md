@@ -424,6 +424,10 @@ Las notificaciones se generan automáticamente en los siguientes casos:
    - Destinatario: Usuario invitado
 5. **NEW_EVENT_NOTIFICATION**: Cuando se crea un nuevo evento
    - Destinatario: Todos los miembros de la agenda
+6. **EVENT_DELETED**: Cuando se elimina un evento
+   - Destinatario: Todos los miembros de la agenda (excepto quien elimina)
+7. **AGENDA_DELETED**: Cuando se elimina una agenda
+   - Destinatario: Todos los miembros de la agenda (excepto quien elimina)
 
 ### Flujo de Notificaciones
 
