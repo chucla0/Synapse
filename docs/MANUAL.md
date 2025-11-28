@@ -1,13 +1,5 @@
 # User Manual & Testing Guide
 
-## Test Credentials
-
-| Role         | Email               | Password      |
-| ------------ | ------------------- | ------------- |
-| **Chief**    | `chief@test.com`    | `password123` |
-| **Employee** | `employee@test.com` | `password123` |
-| User         | `user1@test.com`    | `password123` |
-
 ## Feature Guides
 
 ### 1. Laboral Agenda Workflow (Approval)

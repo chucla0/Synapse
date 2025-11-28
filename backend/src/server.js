@@ -42,12 +42,12 @@ app.get('/health', (req, res) => {
 });
 
 // Import routes
-const authRoutes = require('./routes/auth.routes');
-const agendaRoutes = require('./routes/agenda.routes');
-const eventRoutes = require('./routes/event.routes');
-const notificationRoutes = require('./routes/notification.routes');
-const uploadRoutes = require('./routes/upload.routes');
-const linkRoutes = require('./routes/link.routes');
+const authRoutes = require('./modules/auth/auth.routes');
+const agendaRoutes = require('./modules/agenda/agenda.routes');
+const eventRoutes = require('./modules/event/event.routes');
+const notificationRoutes = require('./modules/notification/notification.routes');
+const uploadRoutes = require('./modules/upload/upload.routes');
+const linkRoutes = require('./modules/link/link.routes');
 
 // Mount routes
 app.use('/api/auth', authRoutes);

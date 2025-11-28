@@ -1,8 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './components/Dashboard';
+import Login from './pages/Auth/Login';
+import Register from './pages/Auth/Register';
+import Dashboard from './pages/Dashboard/Dashboard';
 import { getToken } from './utils/auth';
 import { DateFnsLocaleProvider } from './contexts/LocaleContext';
 
