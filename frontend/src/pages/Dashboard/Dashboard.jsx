@@ -412,6 +412,7 @@ function Dashboard({ onLogout, sessionKey }) {
           <Home 
             sessionKey={sessionKey} 
             notifications={notifications} 
+            agendas={agendas}
             isLoading={notificationsLoading} 
             refetch={refetchNotifications}
           />

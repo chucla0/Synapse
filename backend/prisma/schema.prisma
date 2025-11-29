@@ -63,6 +63,8 @@ model User {
   avatar    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  isVerified Boolean @default(false)
+  verificationToken String?
 
   // Relations
   ownedAgendas       Agenda[]       @relation("AgendaOwner")

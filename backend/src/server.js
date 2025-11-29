@@ -58,6 +58,30 @@ app.use('/api/uploads', uploadRoutes);
 app.use('/api/links', linkRoutes);
 
 // ============================================
+// TEST ROUTES
+// ============================================
+
+const { sendEmail } = require('./utils/mailer');
+
+app.get('/api/test-email-config', async (req, res) => {
+  try {
+    // Send test email
+    await sendEmail(
+      'test@example.com', // Placeholder, or maybe use a real one if user provided? No, user said "pon un placeholder console.log o un email de prueba"
+      'Test Email Config',
+      '<p>This is a test email to verify SMTP configuration.</p>'
+    );
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      details: error
+    });
+  }
+});
+
+// ============================================
 // ERROR HANDLING
 // ============================================
 

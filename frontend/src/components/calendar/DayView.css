@@ -55,19 +55,19 @@
 
 .day-event {
   position: absolute;
-  left: 8px; /* Adjusted */
-  right: 8px; /* Adjusted */
-  border-radius: var(--radius-sm); /* Adjusted */
-  padding: var(--spacing-sm);
-  color: var(--event-text); /* Changed */
-  background-color: var(--event-bg-3); /* Changed */
-  font-size: 0.875rem;
+  left: 2px;
+  right: 2px;
+  border-radius: 0 4px 4px 0;
+  padding: 4px 8px;
+  color: var(--text-main);
+  border-left-width: 4px;
+  border-left-style: solid;
+  font-size: 0.75rem;
   overflow: hidden;
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   cursor: pointer;
   transition: all var(--transition-fast);
-  z-index: 1;
-  border: 1px solid transparent; /* Added */
+  z-index: 10;
 }
 
 .day-event:hover {

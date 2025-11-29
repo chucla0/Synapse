@@ -1,15 +1,25 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowDown, User, Briefcase, PartyPopper, GraduationCap } from 'lucide-react';
+import { ArrowDown, User, Briefcase, PartyPopper, GraduationCap, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 import '../pages/Auth/Auth.css';
 
 const AuthLayout = ({ children, title, subtitle }) => {
   const { t, i18n } = useTranslation();
+  const { theme, setTheme } = useTheme();
 
   return (
     <div className="auth-layout">
       {/* Floating Language Switcher */}
       <div className="auth-language-switcher">
+        <button 
+          className="theme-toggle-btn"
+          onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+          title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+        >
+          {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+        </button>
+        <div className="divider-vertical"></div>
         <button 
           className={`lang-btn lang-btn-es ${i18n.language === 'es' ? 'active' : ''}`} 
           onClick={() => i18n.changeLanguage('es')}

@@ -34,9 +34,10 @@
 .filter-pills {
   display: flex;
   gap: 0.5rem;
-  background: var(--bg-secondary);
+  background: var(--bg-card);
   padding: 0.25rem;
   border-radius: 20px;
+  border: 1px solid var(--border);
 }
 
 .filter-pill {
@@ -71,10 +72,10 @@
 .dropdown-toggle {
   width: 100%;
   padding: 0.5rem 1rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
+  background-color: var(--bg-card);
+  color: var(--text-main);
   font-size: 0.9rem;
   cursor: pointer;
   display: flex;
@@ -84,7 +85,7 @@
 }
 
 .dropdown-toggle:hover {
-  background-color: var(--hover-color, rgba(0, 0, 0, 0.05));
+  background-color: var(--bg-hover);
 }
 
 .dropdown-arrow {
@@ -99,10 +100,10 @@
   right: 0; /* Align right for this specific dropdown if needed, or left */
   left: 0;
   width: 100%;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-card-hover);
   list-style: none;
   padding: 0.25rem;
   margin-top: 0.5rem;
@@ -121,8 +122,8 @@
 }
 
 .dropdown-item:hover {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
+  background-color: var(--bg-hover);
+  color: var(--text-main);
 }
 
 .dropdown-item.active {
@@ -141,7 +142,7 @@
 .home-header h1 {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--text-main);
 }
 
 .notifications-list {
@@ -155,23 +156,24 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  background: var(--bg-secondary);
+  background: var(--bg-card);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1px solid transparent;
+  border: 1px solid var(--border);
   position: relative;
 }
 
 .notification-card:hover {
-  background-color: var(--hover-color, rgba(0, 0, 0, 0.05));
+  background-color: var(--bg-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .notification-card.unread {
-  background: var(--bg-primary);
-  border-color: var(--border-color);
+  background: var(--bg-main);
+  border-color: var(--accent);
+  border-width: 1px;
 }
 
 .notification-content {
@@ -209,7 +211,7 @@
 
 .notification-message {
   margin: 0;
-  color: var(--text-primary);
+  color: var(--text-main);
   font-size: 0.95rem;
   line-height: 1.4;
 }
@@ -257,10 +259,10 @@
   position: absolute;
   top: 100%;
   right: 0;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-card-hover);
   z-index: 10;
   min-width: 160px;
   overflow: hidden;
@@ -273,14 +275,14 @@
   padding: 0.75rem 1rem;
   background: none;
   border: none;
-  color: var(--text-primary);
+  color: var(--text-main);
   cursor: pointer;
   font-size: 0.9rem;
   transition: background 0.2s;
 }
 
 .menu-dropdown button:hover {
-  background: var(--bg-secondary);
+  background: var(--bg-hover);
 }
 
 .menu-dropdown button.text-danger {

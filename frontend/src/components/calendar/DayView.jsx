@@ -1,6 +1,7 @@
 import { getDayHours, groupEventsByDay, calculateEventLayout } from '../../utils/date';
 import { format } from 'date-fns';
 import { useDateFnsLocale } from '../../contexts/LocaleContext';
+import { hexToRgba } from '../../utils/colors';
 import './DayView.css';
 
 function DayView({ date, events, agendaColor, onEventClick }) {
@@ -42,7 +43,8 @@ function DayView({ date, events, agendaColor, onEventClick }) {
               style={{
                 ...event.style,
                 height: `${Math.max(parseFloat(event.style.height), 20)}px`,
-                backgroundColor: event.color || event.agenda?.color || agendaColor,
+                backgroundColor: hexToRgba(event.color || event.agenda?.color || agendaColor, 'var(--event-bg-opacity)'),
+                borderLeftColor: event.color || event.agenda?.color || agendaColor,
                 cursor: 'pointer'
               }}
               onClick={(e) => {

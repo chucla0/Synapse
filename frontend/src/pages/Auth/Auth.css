@@ -5,6 +5,7 @@
   width: 100vw;
   overflow: hidden;
   background-color: var(--bg-main);
+  transition: background-color 0.3s ease;
 }
 
 /* Left Side - Form (1/4) */
@@ -19,6 +20,7 @@
   position: relative;
   z-index: 10;
   border-right: 1px solid var(--border);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 @media (min-width: 1024px) {
@@ -64,6 +66,12 @@
   background: linear-gradient(135deg, #FFF5F5 0%, #F0F9FF 50%, #FDF4FF 100%);
   position: relative;
   overflow: hidden;
+  transition: background 0.3s ease;
+}
+
+/* Dark Mode Override for Right Side - Solid Color */
+.dark-theme .auth-right {
+  background: #0f172a; /* Solid Dark Blue/Gray */
 }
 
 @media (min-width: 1024px) {
@@ -89,6 +97,10 @@
 .presentation-scroll-container::-webkit-scrollbar-thumb {
   background-color: rgba(0,0,0,0.1);
   border-radius: 4px;
+}
+
+.dark-theme .presentation-scroll-container::-webkit-scrollbar-thumb {
+  background-color: rgba(255,255,255,0.1);
 }
 
 /* Sections */
@@ -120,11 +132,21 @@
   filter: drop-shadow(0 10px 20px rgba(0,0,0,0.05));
 }
 
+.dark-theme .big-title {
+  /* Keep gradient but maybe adjust drop shadow or colors if needed */
+  /* For solid look request, we can make it solid or keep gradient as it pops on dark */
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+}
+
 .hero-subtitle {
   font-size: 2rem;
   color: #555;
   margin-top: 1rem;
   font-weight: 300;
+}
+
+.dark-theme .hero-subtitle {
+  color: var(--text-secondary);
 }
 
 .scroll-indicator {
@@ -134,6 +156,10 @@
   align-items: center;
   color: #888;
   animation: bounce 2s infinite;
+}
+
+.dark-theme .scroll-indicator {
+  color: var(--text-muted);
 }
 
 .arrow-down {
@@ -159,10 +185,18 @@
   color: #333;
 }
 
+.dark-theme .intro-section h2 {
+  color: var(--text-main);
+}
+
 .intro-section p {
   font-size: 1.5rem;
   line-height: 1.6;
   color: #666;
+}
+
+.dark-theme .intro-section p {
+  color: var(--text-secondary);
 }
 
 /* Agenda Showcase */
@@ -171,6 +205,10 @@
   text-align: center;
   margin-bottom: 4rem;
   color: #333;
+}
+
+.dark-theme .agendas-section h2 {
+  color: var(--text-main);
 }
 
 .agenda-showcase {
@@ -185,13 +223,23 @@
   background: rgba(255,255,255,0.6);
   padding: 2rem;
   border-radius: 1.5rem;
-  transition: transform 0.3s;
+  transition: transform 0.3s, background-color 0.3s;
+}
+
+.dark-theme .showcase-item {
+  background: var(--bg-card); /* Solid dark card */
+  border: 1px solid var(--border);
 }
 
 .showcase-item:hover {
   transform: translateY(-5px);
   background: rgba(255,255,255,0.9);
   box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.dark-theme .showcase-item:hover {
+  background: var(--bg-hover);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
 .icon-box {
@@ -206,6 +254,10 @@
   box-shadow: 0 5px 15px rgba(0,0,0,0.05);
 }
 
+.dark-theme .icon-box {
+  background: var(--bg-hover); /* Slightly lighter than card */
+}
+
 .icon-box.personal { color: #FFC3A0; }
 .icon-box.work { color: #A0CFFF; }
 .icon-box.social { color: #FCA5A5; }
@@ -217,10 +269,18 @@
   color: #333;
 }
 
+.dark-theme .text-box h3 {
+  color: var(--text-main);
+}
+
 .text-box p {
   font-size: 1.1rem;
   color: #666;
   line-height: 1.6;
+}
+
+.dark-theme .text-box p {
+  color: var(--text-secondary);
 }
 
 /* Design Section */
@@ -231,6 +291,7 @@
 .design-section h2 {
   font-size: 3rem;
   margin-bottom: 3rem;
+  color: var(--text-black);
 }
 
 .design-grid {
@@ -244,11 +305,22 @@
   padding: 3rem;
   border-radius: 2rem;
   box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  transition: background-color 0.3s;
+}
+
+.dark-theme .design-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
 }
 
 .design-card h3 {
   font-size: 1.5rem;
   margin-bottom: 1rem;
+  color: var(--text-main);
+}
+
+.design-card p {
+    color: var(--text-secondary);
 }
 
 /* Future Section */
@@ -260,6 +332,14 @@
   border-radius: 2rem;
   position: relative;
   overflow: hidden;
+}
+
+.dark-theme .future-section {
+    /* Keep gradient or make it a solid accent color? 
+       User asked for solid colors, but this is a specific "feature" section.
+       Let's keep it but maybe darken it or make it solid dark purple.
+    */
+    background: #4c1d95; /* Solid dark purple */
 }
 
 .future-badge {
@@ -296,6 +376,11 @@
 .security-section h2 {
   font-size: 2rem;
   margin-bottom: 1.5rem;
+  color: var(--text-black);
+}
+
+.security-section p {
+    color: var(--text-secondary);
 }
 
 .presentation-footer-scroll {
@@ -305,6 +390,10 @@
   font-size: 0.9rem;
 }
 
+.dark-theme .presentation-footer-scroll {
+  color: var(--text-muted);
+}
+
 /* Background Shapes */
 .bg-shape {
   position: absolute;
@@ -312,6 +401,10 @@
   filter: blur(80px);
   z-index: 1;
   opacity: 0.5;
+}
+
+.dark-theme .bg-shape {
+  opacity: 0.15; /* Much more subtle in dark mode */
 }
 
 .shape-1 {
@@ -336,8 +429,35 @@
   top: 2rem;
   right: 2rem;
   display: flex;
+  align-items: center;
   gap: 0.5rem;
   z-index: 100;
+}
+
+.divider-vertical {
+    width: 1px;
+    height: 20px;
+    background-color: var(--border);
+    margin: 0 0.5rem;
+}
+
+.theme-toggle-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.theme-toggle-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
 }
 
 .language-switcher {
@@ -367,6 +487,10 @@
 .lang-btn.active {
   color: #333;
   border-color: transparent;
+}
+
+.dark-theme .lang-btn.active {
+    color: #000; /* Ensure active language is readable on colored bg */
 }
 
 .lang-btn-es.active {
@@ -410,10 +534,18 @@
   font-size: 1.8rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
+  color: var(--text-main);
 }
 
 .auth-form .form-group {
   margin-bottom: 1.25rem;
+}
+
+.auth-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-secondary);
 }
 
 .auth-form .input {
@@ -421,12 +553,13 @@
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   border: 1px solid var(--border);
-  background-color: #F9FAFB;
+  background-color: var(--bg-hover); /* Slightly distinct from main bg */
   transition: all 0.2s;
+  color: var(--text-main);
 }
 
 .auth-form .input:focus {
-  background-color: #fff;
+  background-color: var(--bg-main);
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-light);
 }
@@ -435,12 +568,18 @@
   margin-top: 2rem;
   text-align: center;
   font-size: 0.9rem;
+  color: var(--text-muted);
 }
 
 .link {
-  color: var(--accent-hover);
+  color: var(--accent); /* Use accent color */
   font-weight: 700;
   text-decoration: none;
+}
+
+.link:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
 }
 
 .btn-block {
@@ -463,6 +602,7 @@
   color: #333;
   border: none;
   transition: all 0.3s ease;
+  font-weight: 700;
 }
 
 .auth-form .btn-primary:hover:not(:disabled) {

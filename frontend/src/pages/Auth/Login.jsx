@@ -94,8 +94,10 @@ function Login({ onLogin }) {
           {loginMutation.isPending ? t('loading') : t('loginButton')}
         </button>
 
-        <div className="auth-footer-link">
-          {t('noAccountPrompt')} <Link to="/register">{t('registerLink')}</Link>
+        <div className="auth-footer">
+          <p className="text-muted text-sm">
+            {t('noAccountPrompt')} <Link to="/register" className="link">{t('registerLink')}</Link>
+          </p>
         </div>
       </form>
     </AuthLayout>

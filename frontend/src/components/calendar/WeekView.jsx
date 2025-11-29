@@ -1,7 +1,66 @@
 import { getWeekDays, formatTime, groupEventsByDay, isSameDay, calculateEventLayout } from '../../utils/date';
 import { format } from 'date-fns';
 import { useDateFnsLocale } from '../../contexts/LocaleContext';
+import { hexToRgba } from '../../utils/colors';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
 import './WeekView.css';
+
+const DraggableWeekEvent = ({ event, agendaColor, onEventClick, locale }) => {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: event.id,
+    data: event,
+  });
+
+  const baseColor = event.color || event.agenda?.color || agendaColor;
+  
+  const style = {
+    ...event.style,
+    height: `${Math.max(parseFloat(event.style.height), 20)}px`,
+    backgroundColor: hexToRgba(baseColor, 'var(--event-bg-opacity)'),
+    borderLeftColor: baseColor,
+    cursor: 'grab',
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    zIndex: isDragging ? 100 : 10,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`week-event ${event.status === 'PENDING_APPROVAL' ? 'pending-approval' : ''}`}
+      style={style}
+      title={`${event.title}\n${format(new Date(event.startTime), 'p', { locale })} - ${format(new Date(event.endTime), 'p', { locale })}`}
+      {...listeners}
+      {...attributes}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (!isDragging) onEventClick && onEventClick(event);
+      }}
+    >
+      <div className="event-title">{event.title}</div>
+      <div className="event-time">
+        {format(new Date(event.startTime), 'p', { locale })}
+      </div>
+    </div>
+  );
+};
+
+const DroppableWeekSlot = ({ day, hour, children }) => {
+  const dateStr = format(day, 'yyyy-MM-dd');
+  const timeStr = `${hour.toString().padStart(2, '0')}:00`;
+  const { setNodeRef, isOver } = useDroppable({
+    id: `slot_${dateStr}_${timeStr}`,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`week-hour-slot ${isOver ? 'drag-over' : ''}`}
+    >
+      {children}
+    </div>
+  );
+};
 
 function WeekView({ date, events, agendaColor, onEventClick }) {
   const locale = useDateFnsLocale();
@@ -46,30 +105,18 @@ function WeekView({ date, events, agendaColor, onEventClick }) {
               return (
                 <div key={day.toString()} className="week-day-column">
                   {Array.from({ length: 24 }, (_, hour) => (
-                    <div key={hour} className="week-hour-slot" />
+                    <DroppableWeekSlot key={hour} day={day} hour={hour} />
                   ))}
 
                   {/* Render events */}
                   {positionedEvents.map(event => (
-                    <div
+                    <DraggableWeekEvent
                       key={event.id}
-                      className={`week-event ${event.status === 'PENDING_APPROVAL' ? 'pending-approval' : ''}`}
-                      style={{
-                        ...event.style,
-                        height: `${Math.max(parseFloat(event.style.height), 20)}px`,
-                        backgroundColor: event.color || event.agenda?.color || agendaColor,
-                      }}
-                      title={`${event.title}\n${format(new Date(event.startTime), 'p', { locale })} - ${format(new Date(event.endTime), 'p', { locale })}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEventClick && onEventClick(event);
-                      }}
-                    >
-                      <div className="event-title">{event.title}</div>
-                      <div className="event-time">
-                        {format(new Date(event.startTime), 'p', { locale })}
-                      </div>
-                    </div>
+                      event={event}
+                      agendaColor={agendaColor}
+                      onEventClick={onEventClick}
+                      locale={locale}
+                    />
                   ))}
                 </div>
               );

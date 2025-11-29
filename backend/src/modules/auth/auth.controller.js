@@ -3,6 +3,8 @@ const prisma = require('../../lib/prisma');
 const authService = require('./auth.service');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const { sendEmail } = require('../../utils/mailer');
 
 /**
  * Login controller
@@ -104,23 +106,31 @@ async function register(req, res) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
+    const verificationToken = crypto.randomUUID();
+    
     const user = await authService.createUser(prisma, {
       email,
       password: hashedPassword,
       name,
+      verificationToken,
+      isVerified: false
     });
 
-    // Generate tokens
-    const accessToken = authService.generateAccessToken(user.id);
-    const refreshToken = authService.generateRefreshToken(user.id);
+    // Send verification email
+    const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify?token=${verificationToken}`;
+    
+    await sendEmail(
+      email,
+      'Verify your email',
+      `<p>Please click the following link to verify your email:</p><a href="${verificationLink}">${verificationLink}</a>`
+    );
 
     res.status(201).json({
-      message: 'Registration successful',
-      user,
-      tokens: {
-        accessToken,
-        refreshToken,
-        expiresIn: process.env.JWT_EXPIRES_IN || '24h'
+      message: 'Registration successful. Please check your email to verify your account.',
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name
       }
     });
 
@@ -291,10 +301,68 @@ async function updateProfile(req, res) {
   }
 }
 
+/**
+ * Verify email controller
+ */
+async function verify(req, res) {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        error: 'Validation error',
+        message: 'Token is required'
+      });
+    }
+
+    // Find user with this token
+    const user = await prisma.user.findFirst({
+      where: { verificationToken: token }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        error: 'Verification failed',
+        message: 'Invalid or expired token'
+      });
+    }
+
+    // Update user
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isVerified: true,
+        verificationToken: null
+      }
+    });
+
+    // Generate tokens for immediate login
+    const accessToken = authService.generateAccessToken(user.id);
+    const refreshToken = authService.generateRefreshToken(user.id);
+
+    res.json({
+      message: 'Email verified successfully',
+      tokens: {
+        accessToken,
+        refreshToken,
+        expiresIn: process.env.JWT_EXPIRES_IN || '24h'
+      }
+    });
+
+  } catch (error) {
+    console.error('Verification error:', error);
+    res.status(500).json({
+      error: 'Verification failed',
+      message: 'Internal server error'
+    });
+  }
+}
+
 module.exports = {
   login,
   register,
   refreshToken,
   getProfile,
-  updateProfile
+  updateProfile,
+  verify
 };

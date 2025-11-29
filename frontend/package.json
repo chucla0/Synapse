@@ -17,6 +17,7 @@
   "author": "iizan.cruzz@gmail.com",
   "license": "MIT",
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
     "@tanstack/react-query": "^5.13.4",
     "axios": "^1.6.2",
     "date-fns": "^3.0.0",

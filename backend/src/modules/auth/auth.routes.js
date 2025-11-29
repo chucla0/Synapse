@@ -16,6 +16,12 @@ router.post('/login', authController.login);
 router.post('/register', authController.register);
 
 /**
+ * POST /api/auth/verify
+ * Verify email with token
+ */
+router.post('/verify', authController.verify);
+
+/**
  * POST /api/auth/refresh
  * Refresh access token using refresh token
  */

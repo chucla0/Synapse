@@ -468,31 +468,43 @@ async function updateEvent(req, res) {
     const isCreator = event.creatorId === userId;
     const isAgendaOwner = event.agenda.ownerId === userId;
     
+    console.log(`[UpdateEvent] User: ${userId}, Event: ${eventId}`);
+    console.log(`[UpdateEvent] AgendaOwner: ${event.agenda.ownerId}, IsOwner: ${isAgendaOwner}`);
+    console.log(`[UpdateEvent] Creator: ${event.creatorId}, IsCreator: ${isCreator}`);
+    
     if (isAgendaOwner) {
       // Owner can always update
+      console.log('[UpdateEvent] Allowed: User is agenda owner');
     } else {
       // Check role-based permissions
       const agendaUser = await prisma.agendaUser.findUnique({
         where: { agendaId_userId: { agendaId: event.agendaId, userId } }
       });
       const userRole = agendaUser?.role;
+      console.log(`[UpdateEvent] UserRole: ${userRole}, AgendaType: ${event.agenda.type}`);
 
       if (!userRole) {
-        return res.status(403).json({ error: 'Permission denied', message: 'You are not a member of this agenda' });
+        console.log('[UpdateEvent] Denied: No role in agenda');
+        return res.status(403).json({ error: 'Permission denied', message: 'You are not a member of this agenda', debug: 'No role found' });
       }
 
       const agendaType = event.agenda.type;
 
       if (agendaType === 'PERSONAL') {
         // Should be owner only (handled above), but if shared? Personal usually not shared.
-        if (!isCreator) return res.status(403).json({ error: 'Permission denied' });
+        if (!isCreator) {
+             console.log('[UpdateEvent] Denied: Personal agenda, not creator');
+             return res.status(403).json({ error: 'Permission denied', message: 'Only the creator can update events in this personal agenda', debug: 'Personal agenda, not creator' });
+        }
       } else if (agendaType === 'COLABORATIVA') {
         // Editors can only update their own events
         if (userRole === 'EDITOR' && !isCreator) {
-          return res.status(403).json({ error: 'Permission denied', message: 'Editors can only update their own events' });
+          console.log('[UpdateEvent] Denied: Collaborative editor, not creator');
+          return res.status(403).json({ error: 'Permission denied', message: 'Editors can only update their own events', debug: 'Collaborative editor, not creator' });
         }
         if (userRole === 'VIEWER') {
-          return res.status(403).json({ error: 'Permission denied', message: 'Viewers cannot update events' });
+          console.log('[UpdateEvent] Denied: Collaborative viewer');
+          return res.status(403).json({ error: 'Permission denied', message: 'Viewers cannot update events', debug: 'Collaborative viewer' });
         }
       } else if (agendaType === 'LABORAL') {
         // Chiefs can update all? Prompt says "jefes pueden crear eventos y aceptar o rechazar... pero no pueden manejar los roles".
@@ -502,20 +514,24 @@ async function updateEvent(req, res) {
         } else if (userRole === 'EMPLOYEE') {
           // Employees can only update their own PENDING events
           if (!isCreator) {
-            return res.status(403).json({ error: 'Permission denied', message: 'Employees can only update their own events' });
+            console.log('[UpdateEvent] Denied: Employee, not creator');
+            return res.status(403).json({ error: 'Permission denied', message: 'Employees can only update their own events', debug: 'Employee, not creator' });
           }
           if (event.status !== 'PENDING_APPROVAL') {
-             return res.status(403).json({ error: 'Permission denied', message: 'Cannot update approved events' });
+             console.log('[UpdateEvent] Denied: Employee, event not pending');
+             return res.status(403).json({ error: 'Permission denied', message: 'Cannot update approved events', debug: 'Employee, event not pending' });
           }
         } else {
-           return res.status(403).json({ error: 'Permission denied' });
+           console.log('[UpdateEvent] Denied: Laboral unknown role');
+           return res.status(403).json({ error: 'Permission denied', debug: `Laboral unknown role: ${userRole}` });
         }
       } else if (agendaType === 'EDUCATIVA') {
         // Professors can update ANY event (from other professors too)
         if (userRole === 'PROFESSOR' || userRole === 'TEACHER') {
           // Allowed
         } else {
-          return res.status(403).json({ error: 'Permission denied' });
+          console.log('[UpdateEvent] Denied: Educativa role not professor/teacher');
+          return res.status(403).json({ error: 'Permission denied', message: 'Only professors can update events', debug: `Educativa role: ${userRole}` });
         }
       }
     }

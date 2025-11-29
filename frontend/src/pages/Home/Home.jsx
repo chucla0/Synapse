@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../contexts/ThemeContext';
+import { hexToRgba } from '../../utils/colors';
 import api from '../../utils/api';
 import NotificationDetailsModal from '../../components/notification/NotificationDetailsModal';
 import './Home.css';
 
-function Home({ notifications, isLoading, refetch }) {
+function Home({ notifications, agendas = [], isLoading, refetch }) {
   const { t } = useTranslation();
   const { accentColor } = useTheme();
   const [selectedNotification, setSelectedNotification] = useState(null);
@@ -19,9 +20,6 @@ function Home({ notifications, isLoading, refetch }) {
   const [showAgendaDropdown, setShowAgendaDropdown] = useState(false);
 
   const queryClient = useQueryClient();
-
-  // Extract unique agendas from notifications
-  const uniqueAgendas = [...new Set(notifications.map(n => JSON.stringify({ id: n.agenda?.id, name: n.agenda?.name })))].map(s => JSON.parse(s)).filter(a => a.id);
 
   const markAsReadMutation = useMutation({
     mutationFn: (id) => api.post(`/notifications/${id}/read`),
@@ -97,7 +95,7 @@ function Home({ notifications, isLoading, refetch }) {
 
   const selectedAgendaName = selectedAgendaId === 'all' 
     ? t('filterByAgenda') 
-    : uniqueAgendas.find(a => a.id === selectedAgendaId)?.name || t('filterByAgenda');
+    : agendas.find(a => a.id === selectedAgendaId)?.name || t('filterByAgenda');
 
   return (
     <div className="home-container">
@@ -111,28 +109,44 @@ function Home({ notifications, isLoading, refetch }) {
           <button 
             className={`filter-pill ${filterType === 'all' ? 'active' : ''}`}
             onClick={() => setFilterType('all')}
-            style={filterType === 'all' ? {backgroundColor: accentColor, color: 'white'} : {}}
+            style={filterType === 'all' ? {
+              backgroundColor: accentColor, 
+              color: '#333333',
+              fontWeight: 600
+            } : {}}
           >
             {t('filterAll')}
           </button>
           <button 
             className={`filter-pill ${filterType === 'unread' ? 'active' : ''}`}
             onClick={() => setFilterType('unread')}
-            style={filterType === 'unread' ? {backgroundColor: accentColor, color: 'white'} : {}}
+            style={filterType === 'unread' ? {
+              backgroundColor: accentColor, 
+              color: '#333333',
+              fontWeight: 600
+            } : {}}
           >
             {t('filterUnread')}
           </button>
           <button 
             className={`filter-pill ${filterType === 'invites' ? 'active' : ''}`}
             onClick={() => setFilterType('invites')}
-            style={filterType === 'invites' ? {backgroundColor: accentColor, color: 'white'} : {}}
+            style={filterType === 'invites' ? {
+              backgroundColor: accentColor, 
+              color: '#333333',
+              fontWeight: 600
+            } : {}}
           >
             {t('filterInvites')}
           </button>
           <button 
             className={`filter-pill ${filterType === 'approvals' ? 'active' : ''}`}
             onClick={() => setFilterType('approvals')}
-            style={filterType === 'approvals' ? {backgroundColor: accentColor, color: 'white'} : {}}
+            style={filterType === 'approvals' ? {
+              backgroundColor: accentColor, 
+              color: '#333333',
+              fontWeight: 600
+            } : {}}
           >
             {t('filterApprovals')}
           </button>
@@ -141,12 +155,23 @@ function Home({ notifications, isLoading, refetch }) {
         <div className="agenda-filter">
           <div className="custom-dropdown" onClick={(e) => e.stopPropagation()}>
             <button 
+              type="button"
               className="dropdown-toggle"
               onClick={() => setShowAgendaDropdown(!showAgendaDropdown)}
-              style={selectedAgendaId !== 'all' ? {borderColor: accentColor} : {}}
+              style={selectedAgendaId !== 'all' ? {
+                backgroundColor: accentColor, 
+                color: '#333333',
+                borderColor: accentColor,
+                fontWeight: 600
+              } : {}}
             >
               {selectedAgendaName}
-              <span className="dropdown-arrow">▼</span>
+              <span 
+                className="dropdown-arrow"
+                style={selectedAgendaId !== 'all' ? { color: '#333333' } : {}}
+              >
+                ▼
+              </span>
             </button>
             {showAgendaDropdown && (
               <ul className="dropdown-menu">
@@ -159,7 +184,7 @@ function Home({ notifications, isLoading, refetch }) {
                 >
                   {t('filterByAgenda')}
                 </li>
-                {uniqueAgendas.map(agenda => (
+                {agendas.map(agenda => (
                   <li 
                     key={agenda.id} 
                     className={`dropdown-item ${selectedAgendaId === agenda.id ? 'active' : ''}`}
