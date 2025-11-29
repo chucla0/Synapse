@@ -10,7 +10,6 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
-
     "db:reset": "prisma migrate reset --force"
   },
   "keywords": [
@@ -23,6 +22,7 @@
   "license": "MIT",
   "dependencies": {
     "@prisma/client": "^5.7.0",
+    "axios": "^1.13.2",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -36,5 +36,4 @@
     "nodemon": "^3.0.2",
     "prisma": "^5.7.0"
   }
-
 }

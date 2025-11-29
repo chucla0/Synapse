@@ -1,13 +1,14 @@
-import { getDayHours, groupEventsByDay } from '../../utils/date';
+import { getDayHours, groupEventsByDay, calculateEventLayout } from '../../utils/date';
 import { format } from 'date-fns';
 import { useDateFnsLocale } from '../../contexts/LocaleContext';
 import './DayView.css';
 
-function DayView({ date, events, agendaColor }) {
+function DayView({ date, events, agendaColor, onEventClick }) {
   const locale = useDateFnsLocale();
   const hours = getDayHours();
   const dateKey = format(date, 'yyyy-MM-dd');
   const dayEvents = groupEventsByDay(events)[dateKey] || [];
+  const positionedEvents = calculateEventLayout(dayEvents);
 
   return (
     <div className="day-view">
@@ -34,32 +35,27 @@ function DayView({ date, events, agendaColor }) {
           ))}
 
           {/* Render events */}
-          {dayEvents.map(event => {
-            const startHour = new Date(event.startTime).getHours();
-            const startMinute = new Date(event.startTime).getMinutes();
-            const endHour = new Date(event.endTime).getHours();
-            const endMinute = new Date(event.endTime).getMinutes();
-            
-            const top = (startHour + startMinute / 60) * 60; // 60px per hour
-            const height = ((endHour + endMinute / 60) - (startHour + startMinute / 60)) * 60;
-
-            return (
-              <div
-                key={event.id}
-                className="day-event"
-                style={{
-                  top: `${top}px`,
-                  height: `${height}px`,
-                  backgroundColor: event.color || agendaColor,
-                }}
-              >
-                <div className="event-title">{event.title}</div>
-                <div className="event-time text-sm">
-                  {format(new Date(event.startTime), 'p', { locale })} - {format(new Date(event.endTime), 'p', { locale })}
-                </div>
+          {positionedEvents.map(event => (
+            <div
+              key={event.id}
+              className={`day-event ${event.status === 'PENDING_APPROVAL' ? 'pending-approval' : ''}`}
+              style={{
+                ...event.style,
+                height: `${Math.max(parseFloat(event.style.height), 20)}px`,
+                backgroundColor: event.color || event.agenda?.color || agendaColor,
+                cursor: 'pointer'
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onEventClick && onEventClick(event);
+              }}
+            >
+              <div className="event-title">{event.title}</div>
+              <div className="event-time text-sm">
+                {format(new Date(event.startTime), 'p', { locale })} - {format(new Date(event.endTime), 'p', { locale })}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
     </div>

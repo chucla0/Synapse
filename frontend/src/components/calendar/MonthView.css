@@ -1,128 +1,121 @@
 .month-view {
-  height: 100%;
   display: flex;
   flex-direction: column;
-  padding: var(--spacing-md);
-  overflow: auto;
-  background-color: var(--bg-main);
+  flex: 1;
+  height: 100%; /* Keep height 100% as fallback or for explicit sizing */
 }
 
 .month-header {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   border-bottom: 1px solid var(--border);
-  padding-bottom: var(--spacing-sm);
-  margin-bottom: var(--spacing-sm);
+  background-color: var(--bg-card);
 }
 
 .month-weekday {
+  padding: var(--spacing-sm);
   text-align: center;
-  font-size: 0.8rem;
   font-weight: 600;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .month-grid {
-  flex: 1;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-auto-rows: minmax(120px, 1fr);
-  /* Removed gap and background border trick */
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
+  grid-template-rows: repeat(var(--week-count, 6), 1fr); /* Dynamic rows based on weeks */
+  flex: 1;
+  background-color: var(--border); /* Grid lines color */
+  gap: 1px; /* Creates the grid lines */
 }
 
 .month-day {
-  background: var(--bg-card);
-  padding: var(--spacing-sm);
+  background-color: var(--bg-card);
+  padding: var(--spacing-xs);
+  min-height: 100px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  border-right: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  transition: background var(--transition-fast);
+  position: relative;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  cursor: pointer; /* User requested cursor pointer on hover, usually good to have it always if clickable */
 }
-
-/* Remove right border for last column */
-.month-day:nth-child(7n) {
-  border-right: none;
-}
-
-/* Remove bottom border for last row (approximate, handled by container overflow usually) */
 
 .month-day:hover {
-  background: var(--bg-hover);
+  background-color: var(--bg-hover);
 }
 
 .month-day.other-month {
-  background-color: #FAFAFA; /* Very subtle difference */
+  background-color: transparent; /* Inherit from .month-day or container */
   color: var(--text-muted);
+  opacity: 0.7; /* Dim the whole cell slightly */
 }
 
+/* Remove cell background for today to avoid conflict, only highlight number */
 .month-day.today {
-  background: var(--focus-today);
-  /* No hard border */
+  background-color: var(--bg-card); 
+}
+.month-day.today:hover {
+  background-color: var(--bg-hover);
 }
 
-.day-header {
-  margin-bottom: var(--spacing-xs);
-  display: flex;
-  justify-content: center;
+.month-day.selected {
+  box-shadow: inset 0 0 0 2px #A855F7; /* purple-500 ring */
+  /* No dark background */
 }
 
 .day-number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: var(--spacing-xs);
+  display: inline-block;
   width: 24px;
   height: 24px;
+  line-height: 24px;
+  text-align: center;
   border-radius: 50%;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-main);
 }
 
 .month-day.today .day-number {
-  background: var(--accent);
-  color: #333333; /* Dark text on pastel accent */
-  box-shadow: 0 2px 5px rgba(159, 230, 182, 0.4);
+  background-color: #A855F7; /* purple-500 */
+  color: white;
 }
 
 .day-events {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
+  flex: 1;
   overflow: hidden;
-  padding-top: var(--spacing-xs);
 }
 
 .month-event {
-  display: flex;
-  align-items: center;
-  padding: 4px 8px;
-  border-radius: 4px; /* Slightly rounded blocks */
+  padding: 2px 4px;
+  border-radius: 4px;
   font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
+  color: #333; /* Ensure text is readable on colored backgrounds */
   white-space: nowrap;
   overflow: hidden;
-  /* Background color is set inline */
-  color: var(--text-main); /* Default text color */
-  box-shadow: none; /* Minimalist */
+  text-overflow: ellipsis;
+  transition: transform 0.1s, box-shadow 0.1s;
 }
 
 .month-event:hover {
-  transform: translateY(-1px);
-  filter: brightness(0.95);
+  transform: scale(1.02);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 10;
 }
 
-.event-dot {
-  display: none; /* We use filled blocks now */
+.month-event.pending-approval {
+  opacity: 0.7;
+  border: 1px dashed #666;
+}
+
+.event-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
 }
 
 .event-title {
@@ -131,60 +124,29 @@
   text-overflow: ellipsis;
 }
 
+.event-icons {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.event-icon {
+  display: flex;
+  align-items: center;
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
 .more-events {
-  padding: 2px 6px;
-  color: var(--text-secondary);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  padding-left: 4px;
+  margin-top: 2px;
   font-weight: 500;
   cursor: pointer;
-  font-size: 0.75rem;
-  text-align: center;
 }
 
 .more-events:hover {
   color: var(--text-main);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .month-grid {
-    grid-auto-rows: minmax(80px, 1fr);
-  }
-
-  .month-day {
-    padding: 2px;
-  }
-  
-  .day-number {
-    width: 24px;
-    height: 24px;
-    font-size: 0.8rem;
-  }
-
-  .month-event {
-    padding: 2px 4px;
-    font-size: 0.7rem;
-  }
-}
-
-.event-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  width: 100%;
-}
-
-.event-icons {
-  display: flex;
-  gap: 4px;
-  font-size: 0.7rem;
-  opacity: 0.9;
-}
-
-.event-icon {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background: rgba(255, 255, 255, 0.3);
-  padding: 0 3px;
-  border-radius: 3px;
+  text-decoration: underline;
 }

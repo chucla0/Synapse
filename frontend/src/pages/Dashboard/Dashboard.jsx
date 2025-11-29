@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { Settings, ChevronDown, Palette, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import api from '../../utils/api';
 import { clearAuth, getUser } from '../../utils/auth';
@@ -49,6 +50,19 @@ function Dashboard({ onLogout, sessionKey }) {
 
   const isAnyModalOpen = showCreateAgenda || showProfileSettings || showWebSettings || editingAgenda;
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (showLanguageDropdown) setShowLanguageDropdown(false);
+      if (showSortDropdown) setShowSortDropdown(false);
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showLanguageDropdown, showSortDropdown]);
+
   // Fetch agendas
   const { data: agendasData, isLoading: agendasLoading } = useQuery({
     queryKey: ['agendas', sessionKey],
@@ -56,13 +70,42 @@ function Dashboard({ onLogout, sessionKey }) {
       const response = await api.get('/agendas');
       return response.data;
     },
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
+    retry: false,
   });
 
   const agendas = agendasData?.agendas || [];
 
-  // Select first agenda by default
-  if (!selectedAgenda && agendas.length > 0) {
-    setSelectedAgenda(agendas[0].id);
+  // Fetch notifications
+  const { data: notificationsData, isLoading: notificationsLoading, refetch: refetchNotifications } = useQuery({
+    queryKey: ['notifications', sessionKey],
+    queryFn: async () => {
+      const response = await api.get('/notifications');
+      return response.data;
+    },
+    staleTime: 30000,
+    refetchInterval: 60000,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
+
+  const notifications = notificationsData?.notifications || [];
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  const ALL_EVENTS_AGENDA_ID = 'all_events';
+
+  const allEventsAgenda = {
+    id: ALL_EVENTS_AGENDA_ID,
+    name: t('allEvents'),
+    color: '#666666',
+    type: 'VIRTUAL',
+    ownerId: user?.id
+  };
+
+  // Select 'all_events' by default
+  if (!selectedAgenda) {
+    setSelectedAgenda(ALL_EVENTS_AGENDA_ID);
   }
 
   const handleLogout = () => {
@@ -103,7 +146,7 @@ function Dashboard({ onLogout, sessionKey }) {
       }, {})
     : null;
 
-  const currentAgenda = agendas.find(a => a.id === selectedAgenda);
+  const currentAgenda = selectedAgenda === ALL_EVENTS_AGENDA_ID ? allEventsAgenda : agendas.find(a => a.id === selectedAgenda);
 
   return (
     <div className="dashboard">
@@ -137,7 +180,7 @@ function Dashboard({ onLogout, sessionKey }) {
             onClick={() => setShowProfileSettings(true)}
             title={t('profileSettings')}
           >
-            ⚙️
+            <Settings size={18} />
           </button>
         </div>
 
@@ -145,6 +188,7 @@ function Dashboard({ onLogout, sessionKey }) {
           <div className="main-nav-links">
             <button className={`nav-link ${currentView === 'home' ? 'active' : ''}`} onClick={() => setCurrentView('home')}>
               {t('homeTitle', 'Inicio')}
+              {unreadCount > 0 && <span className="notification-badge-sidebar" style={{backgroundColor: accentColor}}></span>}
             </button>
             <button className={`nav-link ${currentView === 'agendas' ? 'active' : ''}`} onClick={() => setCurrentView('agendas')}>
               {t('myAgendas')}
@@ -162,7 +206,7 @@ function Dashboard({ onLogout, sessionKey }) {
                   className="search-input"
                 />
                 <div className="sort-dropdown-container">
-                  <div className="custom-dropdown">
+                  <div className="custom-dropdown" onClick={(e) => e.stopPropagation()}>
                     <button 
                       className="dropdown-toggle"
                       onClick={() => setShowSortDropdown(!showSortDropdown)}
@@ -173,7 +217,7 @@ function Dashboard({ onLogout, sessionKey }) {
                       {sortOrder === 'date_desc' && t('sortBy_date_desc')}
                       {sortOrder === 'date_asc' && t('sortBy_date_asc')}
                       {sortOrder === 'type' && t('sortBy_type')}
-                      <span className="dropdown-arrow">▼</span>
+                      <span className="dropdown-arrow"><ChevronDown size={16} /></span>
                     </button>
                     {showSortDropdown && (
                       <ul className="dropdown-menu">
@@ -233,6 +277,19 @@ function Dashboard({ onLogout, sessionKey }) {
                 </div>
               </div>
               
+              <ul className="agenda-list">
+                {/* All Events Option */}
+                <li className={`agenda-item ${selectedAgenda === ALL_EVENTS_AGENDA_ID ? 'active' : ''}`}>
+                  <div className="agenda-item-main" onClick={() => setSelectedAgenda(ALL_EVENTS_AGENDA_ID)}>
+                    <span 
+                      className="agenda-color" 
+                      style={{ backgroundColor: allEventsAgenda.color }}
+                    />
+                    <span className="agenda-name">{allEventsAgenda.name}</span>
+                  </div>
+                </li>
+              </ul>
+
               {agendasLoading ? (
                 <div className="loading-agendas">{t('loading')}</div>
               ) : filteredAgendas.length === 0 ? (
@@ -256,7 +313,7 @@ function Dashboard({ onLogout, sessionKey }) {
                             onClick={() => setEditingAgenda(agenda)}
                             title={t('agendaSettings')}
                           >
-                            ⚙️
+                            <Settings size={16} />
                           </button>
                         </li>
                       ))}
@@ -279,7 +336,7 @@ function Dashboard({ onLogout, sessionKey }) {
                         onClick={() => setEditingAgenda(agenda)}
                         title={t('agendaSettings')}
                       >
-                        ⚙️
+                        <Settings size={16} />
                       </button>
                     </li>
                   ))}
@@ -298,13 +355,13 @@ function Dashboard({ onLogout, sessionKey }) {
 
         <div className="sidebar-footer">
           <div className="language-switcher">
-            <div className="custom-dropdown">
+            <div className="custom-dropdown" onClick={(e) => e.stopPropagation()}>
               <button 
                 className="dropdown-toggle"
                 onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
               >
                 {lngs[i18n.resolvedLanguage]?.nativeName}
-                <span className="dropdown-arrow">▼</span>
+                <span className="dropdown-arrow"><ChevronDown size={16} /></span>
               </button>
               {showLanguageDropdown && (
                 <ul className="dropdown-menu">
@@ -329,7 +386,7 @@ function Dashboard({ onLogout, sessionKey }) {
             onClick={() => setShowWebSettings(true)}
             title={t('webSettingsTitle')}
           >
-            🎨 {t('webSettingsButton')}
+            <Palette size={18} style={{ marginRight: '8px' }} /> {t('webSettingsButton')}
           </button>
           <button 
             className="btn btn-secondary btn-block"
@@ -346,15 +403,20 @@ function Dashboard({ onLogout, sessionKey }) {
         title={isSidebarOpen ? t('closeSidebar') : t('openSidebar')}
         disabled={isAnyModalOpen}
       >
-        {isSidebarOpen ? '❮' : '❯'} {/* Simple arrow icons for now */}
+        {isSidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
       </button>
 
       {/* Main Content */}
       <main className="main-content">
         {currentView === 'home' ? (
-          <Home sessionKey={sessionKey} />
+          <Home 
+            sessionKey={sessionKey} 
+            notifications={notifications} 
+            isLoading={notificationsLoading} 
+            refetch={refetchNotifications}
+          />
         ) : currentAgenda ? (
-          <CalendarView agenda={currentAgenda} />
+          <CalendarView agenda={currentAgenda} agendas={agendas} />
         ) : (
           <div className="empty-state">
             <h2>{t('welcomeTitle')}</h2>

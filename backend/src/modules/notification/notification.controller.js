@@ -106,9 +106,60 @@ async function markAllAsRead(req, res) {
   }
 }
 
+async function markAsUnread(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const notification = await prisma.notification.findUnique({
+      where: { id },
+    });
+
+    if (!notification || notification.recipientId !== userId) {
+      return res.status(404).json({ error: 'Notification not found' });
+    }
+
+    await prisma.notification.update({
+      where: { id },
+      data: { isRead: false },
+    });
+
+    res.json({ message: 'Notification marked as unread' });
+  } catch (error) {
+    console.error('Mark as unread error:', error);
+    res.status(500).json({ error: 'Failed to mark notification as unread' });
+  }
+}
+
+async function deleteNotification(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const notification = await prisma.notification.findUnique({
+      where: { id },
+    });
+
+    if (!notification || notification.recipientId !== userId) {
+      return res.status(404).json({ error: 'Notification not found' });
+    }
+
+    await prisma.notification.delete({
+      where: { id },
+    });
+
+    res.json({ message: 'Notification deleted' });
+  } catch (error) {
+    console.error('Delete notification error:', error);
+    res.status(500).json({ error: 'Failed to delete notification' });
+  }
+}
+
 module.exports = {
   getNotifications,
   getNotificationDetails,
   markAsRead,
   markAllAsRead,
+  markAsUnread,
+  deleteNotification,
 };

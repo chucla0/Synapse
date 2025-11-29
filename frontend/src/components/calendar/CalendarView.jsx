@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { format } from 'date-fns';
+import { format, startOfWeek } from 'date-fns';
 import api from '../../utils/api';
 import DayView from './DayView';
 import WeekView from './WeekView';
@@ -23,11 +23,12 @@ const VIEW_TYPES = {
   YEAR: 'year',
 };
 
-function CalendarView({ agenda }) {
+function CalendarView({ agenda, agendas = [] }) {
   const { t } = useTranslation();
   const locale = useDateFnsLocale();
   const queryClient = useQueryClient();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(null); // Track user-selected date
   const [viewType, setViewType] = useState(VIEW_TYPES.MONTH);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -38,6 +39,15 @@ function CalendarView({ agenda }) {
     mutationFn: (eventId) => api.delete(`/events/${eventId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events', agenda.id] });
+      // Also invalidate all events if we are in a specific agenda, or specific agenda if we are in all events
+      if (agenda.id === 'all_events') {
+        // We don't know which agenda the event belonged to easily here without extra logic, 
+        // but invalidating 'all_events' is enough for this view.
+        // We could also invalidate all 'events' queries to be safe.
+        queryClient.invalidateQueries({ queryKey: ['events'] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['events', 'all_events'] });
+      }
       setSelectedEvent(null); // Close the main details modal as well
     },
   });
@@ -54,6 +64,11 @@ function CalendarView({ agenda }) {
         setEventToDelete(null); // Close confirmation modal
         setSelectedEvent(null); // Close details modal
         queryClient.invalidateQueries({ queryKey: ['events', agenda.id] });
+        if (agenda.id === 'all_events') {
+             queryClient.invalidateQueries({ queryKey: ['events'] });
+        } else {
+             queryClient.invalidateQueries({ queryKey: ['events', 'all_events'] });
+        }
       }
     });
   };
@@ -62,13 +77,20 @@ function CalendarView({ agenda }) {
   const { data: eventsData, isLoading } = useQuery({
     queryKey: ['events', agenda.id, currentDate, viewType],
     queryFn: async () => {
+      const params = {};
+      // If agenda.id is 'all_events', we don't send agendaId to fetch all
+      if (agenda.id !== 'all_events') {
+        params.agendaId = agenda.id;
+      }
+      
       const response = await api.get('/events', {
-        params: {
-          agendaId: agenda.id,
-        },
+        params,
       });
       return response.data;
     },
+    staleTime: 10000,
+    refetchOnWindowFocus: false,
+    retry: false,
   });
 
   const events = eventsData?.events || [];
@@ -168,7 +190,13 @@ function CalendarView({ agenda }) {
   };
 
   const handleToday = () => {
-    setCurrentDate(new Date());
+    const today = new Date();
+    setCurrentDate(today);
+    setSelectedDate(today); // Also select today
+  };
+
+  const handleDayClick = (day) => {
+    setSelectedDate(day);
   };
 
   const handleEventClick = async (event) => {
@@ -180,6 +208,44 @@ function CalendarView({ agenda }) {
     } catch (error) {
       console.error('Error fetching event details:', error);
     }
+  };
+
+  // Logic to determine the initial date for creating a new event
+  const getInitialDateForCreateEvent = () => {
+    const now = new Date();
+    let baseDate = now;
+
+    if (viewType === VIEW_TYPES.MONTH) {
+      // If a specific date is selected, use it. Otherwise, use today.
+      // "if you click one and give it to create event it will take as date the time and the initial day"
+      if (selectedDate) {
+        baseDate = new Date(selectedDate);
+      } else {
+        baseDate = now;
+      }
+    } else if (viewType === VIEW_TYPES.YEAR) {
+      // "in the case of the years it will continue taking the current day"
+      baseDate = now;
+    } else if (viewType === VIEW_TYPES.DAY) {
+      // "in the case of the days then the day in which it is"
+      baseDate = new Date(currentDate);
+    } else if (viewType === VIEW_TYPES.WEEK) {
+      // "in the case of the week then the first day of the week"
+      // Assuming week starts on Monday or based on locale, but startOfWeek handles that if we pass options.
+      // Using default startOfWeek (usually Sunday or Monday depending on locale/default)
+      // Let's use the locale context if possible, or default to Monday (1) as per common ISO usage in Europe/LatAm
+      const weekStartsOn = locale?.options?.weekStartsOn || 1; 
+      baseDate = startOfWeek(currentDate, { weekStartsOn });
+    }
+
+    // "take as date the time and the initial day"
+    // We have the day in baseDate. We need to set the time to current time (now).
+    baseDate.setHours(now.getHours());
+    baseDate.setMinutes(now.getMinutes());
+    baseDate.setSeconds(0);
+    baseDate.setMilliseconds(0);
+
+    return baseDate;
   };
 
   return (
@@ -204,12 +270,24 @@ function CalendarView({ agenda }) {
         </div>
 
         <div className="header-actions">
-          <button 
-            className="btn btn-primary"
-            onClick={() => setShowCreateEvent(true)}
-          >
-            {t('newEvent')}
-          </button>
+          {(() => {
+            if (agenda.id === 'all_events') return null;
+            
+            // Check permissions for creating event
+            const { type, userRole } = agenda;
+            
+            if (type === 'COLABORATIVA' && userRole === 'VIEWER') return null;
+            if (type === 'EDUCATIVA' && userRole === 'STUDENT') return null;
+            
+            return (
+              <button 
+                className="btn btn-primary"
+                onClick={() => setShowCreateEvent(true)}
+              >
+                {t('newEvent')}
+              </button>
+            );
+          })()}
         </div>
 
         <div className="view-selector">
@@ -255,6 +333,8 @@ function CalendarView({ agenda }) {
                 events={expandedEvents}
                 agendaColor={agenda.color}
                 onEventClick={handleEventClick}
+                selectedDate={selectedDate}
+                onDayClick={handleDayClick}
               />
             )}
             {viewType === VIEW_TYPES.YEAR && (
@@ -273,7 +353,8 @@ function CalendarView({ agenda }) {
       {showCreateEvent && (
         <CreateEventModal 
           agenda={agenda}
-          initialDate={currentDate}
+          agendas={agendas}
+          initialDate={editingEvent ? null : getInitialDateForCreateEvent()}
           event={editingEvent}
           onClose={() => {
             setShowCreateEvent(false);
@@ -287,6 +368,7 @@ function CalendarView({ agenda }) {
         <EventDetailsModal
           event={selectedEvent}
           agenda={agenda}
+          agendas={agendas}
           onClose={() => setSelectedEvent(null)}
           onEdit={(eventToEdit) => {
             setSelectedEvent(null); // Close details

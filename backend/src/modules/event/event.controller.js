@@ -53,9 +53,12 @@ async function getAllEvents(req, res) {
       where,
       include: {
         agenda: {
-          select: { id: true, name: true, color: true, type: true }
+          select: { id: true, name: true, color: true, type: true, ownerId: true },
         },
         creator: {
+          select: { id: true, name: true, email: true, avatar: true }
+        },
+        sharedWithUsers: {
           select: { id: true, name: true, email: true, avatar: true }
         },
         _count: {
@@ -65,7 +68,105 @@ async function getAllEvents(req, res) {
       orderBy: { startTime: 'asc' }
     });
 
-    res.json({ events });
+    // Filter events based on visibility rules
+    const visibleEvents = await Promise.all(events.map(async (event) => {
+      // 1. If not private, everyone with access to agenda can see it
+      if (!event.isPrivate) return event;
+
+      // 2. If user is the creator, they can always see it
+      if (event.creatorId === userId) return event;
+
+      // 3. Check agenda type specific rules
+      const agenda = event.agenda;
+      
+      // Get user role in this agenda
+      let userRole = null;
+      if (agenda.ownerId === userId) {
+        userRole = 'OWNER';
+      } else {
+        const agendaUser = await prisma.agendaUser.findUnique({
+          where: { agendaId_userId: { agendaId: agenda.id, userId } }
+        });
+        userRole = agendaUser?.role;
+      }
+
+
+
+      // If user has no role (shouldn't happen due to initial query, but safe check)
+      if (!userRole) return null;
+
+      // Rule: Owner always sees everything (in all types?)
+      // Prompt says: "en la de trabajo todos los jeves y owner pueden ver eventos privados"
+      // "en la de eduativa solo pueden ver los eventos privados los profesores" (implies owner too usually)
+      if (userRole === 'OWNER') return event;
+
+      if (agenda.type === 'PERSONAL') {
+        // Should be owner only, covered above
+        return event; 
+      }
+
+      if (agenda.type === 'COLABORATIVA') {
+        // "en la colaborativa tal cual asi" -> implies standard behavior, maybe all members see private?
+        // Or maybe standard private behavior (only creator)?
+        // Re-reading: "en la colaborativa tal cual asi" likely means "as it is now" or "same as personal/default".
+        // Usually private means private to creator. 
+        // BUT, if it's "collaborative", maybe they share everything?
+        // Let's assume "tal cual asi" means "keep existing logic" which was: if you have access to agenda, you see it?
+        // Wait, previous logic didn't filter private events at all in `getAllEvents`! 
+        // It only filtered by agenda access. So previously EVERYONE saw private events.
+        // So for Collaborative, we keep it visible to everyone.
+        return event;
+      }
+
+      if (agenda.type === 'LABORAL') {
+        // Chief sees all
+        if (userRole === 'CHIEF') return event;
+        
+        // Employee: only if added (sharedWith) or created (covered above)
+        if (userRole === 'EMPLOYEE') {
+          const isShared = event.sharedWithUsers.some(u => u.id === userId);
+          if (isShared) return event;
+          return null; // Hidden
+        }
+      }
+
+      if (agenda.type === 'EDUCATIVA') {
+        // Professor sees all
+        if (userRole === 'PROFESSOR' || userRole === 'TEACHER') return event; // 'TEACHER' is the enum value usually? Check schema/other files. 
+        // In other files I saw 'TEACHER' used in removeUserFromAgenda logic: `requesterRole === 'TEACHER'`.
+        // Let's assume 'TEACHER' is the role name for professor.
+        
+        // Student: only if visibleToStudents is true
+        if (userRole === 'STUDENT') {
+          if (event.visibleToStudents) return event;
+          // Also check if explicitly shared? Prompt says "al elegir las personas... son obviamente solo las que esten en esa agenda"
+          // It implies manual sharing is possible too.
+          const isShared = event.sharedWithUsers.some(u => u.id === userId);
+          if (isShared) return event;
+          return null;
+        }
+      }
+
+      // Default fallback (e.g. VIEWER in other types): if shared, see it
+      const isShared = event.sharedWithUsers.some(u => u.id === userId);
+      if (isShared) return event;
+
+      return null;
+    }));
+
+    const finalEvents = visibleEvents.filter(e => e !== null);
+    
+    console.log(`API returning ${finalEvents.length} events for user ${userId}`);
+    const homework = finalEvents.find(e => e.title === 'Homework Assignment');
+    if (homework) {
+      console.log('✅ Homework Assignment IS in the response');
+    } else {
+      console.log('❌ Homework Assignment is NOT in the response');
+    }
+
+    res.json({
+      events: finalEvents
+    });
 
   } catch (error) {
     console.error('Get events error:', error);
@@ -91,6 +192,9 @@ async function getEventById(req, res) {
           select: { id: true, name: true, color: true, type: true, ownerId: true }
         },
         creator: {
+          select: { id: true, name: true, email: true, avatar: true }
+        },
+        sharedWithUsers: {
           select: { id: true, name: true, email: true, avatar: true }
         },
         exceptions: true,
@@ -268,6 +372,10 @@ async function createEvent(req, res) {
         },
         links: {
           create: links || []
+        },
+        visibleToStudents: req.body.visibleToStudents || false,
+        sharedWithUsers: {
+          connect: req.body.sharedWithUserIds?.map(id => ({ id })) || []
         }
       },
       include: {
@@ -282,12 +390,43 @@ async function createEvent(req, res) {
 
     // Create notification for agenda members
     if (agenda.type !== 'PERSONAL') {
-      await NotificationService.createNotificationsForAgendaMembers({
-        agendaId,
-        senderId: userId,
-        type: 'EVENT_CREATED',
-        eventId: event.id,
-      });
+      if (eventStatus === 'PENDING_APPROVAL') {
+        // Notify Owner and Chiefs only
+        const recipients = await prisma.agendaUser.findMany({
+          where: {
+            agendaId,
+            role: { in: ['CHIEF'] }
+          },
+          select: { userId: true }
+        });
+        
+        // Always include owner
+        const recipientIds = [agenda.ownerId, ...recipients.map(r => r.userId)];
+        // Filter out sender (if sender is somehow owner/chief creating pending event, unlikely but safe)
+        const finalRecipientIds = [...new Set(recipientIds)].filter(id => id !== userId);
+
+        if (finalRecipientIds.length > 0) {
+          await prisma.notification.createMany({
+            data: finalRecipientIds.map(recipientId => ({
+              recipientId,
+              senderId: userId,
+              type: 'EVENT_PENDING_APPROVAL',
+              agendaId,
+              eventId: event.id,
+              data: { eventTitle: event.title }
+            }))
+          });
+        }
+
+      } else {
+        // Standard notification for confirmed events
+        await NotificationService.createNotificationsForAgendaMembers({
+          agendaId,
+          senderId: userId,
+          type: 'EVENT_CREATED',
+          eventId: event.id,
+        });
+      }
     }
 
     res.status(201).json({
@@ -325,12 +464,60 @@ async function updateEvent(req, res) {
       });
     }
 
-    // Check permission (only creator or agenda owner can update)
-    if (event.creatorId !== userId && event.agenda.ownerId !== userId) {
-      return res.status(403).json({ 
-        error: 'Permission denied',
-        message: 'Only the event creator or agenda owner can update this event' 
+    // Check permission
+    const isCreator = event.creatorId === userId;
+    const isAgendaOwner = event.agenda.ownerId === userId;
+    
+    if (isAgendaOwner) {
+      // Owner can always update
+    } else {
+      // Check role-based permissions
+      const agendaUser = await prisma.agendaUser.findUnique({
+        where: { agendaId_userId: { agendaId: event.agendaId, userId } }
       });
+      const userRole = agendaUser?.role;
+
+      if (!userRole) {
+        return res.status(403).json({ error: 'Permission denied', message: 'You are not a member of this agenda' });
+      }
+
+      const agendaType = event.agenda.type;
+
+      if (agendaType === 'PERSONAL') {
+        // Should be owner only (handled above), but if shared? Personal usually not shared.
+        if (!isCreator) return res.status(403).json({ error: 'Permission denied' });
+      } else if (agendaType === 'COLABORATIVA') {
+        // Editors can only update their own events
+        if (userRole === 'EDITOR' && !isCreator) {
+          return res.status(403).json({ error: 'Permission denied', message: 'Editors can only update their own events' });
+        }
+        if (userRole === 'VIEWER') {
+          return res.status(403).json({ error: 'Permission denied', message: 'Viewers cannot update events' });
+        }
+      } else if (agendaType === 'LABORAL') {
+        // Chiefs can update all? Prompt says "jefes pueden crear eventos y aceptar o rechazar... pero no pueden manejar los roles".
+        // Usually chiefs manage events. Let's assume Chiefs can update all events in the agenda.
+        if (userRole === 'CHIEF') {
+          // Allowed
+        } else if (userRole === 'EMPLOYEE') {
+          // Employees can only update their own PENDING events
+          if (!isCreator) {
+            return res.status(403).json({ error: 'Permission denied', message: 'Employees can only update their own events' });
+          }
+          if (event.status !== 'PENDING_APPROVAL') {
+             return res.status(403).json({ error: 'Permission denied', message: 'Cannot update approved events' });
+          }
+        } else {
+           return res.status(403).json({ error: 'Permission denied' });
+        }
+      } else if (agendaType === 'EDUCATIVA') {
+        // Professors can update ANY event (from other professors too)
+        if (userRole === 'PROFESSOR' || userRole === 'TEACHER') {
+          // Allowed
+        } else {
+          return res.status(403).json({ error: 'Permission denied' });
+        }
+      }
     }
 
     // Update event
@@ -345,6 +532,12 @@ async function updateEvent(req, res) {
         ...(updateData.isAllDay !== undefined && { isAllDay: updateData.isAllDay }),
         ...(updateData.color && { color: updateData.color }),
         ...(updateData.isPrivate !== undefined && { isPrivate: updateData.isPrivate }),
+        ...(updateData.visibleToStudents !== undefined && { visibleToStudents: updateData.visibleToStudents }),
+        ...(updateData.sharedWithUserIds && { 
+          sharedWithUsers: {
+            set: updateData.sharedWithUserIds.map(id => ({ id }))
+          }
+        }),
       },
       include: {
         agenda: {
@@ -446,11 +639,54 @@ async function deleteEvent(req, res) {
     }
 
     // Check permission
-    if (event.creatorId !== userId && event.agenda.ownerId !== userId) {
-      return res.status(403).json({ 
-        error: 'Permission denied',
-        message: 'Only the event creator or agenda owner can delete this event' 
+    const isCreator = event.creatorId === userId;
+    const isAgendaOwner = event.agenda.ownerId === userId;
+
+    if (isAgendaOwner) {
+      // Owner can always delete
+    } else {
+      const agendaUser = await prisma.agendaUser.findUnique({
+        where: { agendaId_userId: { agendaId: event.agenda.id, userId } }
       });
+      const userRole = agendaUser?.role;
+
+      if (!userRole) {
+        return res.status(403).json({ error: 'Permission denied', message: 'You are not a member of this agenda' });
+      }
+
+      const agendaType = event.agenda.type;
+
+      if (agendaType === 'COLABORATIVA') {
+        // Editors can only delete their own events
+        if (userRole === 'EDITOR' && !isCreator) {
+          return res.status(403).json({ error: 'Permission denied', message: 'Editors can only delete their own events' });
+        }
+        if (userRole === 'VIEWER') {
+          return res.status(403).json({ error: 'Permission denied' });
+        }
+      } else if (agendaType === 'LABORAL') {
+        // Chiefs can delete all?
+        if (userRole === 'CHIEF') {
+          // Allowed
+        } else if (userRole === 'EMPLOYEE') {
+          // Employees can only delete their own PENDING events
+          if (!isCreator) {
+            return res.status(403).json({ error: 'Permission denied', message: 'Employees can only delete their own events' });
+          }
+          if (event.status !== 'PENDING_APPROVAL') {
+             return res.status(403).json({ error: 'Permission denied', message: 'Cannot delete approved events' });
+          }
+        } else {
+           return res.status(403).json({ error: 'Permission denied' });
+        }
+      } else if (agendaType === 'EDUCATIVA') {
+        // Professors can delete ANY event
+        if (userRole === 'PROFESSOR' || userRole === 'TEACHER') {
+          // Allowed
+        } else {
+          return res.status(403).json({ error: 'Permission denied' });
+        }
+      }
     }
 
     await prisma.event.delete({

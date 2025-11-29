@@ -1,9 +1,9 @@
-import { getWeekDays, formatTime, groupEventsByDay, isSameDay } from '../../utils/date';
+import { getWeekDays, formatTime, groupEventsByDay, isSameDay, calculateEventLayout } from '../../utils/date';
 import { format } from 'date-fns';
 import { useDateFnsLocale } from '../../contexts/LocaleContext';
 import './WeekView.css';
 
-function WeekView({ date, events, agendaColor }) {
+function WeekView({ date, events, agendaColor, onEventClick }) {
   const locale = useDateFnsLocale();
   const weekDays = getWeekDays(date);
   const groupedEvents = groupEventsByDay(events);
@@ -41,6 +41,7 @@ function WeekView({ date, events, agendaColor }) {
             {weekDays.map(day => {
               const dateKey = format(day, 'yyyy-MM-dd');
               const dayEvents = groupedEvents[dateKey] || [];
+              const positionedEvents = calculateEventLayout(dayEvents);
 
               return (
                 <div key={day.toString()} className="week-day-column">
@@ -49,33 +50,27 @@ function WeekView({ date, events, agendaColor }) {
                   ))}
 
                   {/* Render events */}
-                  {dayEvents.map(event => {
-                    const startHour = new Date(event.startTime).getHours();
-                    const startMinute = new Date(event.startTime).getMinutes();
-                    const endHour = new Date(event.endTime).getHours();
-                    const endMinute = new Date(event.endTime).getMinutes();
-                    
-                    const top = (startHour + startMinute / 60) * 60; // 60px per hour
-                    const height = ((endHour + endMinute / 60) - (startHour + startMinute / 60)) * 60;
-
-                    return (
-                      <div
-                        key={event.id}
-                        className="week-event"
-                        style={{
-                          top: `${top}px`,
-                          height: `${Math.max(height, 20)}px`,
-                          backgroundColor: event.color || agendaColor,
-                        }}
-                        title={`${event.title}\n${format(new Date(event.startTime), 'p', { locale })} - ${format(new Date(event.endTime), 'p', { locale })}`}
-                      >
-                        <div className="event-title">{event.title}</div>
-                        <div className="event-time">
-                          {format(new Date(event.startTime), 'p', { locale })}
-                        </div>
+                  {positionedEvents.map(event => (
+                    <div
+                      key={event.id}
+                      className={`week-event ${event.status === 'PENDING_APPROVAL' ? 'pending-approval' : ''}`}
+                      style={{
+                        ...event.style,
+                        height: `${Math.max(parseFloat(event.style.height), 20)}px`,
+                        backgroundColor: event.color || event.agenda?.color || agendaColor,
+                      }}
+                      title={`${event.title}\n${format(new Date(event.startTime), 'p', { locale })} - ${format(new Date(event.endTime), 'p', { locale })}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEventClick && onEventClick(event);
+                      }}
+                    >
+                      <div className="event-title">{event.title}</div>
+                      <div className="event-time">
+                        {format(new Date(event.startTime), 'p', { locale })}
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               );
             })}

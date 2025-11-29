@@ -6,10 +6,28 @@
 
 .event-modal {
   max-width: 600px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  flex-shrink: 0;
+  /* existing styles usually in index.css, but ensuring here */
 }
 
 .event-form {
-  padding: 0; /* Padding is on the .card */
+  overflow: hidden; /* Container handles layout */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.form-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-lg);
 }
 
 .form-row {
@@ -22,7 +40,10 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--spacing-md);
-  margin-top: var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-lg); /* Match horizontal padding of body */
+  border-top: 1px solid var(--border);
+  background: var(--bg-main);
+  flex-shrink: 0;
 }
 
 /* Attachments */
@@ -137,56 +158,7 @@
   cursor: pointer;
   margin-bottom: 0;
   font-weight: 400;
-  color: var(--text-secondary);
-}
-
-.checkbox-group input[type="checkbox"] {
-  width: auto;
-  cursor: pointer;
-  margin: 0;
-  accent-color: var(--accent);
-}
-
-.checkbox-group span {
-  user-select: none;
-}
-
-/* 
-  datetime-local input inherits from .input in index.css, 
-  but needs some overrides for the calendar picker icon.
-*/
-input[type="datetime-local"] {
-  /* Inherits from .input */
-}
-
-input[type="datetime-local"].error {
-  border-color: var(--error);
-}
-
-input[type="datetime-local"]:disabled {
-  background-color: var(--bg-main);
-  cursor: not-allowed;
-}
-
-@media (max-width: 640px) {
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .event-modal {
-    max-width: 100%;
-    width: 100%;
-    height: 100vh;
-    border-radius: 0;
-  }
-}
-
-.recurrence-options {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: #f9fafb;
-  border-radius: 0.5rem;
-  border: 1px solid var(--border);
+  color: var(--text-black);
 }
 
 .recurrence-label {
@@ -194,6 +166,7 @@ input[type="datetime-local"]:disabled {
   margin-bottom: 0.5rem;
   font-weight: 500;
   font-size: 0.9rem;
+  color: var(--text-black);
 }
 
 .days-selector {

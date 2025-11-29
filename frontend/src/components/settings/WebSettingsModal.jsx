@@ -1,17 +1,18 @@
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../contexts/ThemeContext';
+import { X, Check } from 'lucide-react';
 import './WebSettingsModal.css';
 
 function WebSettingsModal({ onClose }) {
   const { t } = useTranslation();
-  const { theme, setTheme, accentColor, setAccentColor, availableThemes, availableColors } = useTheme();
+  const { theme, setTheme, accentId, setAccentId, availableThemes, availableColors } = useTheme();
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content card" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{t('webSettingsTitle')}</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
+          <button className="modal-close" onClick={onClose}><X size={24} /></button>
         </div>
 
         <div className="settings-section">
@@ -26,28 +27,27 @@ function WebSettingsModal({ onClose }) {
                 {t(`theme_${tOption}`)}
               </button>
             ))}
-            {/* Placeholder for Dark Mode (Disabled) */}
-            <button className="theme-option disabled" disabled title={t('comingSoon')}>
-              {t('theme_dark')}
-            </button>
           </div>
         </div>
 
         <div className="settings-section">
           <h3>{t('accentColorLabel')}</h3>
           <div className="color-options">
-            {availableColors.map((color) => (
-              <button
-                key={color.id}
-                className={`color-swatch ${accentColor === color.value ? 'active' : ''}`}
-                style={{ backgroundColor: color.value }}
-                onClick={() => setAccentColor(color.value)}
-                aria-label={color.label}
-                title={color.label}
-              >
-                {accentColor === color.value && <span className="check-icon">✓</span>}
-              </button>
-            ))}
+            {availableColors.map((color) => {
+              const displayColor = theme === 'dark' ? color.dark : color.light;
+              return (
+                <button
+                  key={color.id}
+                  className={`color-swatch ${accentId === color.id ? 'active' : ''}`}
+                  style={{ backgroundColor: displayColor }}
+                  onClick={() => setAccentId(color.id)}
+                  aria-label={color.label}
+                  title={color.label}
+                >
+                  {accentId === color.id && <span className="check-icon"><Check size={16} /></span>}
+                </button>
+              );
+            })}
           </div>
         </div>
 

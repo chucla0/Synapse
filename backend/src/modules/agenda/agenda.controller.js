@@ -358,15 +358,78 @@ async function addUserToAgenda(req, res) {
  */
 async function removeUserFromAgenda(req, res) {
   try {
-    const { agendaId, userId } = req.params;
+    const { agendaId, userId: targetUserId } = req.params;
+    const requestingUserId = req.user.id;
+
+    const agenda = await prisma.agenda.findUnique({ where: { id: agendaId } });
+    if (!agenda) {
+      return res.status(404).json({ error: 'Agenda not found' });
+    }
+
+    // Prevent removing self via this endpoint (use leaveAgenda instead)
+    if (targetUserId === requestingUserId) {
+      return res.status(400).json({ 
+        error: 'Invalid operation', 
+        message: 'You cannot remove yourself using this endpoint. Use leave agenda instead.' 
+      });
+    }
+
+    const requestingUserMembership = await prisma.agendaUser.findUnique({
+      where: { agendaId_userId: { agendaId, userId: requestingUserId } }
+    });
+
+    const targetUserMembership = await prisma.agendaUser.findUnique({
+      where: { agendaId_userId: { agendaId, userId: targetUserId } }
+    });
+
+    if (!targetUserMembership) {
+      return res.status(404).json({ error: 'User not found in agenda' });
+    }
+
+    const isOwner = agenda.ownerId === requestingUserId;
+    const requesterRole = isOwner ? 'OWNER' : requestingUserMembership?.role;
+    const targetRole = targetUserMembership.role;
+
+    if (!requesterRole) {
+      return res.status(403).json({ error: 'Access denied', message: 'You are not a member of this agenda.' });
+    }
+
+    let canRemove = false;
+
+    if (isOwner) {
+      // Owner can remove anyone
+      canRemove = true;
+    } else if (requesterRole === 'CHIEF' && targetRole === 'EMPLOYEE') {
+      // Chief can remove Employee
+      canRemove = true;
+    } else if (requesterRole === 'TEACHER' && targetRole === 'STUDENT') {
+      // Teacher can remove Student
+      canRemove = true;
+    }
+
+    if (!canRemove) {
+      return res.status(403).json({ 
+        error: 'Permission denied', 
+        message: 'You do not have permission to remove this user.' 
+      });
+    }
 
     await prisma.agendaUser.delete({
       where: {
         agendaId_userId: {
           agendaId,
-          userId
+          userId: targetUserId
         }
       }
+    });
+
+    // Notify the removed user
+    await NotificationService.createNotification({
+      recipientId: targetUserId,
+      senderId: requestingUserId,
+      type: 'AGENDA_REMOVED',
+      agendaId: agendaId,
+      data: { agendaName: agenda.name },
     });
 
     res.json({
@@ -459,16 +522,14 @@ async function updateUserRole(req, res) {
       }
     });
 
-    // Create notification for any role change in a LABORAL agenda
-    if (agenda.type === 'LABORAL') {
-      await NotificationService.createNotification({
-        recipientId: targetUserId,
-        senderId: requestingUserId,
-        type: 'ROLE_CHANGED',
-        agendaId: agendaId,
-        data: { newRole: newRole },
-      });
-    }
+    // Create notification for any role change
+    await NotificationService.createNotification({
+      recipientId: targetUserId,
+      senderId: requestingUserId,
+      type: 'ROLE_CHANGED',
+      agendaId: agendaId,
+      data: { newRole: newRole },
+    });
 
     res.json({
       message: 'User role updated successfully',
@@ -544,6 +605,43 @@ async function declineInvitation(req, res) {
   }
 }
 
+async function leaveAgenda(req, res) {
+  try {
+    const { agendaId } = req.params;
+    const userId = req.user.id;
+
+    const agenda = await prisma.agenda.findUnique({ where: { id: agendaId } });
+    if (!agenda) {
+      return res.status(404).json({ error: 'Agenda not found' });
+    }
+
+    if (agenda.ownerId === userId) {
+      return res.status(400).json({ 
+        error: 'Owner cannot leave', 
+        message: 'As the owner, you cannot leave the agenda. You must delete it or transfer ownership.' 
+      });
+    }
+
+    const membership = await prisma.agendaUser.findUnique({
+      where: { agendaId_userId: { agendaId, userId } }
+    });
+
+    if (!membership) {
+      return res.status(404).json({ error: 'Not a member', message: 'You are not a member of this agenda.' });
+    }
+
+    await prisma.agendaUser.delete({
+      where: { agendaId_userId: { agendaId, userId } }
+    });
+
+    res.json({ message: 'Left agenda successfully' });
+
+  } catch (error) {
+    console.error('Leave agenda error:', error);
+    res.status(500).json({ error: 'Failed to leave agenda', message: 'Internal server error' });
+  }
+}
+
 module.exports = {
   getAllAgendas,
   createAgenda,
@@ -555,4 +653,5 @@ module.exports = {
   updateUserRole,
   acceptInvitation,
   declineInvitation,
+  leaveAgenda,
 };

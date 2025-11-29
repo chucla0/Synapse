@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import Cropper from 'react-easy-crop';
+import { X, Trash2 } from 'lucide-react';
 import api from '../../utils/api';
 import { getUser, setUser } from '../../utils/auth';
 import './ProfileSettingsModal.css';
@@ -174,7 +175,7 @@ function ProfileSettingsModal({ onClose }) {
       <div className="modal-content card" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{t('profileSettingsTitle')}</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
+          <button className="modal-close" onClick={onClose}><X size={24} /></button>
         </div>
 
         {isCropping ? (
@@ -276,7 +277,7 @@ function ProfileSettingsModal({ onClose }) {
                       onClick={handleDeleteAvatar}
                       title={t('deleteImageButton')}
                     >
-                      🗑️
+                      <Trash2 size={16} />
                     </button>
                   )}
                 </div>

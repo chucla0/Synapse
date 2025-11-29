@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { ArrowDown, User, Briefcase, PartyPopper, GraduationCap } from 'lucide-react';
 import '../pages/Auth/Auth.css';
 
 const AuthLayout = ({ children, title, subtitle }) => {
@@ -50,7 +51,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
             <p className="hero-subtitle">{t('auth_hero_subtitle')}</p>
             <div className="scroll-indicator">
               <span>{t('auth_hero_discover_more')}</span>
-              <div className="arrow-down">↓</div>
+              <div className="arrow-down"><ArrowDown size={20} /></div>
             </div>
           </section>
 
@@ -68,7 +69,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
             <div className="agenda-showcase">
               
               <div className="showcase-item">
-                <div className="icon-box personal">👤</div>
+                <div className="icon-box personal"><User size={24} /></div>
                 <div className="text-box">
                   <h3>{t('auth_agenda_personal_title')}</h3>
                   <p>
@@ -78,7 +79,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
               </div>
 
               <div className="showcase-item">
-                <div className="icon-box work">💼</div>
+                <div className="icon-box work"><Briefcase size={24} /></div>
                 <div className="text-box">
                   <h3>{t('auth_agenda_work_title')}</h3>
                   <p>
@@ -88,7 +89,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
               </div>
 
               <div className="showcase-item">
-                <div className="icon-box social">🎉</div>
+                <div className="icon-box social"><PartyPopper size={24} /></div>
                 <div className="text-box">
                   <h3>{t('auth_agenda_social_title')}</h3>
                   <p>
@@ -98,7 +99,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
               </div>
 
               <div className="showcase-item">
-                <div className="icon-box studies">🎓</div>
+                <div className="icon-box studies"><GraduationCap size={24} /></div>
                 <div className="text-box">
                   <h3>{t('auth_agenda_studies_title')}</h3>
                   <p>

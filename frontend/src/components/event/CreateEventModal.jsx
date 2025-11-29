@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { X, FileText, Check } from 'lucide-react';
 import api from '../../utils/api';
 import { RRule } from 'rrule';
 import AnimatedCheckbox from '../ui/AnimatedCheckbox';
 import CustomDatePicker from '../ui/CustomDatePicker';
 import './CreateEventModal.css';
 
-const EVENT_STATUS_OPTIONS = [
-  { value: 'CONFIRMED', label: 'Confirmado' }
-];
+
 
 const EVENT_COLORS = [
   '#FFADAD', // Light Red
@@ -26,21 +25,46 @@ const EVENT_COLORS = [
   '#F0EFEB', // Light Silver
 ];
 
-function CreateEventModal({ agenda, onClose, initialDate = null, event = null }) {
+function CreateEventModal({ agenda, agendas = [], onClose, initialDate = null, event = null }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [formData, setFormData] = useState({
-    title: event?.title || '',
-    description: event?.description || '',
-    location: event?.location || '',
-    startTime: event?.startTime ? new Date(event.startTime) : (initialDate ? new Date(initialDate) : new Date()),
-    endTime: event?.endTime ? new Date(event.endTime) : (initialDate ? new Date(new Date(initialDate).getTime() + 3600000) : new Date(new Date().getTime() + 3600000)),
-    isAllDay: event?.isAllDay || false,
-    status: event?.status || 'CONFIRMED',
-    color: event?.color || EVENT_COLORS[0],
-    isPrivate: event?.isPrivate || false,
-    attachments: event?.attachments || [],
-    links: event?.links || []
+  
+  // If agenda is 'all_events', default to the first real agenda, or the event's agenda if editing
+  const [selectedAgendaId, setSelectedAgendaId] = useState(() => {
+    if (event && event.agendaId) return event.agendaId;
+    if (agenda.id !== 'all_events') return agenda.id;
+    return agendas.length > 0 ? agendas[0].id : '';
+  });
+
+  const [formData, setFormData] = useState(() => {
+    // Determine effective visibleToStudents default
+    let initialVisibleToStudents = event?.visibleToStudents || false;
+    
+    // If editing an existing event in an Educativa agenda that is Public, 
+    // it effectively IS visible to students, so check the box.
+    if (event && !event.isPrivate) {
+      const currentAgendaId = event.agendaId;
+      const currentAgenda = agendas.find(a => a.id === currentAgendaId);
+      if (currentAgenda?.type === 'EDUCATIVA') {
+        initialVisibleToStudents = true;
+      }
+    }
+
+    return {
+      title: event?.title || '',
+      description: event?.description || '',
+      location: event?.location || '',
+      startTime: event?.startTime ? new Date(event.startTime) : (initialDate ? new Date(initialDate) : new Date()),
+      endTime: event?.endTime ? new Date(event.endTime) : (initialDate ? new Date(new Date(initialDate).getTime() + 3600000) : new Date(new Date().getTime() + 3600000)),
+      isAllDay: event?.isAllDay || false,
+      status: event?.status || 'CONFIRMED',
+      color: event?.color || EVENT_COLORS[0],
+      isPrivate: event?.isPrivate || false,
+      visibleToStudents: initialVisibleToStudents,
+      sharedWithUserIds: event?.sharedWithUsers?.map(u => u.id) || [],
+      attachments: event?.attachments || [],
+      links: event?.links || []
+    };
   });
   
   // Recurrence state
@@ -84,6 +108,11 @@ function CreateEventModal({ agenda, onClose, initialDate = null, event = null })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events', agenda.id] });
+      if (agenda.id === 'all_events') {
+         queryClient.invalidateQueries({ queryKey: ['events'] });
+      } else {
+         queryClient.invalidateQueries({ queryKey: ['events', 'all_events'] });
+      }
       onClose();
     },
     onError: (error) => {
@@ -99,6 +128,11 @@ function CreateEventModal({ agenda, onClose, initialDate = null, event = null })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events', agenda.id] });
+      if (agenda.id === 'all_events') {
+         queryClient.invalidateQueries({ queryKey: ['events'] });
+      } else {
+         queryClient.invalidateQueries({ queryKey: ['events', 'all_events'] });
+      }
       onClose();
     },
     onError: (error) => {
@@ -119,12 +153,25 @@ function CreateEventModal({ agenda, onClose, initialDate = null, event = null })
   };
 
   const handleDateChange = (name, date) => {
-    setFormData(prev => ({
-      ...prev,
-      [name]: date
-    }));
+    setFormData(prev => {
+      const newData = { ...prev, [name]: date };
+      
+      // Auto-adjust end time if start time is moved after or equal to end time
+      if (name === 'startTime' && date && prev.endTime) {
+        if (date >= prev.endTime) {
+           // Set end time to start time + 1 hour
+           newData.endTime = new Date(date.getTime() + 60 * 60 * 1000);
+        }
+      }
+      return newData;
+    });
+
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: null }));
+    }
+    // Also clear endTime error if we might have fixed it by changing start time
+    if (name === 'startTime' && errors.endTime) {
+      setErrors(prev => ({ ...prev, endTime: null }));
     }
   };
 
@@ -231,13 +278,15 @@ function CreateEventModal({ agenda, onClose, initialDate = null, event = null })
     if (formData.startTime && formData.endTime && new Date(formData.startTime) >= new Date(formData.endTime)) {
       newErrors.endTime = t('endDateAfterStart');
     }
+    if (!selectedAgendaId) {
+        newErrors.agenda = t('selectAgenda'); // "Seleccionar Agenda"
+    }
     
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    // Convert to ISO format and add agendaId
     // Convert to ISO format and add agendaId
     let recurrenceRule = null;
     if (isRecurring && recurrenceDays.length > 0) {
@@ -249,13 +298,19 @@ function CreateEventModal({ agenda, onClose, initialDate = null, event = null })
       recurrenceRule = rule.toString();
     }
 
+    const currentAgenda = agendas.find(a => a.id === selectedAgendaId);
+    const isEducativa = currentAgenda?.type === 'EDUCATIVA';
+
     const eventData = {
       ...formData,
-      agendaId: agenda.id,
+      agendaId: selectedAgendaId,
       startTime: new Date(formData.startTime).toISOString(),
       endTime: new Date(formData.endTime).toISOString(),
       isRecurring,
-      recurrenceRule
+      recurrenceRule,
+      visibleToStudents: formData.visibleToStudents,
+      sharedWithUserIds: formData.sharedWithUserIds,
+      isPrivate: isEducativa ? true : formData.isPrivate // Force private for Educativa
     };
 
     if (event) {
@@ -270,10 +325,32 @@ function CreateEventModal({ agenda, onClose, initialDate = null, event = null })
       <div className="modal-content event-modal card" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{event ? t('editEventTitle', 'Editar Evento') : t('createEventTitle')}</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
+          <button className="modal-close" onClick={onClose}><X size={24} /></button>
         </div>
 
         <form onSubmit={handleSubmit} className="event-form">
+          <div className="form-body">
+          {/* Agenda Selector (only if in All Events view and creating) */}
+          {agenda.id === 'all_events' && !event && (
+            <div className="form-group">
+              <label htmlFor="agendaId">{t('selectAgenda')} *</label>
+              <select
+                id="agendaId"
+                name="agendaId"
+                value={selectedAgendaId}
+                onChange={(e) => setSelectedAgendaId(e.target.value)}
+                className={`input ${errors.agenda ? 'error' : ''}`}
+                disabled={createMutation.isPending || updateMutation.isPending}
+              >
+                <option value="">{t('selectAgenda')}</option>
+                {agendas.map(a => (
+                  <option key={a.id} value={a.id}>{a.name}</option>
+                ))}
+              </select>
+              {errors.agenda && <span className="error-message">{errors.agenda}</span>}
+            </div>
+          )}
+
           {/* Title */}
           <div className="form-group">
             <label htmlFor="title">{t('titleLabel')} *</label>
@@ -423,8 +500,8 @@ function CreateEventModal({ agenda, onClose, initialDate = null, event = null })
               <ul className="attachments-list">
                 {formData.attachments.map((file, index) => (
                   <li key={index} className="attachment-item">
-                    <span className="attachment-name">📄 {file.filename}</span>
-                    <button type="button" onClick={() => removeAttachment(index)} className="btn-icon-sm">×</button>
+                    <span className="attachment-name"><FileText size={16} /> {file.filename}</span>
+                    <button type="button" onClick={() => removeAttachment(index)} className="btn-icon-sm"><X size={16} /></button>
                   </li>
                 ))}
               </ul>
@@ -470,45 +547,104 @@ function CreateEventModal({ agenda, onClose, initialDate = null, event = null })
                       {link.description && <div className="link-desc">{link.description.substring(0, 50)}...</div>}
                       <a href={link.url} target="_blank" rel="noopener noreferrer" className="link-url">{link.url}</a>
                     </div>
-                    <button type="button" onClick={() => removeLink(index)} className="btn-icon-sm remove-link">×</button>
+                    <button type="button" onClick={() => removeLink(index)} className="btn-icon-sm remove-link"><X size={16} /></button>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Status (for LABORAL agendas) */}
-          {agenda.type === 'LABORAL' && (
-            <div className="form-group">
-              <label htmlFor="status">{t('statusLabel')}</label>
-              <select
-                id="status"
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="input"
-                disabled={createMutation.isPending || updateMutation.isPending}
-              >
-                {EVENT_STATUS_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
 
-          {/* Private */}
-          <div className="form-group">
-            <AnimatedCheckbox
-              id="isPrivate"
-              name="isPrivate"
-              checked={formData.isPrivate}
-              onChange={handleChange}
-              label={t('privateEventLabel')}
-              disabled={createMutation.isPending || updateMutation.isPending}
-            />
-          </div>
+
+          {/* Agenda Type Logic */}
+          {(() => {
+            const currentAgenda = agendas.find(a => a.id === selectedAgendaId);
+            const isEducativa = currentAgenda?.type === 'EDUCATIVA';
+            const isLaboral = currentAgenda?.type === 'LABORAL';
+            const isPersonal = currentAgenda?.type === 'PERSONAL';
+
+            if (isEducativa) {
+              return (
+                <div className="form-group">
+                  <AnimatedCheckbox
+                    id="visibleToStudents"
+                    name="visibleToStudents"
+                    checked={formData.visibleToStudents}
+                    onChange={(e) => setFormData(prev => ({ 
+                      ...prev, 
+                      visibleToStudents: e.target.checked,
+                      isPrivate: true // Always private for Educativa in this simplified mode
+                    }))}
+                    label={t('visibleToStudentsLabel', 'Visible para estudiantes')}
+                    disabled={createMutation.isPending || updateMutation.isPending}
+                  />
+                </div>
+              );
+            }
+
+            if (isPersonal) {
+              return null;
+            }
+
+            return (
+              <>
+                {/* Private (Standard) */}
+                <div className="form-group">
+                  <AnimatedCheckbox
+                    id="isPrivate"
+                    name="isPrivate"
+                    checked={formData.isPrivate}
+                    onChange={handleChange}
+                    label={t('privateEventLabel')}
+                    disabled={createMutation.isPending || updateMutation.isPending}
+                  />
+                </div>
+
+                {/* Visibility Options (only if Private) */}
+                {formData.isPrivate && selectedAgendaId && (
+                  <div className="visibility-options-container">
+                    <div className="visibility-controls">
+                      <div className="form-group">
+                        <label>{t('shareWithSpecificUsers', 'Compartir con usuarios específicos')}</label>
+                        <div className="users-select-list">
+                          {currentAgenda?.agendaUsers?.map(au => (
+                            // Don't show self
+                            au.user.id !== (event?.creatorId || 'me') && (
+                              <div key={au.user.id} className="user-select-item">
+                                <input
+                                  type="checkbox"
+                                  id={`share-${au.user.id}`}
+                                  checked={formData.sharedWithUserIds.includes(au.user.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setFormData(prev => ({ ...prev, sharedWithUserIds: [...prev.sharedWithUserIds, au.user.id] }));
+                                    } else {
+                                      setFormData(prev => ({ ...prev, sharedWithUserIds: prev.sharedWithUserIds.filter(id => id !== au.user.id) }));
+                                    }
+                                  }}
+                                />
+                                <label htmlFor={`share-${au.user.id}`} className="user-select-label">
+                                  {au.user.avatar ? (
+                                    <img src={au.user.avatar} alt="" className="user-avatar-xs" />
+                                  ) : (
+                                    <span className="user-avatar-placeholder-xs">{au.user.name.charAt(0)}</span>
+                                  )}
+                                  <span>{au.user.name} ({t(`roles.${au.role}`, au.role)})</span>
+                                </label>
+                              </div>
+                            )
+                          ))}
+                          {(!currentAgenda?.agendaUsers || currentAgenda.agendaUsers.length === 0) && (
+                             <p className="text-sm text-muted italic">{t('noOtherUsers', 'No hay otros usuarios en esta agenda')}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            );
+          })()}
 
           {/* Color Picker */}
           <div className="form-group">
@@ -524,7 +660,7 @@ function CreateEventModal({ agenda, onClose, initialDate = null, event = null })
                   aria-label={color}
                   title={color}
                 >
-                  {formData.color === color && '✔'}
+                  {formData.color === color && <Check size={16} />}
                 </button>
               ))}
             </div>
@@ -538,6 +674,7 @@ function CreateEventModal({ agenda, onClose, initialDate = null, event = null })
           )}
 
           {/* Actions */}
+          </div>
           <div className="modal-actions">
             <button
               type="button"

@@ -24,10 +24,6 @@
   border-bottom-color: var(--accent);
 }
 
-.tab-content {
-  /* min-height: 400px; */
-}
-
 /* General Tab Styles */
 .danger-zone {
   margin-top: var(--spacing-xl);
@@ -67,95 +63,175 @@
   font-weight: 600;
   margin-bottom: var(--spacing-md);
   padding-bottom: var(--spacing-sm);
+  color: var(--text-black);
 }
 
-.invite-form .form-row {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
+.invite-row-container {
+  display: flex;
+  align-items: flex-start;
   gap: var(--spacing-md);
-  align-items: center;
 }
 
-.user-list {
+.invite-input-wrapper {
+  flex: 1;
+}
+
+.invite-actions-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  height: 42px; /* Match input height */
+}
+
+.role-select-compact {
+  padding: 0 12px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-size: 0.875rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.btn-compact {
+  height: 36px;
+  padding: 0 16px;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* User List Redesign */
+.members-list-container {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
-  max-height: 300px;
-  overflow-y: auto;
-  padding-right: var(--spacing-sm);
-}
-
-.role-group-title {
-  font-size: .8rem;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  font-weight: 600;
-  margin-top: var(--spacing-md);
-  margin-bottom: var(--spacing-sm);
-  border-bottom: 1px solid var(--border);
-  padding-bottom: var(--spacing-xs);
 }
 
 .user-list-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-sm);
-  border-radius: var(--radius-md);
-  transition: background-color var(--transition-fast);
+  justify-content: space-between;
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid var(--border); /* border-gray-100 equivalent */
 }
 
-.user-list-item:hover {
-  background-color: var(--bg-hover);
+.user-list-item:last-child {
+  border-bottom: none;
 }
 
-.user-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.user-name {
-  font-weight: 500;
-}
-
-.user-actions {
+.user-info-container {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
 }
 
-.role-select {
-  font-size: 0.8rem;
-  border: 1px solid var(--border);
-  background-color: var(--bg-main);
-  color: var(--text-secondary);
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-}
-.role-select:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.user-avatar-wrapper {
+  flex-shrink: 0;
 }
 
-.btn-remove {
+.user-avatar-circle {
+  width: 40px; /* w-10 */
+  height: 40px; /* h-10 */
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
+.user-avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.user-text-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name-text {
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 0.95rem;
+}
+
+.you-suffix {
+  font-weight: normal;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-left: 4px;
+}
+
+.user-email-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.user-action-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.role-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.role-select {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-size: 0.875rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.role-select:focus {
+  border-color: var(--accent);
+}
+
+.btn-remove-user {
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-size: 1.25rem;
   cursor: pointer;
-  padding: 0 8px;
+  padding: 4px;
   border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, background-color 0.2s;
   width: 28px;
   height: 28px;
-  line-height: 28px;
 }
 
-.btn-remove:hover:not(:disabled) {
-  background-color: var(--error);
-  color: white;
+.btn-remove-user:hover {
+  color: var(--error);
+  background-color: #FEF2F2; /* red-50 */
 }
-.btn-remove:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+
+.role-badge-text {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding: 4px 8px;
+  background-color: var(--bg-main);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent; /* To match select height if needed, or just visual */
 }
+

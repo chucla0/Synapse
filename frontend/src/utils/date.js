@@ -107,4 +107,108 @@ export function getWeekNumber(date) {
   return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
 }
 
+/**
+ * Calculate layout for overlapping events
+ */
+export function calculateEventLayout(events) {
+  // 1. Prepare events with visual dimensions
+  const sortedEvents = events.map(event => {
+    const start = new Date(event.startTime).getTime();
+    const end = new Date(event.endTime).getTime();
+    // Minimum duration of 20 minutes for visual overlap calculation
+    // 20 minutes = 20 * 60 * 1000 ms
+    const minDuration = 20 * 60 * 1000;
+    const visualEnd = Math.max(end, start + minDuration);
+    
+    return {
+      ...event,
+      _start: start,
+      _end: end,
+      _visualEnd: visualEnd
+    };
+  }).sort((a, b) => a._start - b._start || b._visualEnd - a._visualEnd);
+
+  // 2. Group into clusters
+  const clusters = [];
+  let currentCluster = [];
+  let clusterEnd = -1;
+
+  sortedEvents.forEach(event => {
+    if (currentCluster.length === 0) {
+      currentCluster.push(event);
+      clusterEnd = event._visualEnd;
+    } else {
+      if (event._start < clusterEnd) {
+        // Overlaps with cluster
+        currentCluster.push(event);
+        clusterEnd = Math.max(clusterEnd, event._visualEnd);
+      } else {
+        // New cluster
+        clusters.push(currentCluster);
+        currentCluster = [event];
+        clusterEnd = event._visualEnd;
+      }
+    }
+  });
+  if (currentCluster.length > 0) {
+    clusters.push(currentCluster);
+  }
+
+  // 3. Process clusters to assign columns
+  const processedEvents = [];
+
+  clusters.forEach(cluster => {
+    const columns = []; // Array of arrays (columns) containing events
+
+    cluster.forEach(event => {
+      // Find first column where event fits
+      let placed = false;
+      for (let i = 0; i < columns.length; i++) {
+        const lastEventInColumn = columns[i][columns[i].length - 1];
+        if (lastEventInColumn._visualEnd <= event._start) {
+          columns[i].push(event);
+          event._col = i;
+          placed = true;
+          break;
+        }
+      }
+      
+      if (!placed) {
+        columns.push([event]);
+        event._col = columns.length - 1;
+      }
+    });
+
+    const numCols = columns.length;
+    
+    cluster.forEach(event => {
+      // Calculate dimensions
+      const startHour = new Date(event.startTime).getHours();
+      const startMinute = new Date(event.startTime).getMinutes();
+      const endHour = new Date(event.endTime).getHours();
+      const endMinute = new Date(event.endTime).getMinutes();
+      
+      const top = (startHour + startMinute / 60) * 60;
+      // Calculate height based on actual duration, but enforce min-height in CSS/style
+      // Here we just pass the raw height calculation, the component handles min-height
+      let height = ((endHour + endMinute / 60) - (startHour + startMinute / 60)) * 60;
+      
+      // Handle day crossing or 0 duration
+      if (height <= 0) height = 20; // Default to 20px if 0 or negative
+
+      processedEvents.push({
+        ...event,
+        style: {
+          top: `${top}px`,
+          height: `${height}px`, // Component will apply Math.max(height, 20)
+          left: `${(event._col / numCols) * 100}%`,
+          width: `${100 / numCols}%`
+        }
+      });
+    });
+  });
+
+  return processedEvents;
+}
+
 export { isSameDay, isSameMonth, isToday, addDays, addWeeks, addMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, format, parse };

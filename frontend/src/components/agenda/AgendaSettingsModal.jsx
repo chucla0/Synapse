@@ -4,13 +4,14 @@ import { useTranslation } from 'react-i18next';
 import api from '../../utils/api';
 import { getUser } from '../../utils/auth';
 import ConfirmDeleteModal from '../ConfirmDeleteModal';
+import MultiEmailInput from '../ui/MultiEmailInput';
 import './AgendaSettingsModal.css';
 
 const ROLES_BY_TYPE = {
   LABORAL: ['CHIEF', 'EMPLOYEE'],
   EDUCATIVA: ['PROFESSOR', 'STUDENT'],
   FAMILIAR: ['EDITOR', 'VIEWER'],
-  COLABORATIVA: ['EDITOR', 'VIEWER'], // Viewer for collab is a good addition
+  COLABORATIVA: ['EDITOR', 'VIEWER'],
 };
 
 function AgendaSettingsModal({ agenda, onClose }) {
@@ -20,16 +21,21 @@ function AgendaSettingsModal({ agenda, onClose }) {
 
   const [activeTab, setActiveTab] = useState('general');
   const [formData, setFormData] = useState({ name: agenda.name, description: agenda.description || '' });
-  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteEmails, setInviteEmails] = useState([]);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [showConfirmLeave, setShowConfirmLeave] = useState(false);
+  const [userToRemove, setUserToRemove] = useState(null);
   
   const availableRoles = useMemo(() => ROLES_BY_TYPE[agenda.type] || [], [agenda.type]);
-  const [inviteRole, setInviteRole] = useState(availableRoles[1] || availableRoles[0]); // Default to lesser role
+  const [inviteRole, setInviteRole] = useState(availableRoles[1] || availableRoles[0]);
 
   // Fetch full, fresh agenda details
   const { data: agendaData, isLoading } = useQuery({
     queryKey: ['agendaDetails', agenda.id],
     queryFn: async () => (await api.get(`/agendas/${agenda.id}`)).data,
+    staleTime: 10000,
+    refetchOnWindowFocus: false,
+    retry: false,
   });
   const fullAgenda = agendaData?.agenda;
   const userRole = fullAgenda?.userRole;
@@ -39,9 +45,10 @@ function AgendaSettingsModal({ agenda, onClose }) {
     mutationFn: (updatedData) => api.put(`/agendas/${agenda.id}`, updatedData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agendas'] });
-      onClose(); // Close modal after successful update and query invalidation
+      onClose();
     },
   });
+
   const deleteAgendaMutation = useMutation({
     mutationFn: () => api.delete(`/agendas/${agenda.id}`),
     onSuccess: () => {
@@ -49,18 +56,30 @@ function AgendaSettingsModal({ agenda, onClose }) {
       onClose();
     },
   });
+
+  const leaveAgendaMutation = useMutation({
+    mutationFn: () => api.post(`/agendas/${agenda.id}/leave`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agendas'] });
+      onClose();
+    },
+  });
+
   const addUserMutation = useMutation({
     mutationFn: (data) => api.post(`/agendas/${agenda.id}/users`, data),
     onSuccess: () => {
-      // queryClient.invalidateQueries({ queryKey: ['agendaDetails', agenda.id] }); // No need to invalidate as user won't be there yet
-      setInviteEmail('');
-      alert(t('invitationSentSuccess', 'Invitación enviada correctamente'));
+      // Alert handled in handleInvite
     },
   });
+
   const removeUserMutation = useMutation({
     mutationFn: (userId) => api.delete(`/agendas/${agenda.id}/users/${userId}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['agendaDetails', agenda.id] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agendaDetails', agenda.id] });
+      setUserToRemove(null);
+    },
   });
+
   const updateUserRoleMutation = useMutation({
     mutationFn: ({ userId, role }) => api.put(`/agendas/${agenda.id}/users/${userId}/role`, { role }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['agendaDetails', agenda.id] }),
@@ -75,47 +94,172 @@ function AgendaSettingsModal({ agenda, onClose }) {
     setShowConfirmDelete(true);
   };
 
+  const handleLeave = () => {
+    setShowConfirmLeave(true);
+  };
+
   const executeDelete = () => {
     deleteAgendaMutation.mutate(undefined, {
       onSuccess: () => {
         setShowConfirmDelete(false);
         onClose();
-        queryClient.invalidateQueries({ queryKey: ['agendas'] });
       }
     });
   };
 
-  const handleInvite = (e) => {
+  const executeLeave = () => {
+    leaveAgendaMutation.mutate(undefined, {
+      onSuccess: () => {
+        setShowConfirmLeave(false);
+        onClose();
+      }
+    });
+  };
+
+  const handleRemoveUser = (userId) => {
+    setUserToRemove(userId);
+  };
+
+  const executeRemoveUser = () => {
+    if (userToRemove) {
+      removeUserMutation.mutate(userToRemove);
+    }
+  };
+
+  const handleInvite = async (e) => {
     e.preventDefault();
-    if (!inviteEmail) return;
-    addUserMutation.mutate({ email: inviteEmail, role: inviteRole });
+    if (inviteEmails.length === 0) return;
+    
+    const promises = inviteEmails.map(email => 
+      addUserMutation.mutateAsync({ email, role: inviteRole })
+    );
+
+    try {
+      await Promise.all(promises);
+      setInviteEmails([]);
+      alert(t('invitationSentSuccess', 'Invitaciones enviadas correctamente'));
+      queryClient.invalidateQueries({ queryKey: ['agendaDetails', agenda.id] });
+    } catch (error) {
+      console.error("Error sending invites", error);
+    }
   };
   
-  const usersByRole = useMemo(() => {
-    if (!fullAgenda) return {};
-    const grouped = { OWNER: [fullAgenda.owner] };
-    fullAgenda.agendaUsers.forEach(member => {
-      if (!grouped[member.role]) {
-        grouped[member.role] = [];
+  const sortedMembers = useMemo(() => {
+    if (!fullAgenda) return [];
+    
+    const members = [];
+    
+    // Helper to add member
+    const addMember = (user, role) => {
+      members.push({ user, role, isCurrentUser: user.id === currentUser.id });
+    };
+
+    // Add owner
+    if (fullAgenda.owner) {
+      addMember(fullAgenda.owner, 'OWNER');
+    }
+
+    // Add other members
+    fullAgenda.agendaUsers.forEach(au => {
+      if (au.user.id !== fullAgenda.owner?.id) {
+        addMember(au.user, au.role);
       }
-      grouped[member.role].push(member.user);
     });
-    return grouped;
-  }, [fullAgenda]);
+
+    // Sort members
+    return members.sort((a, b) => {
+      // 1. Current user first
+      if (a.isCurrentUser) return -1;
+      if (b.isCurrentUser) return 1;
+
+      // 2. Role hierarchy
+      const getRoleRank = (role) => {
+        if (role === 'OWNER') return 0;
+        if (['CHIEF', 'PROFESSOR', 'EDITOR'].includes(role)) return 1;
+        return 2;
+      };
+      
+      const rankA = getRoleRank(a.role);
+      const rankB = getRoleRank(b.role);
+      
+      if (rankA !== rankB) return rankA - rankB;
+      
+      // 3. Name alphabetical fallback
+      return a.user.name.localeCompare(b.user.name);
+    });
+  }, [fullAgenda, currentUser.id]);
 
   // Permission checks
   const canEditGeneral = userRole === 'OWNER';
   const canInvite = userRole === 'OWNER' && agenda.type !== 'PERSONAL';
+  
   const canChangeRole = (targetUserRole) => {
     if (userRole === 'OWNER' && agenda.type !== 'EDUCATIVA') return true;
     if (userRole === 'CHIEF' && agenda.type === 'LABORAL' && targetUserRole === 'EMPLOYEE') return true;
     return false;
   };
+
   const canRemoveUser = (targetUserRole) => {
     if (userRole === 'OWNER') return true;
     if (userRole === 'CHIEF' && agenda.type === 'LABORAL' && targetUserRole === 'EMPLOYEE') return true;
+    if (userRole === 'PROFESSOR' && agenda.type === 'EDUCATIVA' && targetUserRole === 'STUDENT') return true;
     return false;
   }
+
+  const renderUserItem = (member) => {
+    const { user, role, isCurrentUser } = member;
+    const canEditThisUser = !isCurrentUser && canChangeRole(role);
+    const canRemoveThisUser = !isCurrentUser && canRemoveUser(role);
+
+    return (
+      <div key={user.id} className="user-list-item">
+        <div className="user-info-container">
+          <div className="user-avatar-wrapper">
+            {user.avatar ? (
+              <img 
+                src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${user.avatar}`} 
+                alt={user.name} 
+                className="user-avatar-circle"
+              />
+            ) : (
+              <div className="user-avatar-placeholder">
+                {user.name?.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
+          <div className="user-text-info">
+            <span className="user-name-text">
+              {user.name} {isCurrentUser && <span className="you-suffix">({t('you', 'Tú')})</span>}
+            </span>
+            <span className="user-email-text">{user.email}</span>
+          </div>
+        </div>
+        
+        <div className="user-action-container">
+          {canEditThisUser ? (
+            <div className="role-actions">
+              <select 
+                className="role-select" 
+                value={role} 
+                onChange={(e) => updateUserRoleMutation.mutate({ userId: user.id, role: e.target.value })} 
+              >
+                {availableRoles.map(r => <option key={r} value={r}>{t(`roles.${r}`, r)}</option>)}
+              </select>
+              {canRemoveThisUser && (
+                <button className="btn-remove-user" onClick={() => handleRemoveUser(user.id)} title={t('removeUser')}>
+                  &times;
+                </button>
+              )}
+            </div>
+          ) : (
+            <span className="role-badge-text">
+              {t(`roles.${role}`, role)}
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -133,7 +277,7 @@ function AgendaSettingsModal({ agenda, onClose }) {
         </div>
 
         <div className="tab-content">
-          {isLoading ? <p>Cargando...</p> : (
+          {isLoading ? <p>{t('loading')}</p> : (
             <>
               {/* General Tab */}
               {activeTab === 'general' && (
@@ -159,9 +303,9 @@ function AgendaSettingsModal({ agenda, onClose }) {
                   )}
 
                   {/* Danger Zone */}
-                  {canEditGeneral && (
-                    <div className="danger-zone">
-                      <h4>{t('dangerZoneTitle')}</h4>
+                  <div className="danger-zone">
+                    <h4>{t('dangerZone')}</h4>
+                    {canEditGeneral ? (
                       <div className="danger-item">
                         <div>
                           <strong>{t('deleteAgendaTitle')}</strong>
@@ -169,8 +313,16 @@ function AgendaSettingsModal({ agenda, onClose }) {
                         </div>
                         <button type="button" className="btn btn-danger" onClick={handleDelete} disabled={deleteAgendaMutation.isPending}>{t('deleteButton')}</button>
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="danger-item">
+                        <div>
+                          <strong>{t('leaveAgenda')}</strong>
+                          <p>{t('leaveAgendaDescription', 'Salir de esta agenda permanentemente.')}</p>
+                        </div>
+                        <button type="button" className="btn btn-danger" onClick={handleLeave} disabled={leaveAgendaMutation.isPending}>{t('leave')}</button>
+                      </div>
+                    )}
+                  </div>
                 </form>
               )}
 
@@ -183,52 +335,44 @@ function AgendaSettingsModal({ agenda, onClose }) {
                     {canInvite && (
                       <form onSubmit={handleInvite} className="invite-form">
                         <h3>{t('inviteUserTitle')}</h3>
-                        <div className="form-row">
-                          <input type="email" className="input" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="email@ejemplo.com" disabled={addUserMutation.isPending} />
-                          {agenda.type !== 'COLABORATIVA' && (
-                            <select className="input" value={inviteRole} onChange={(e) => setInviteRole(e.target.value)}>
-                              {availableRoles.map(role => <option key={role} value={role}>{role}</option>)}
-                            </select>
-                          )}
-                          <button type="submit" className="btn btn-primary" disabled={!inviteEmail || addUserMutation.isPending}>
-                            {addUserMutation.isPending ? t('invitingButton') : t('inviteButton')}
-                          </button>
+                        <div className="invite-row-container">
+                          <div className="invite-input-wrapper">
+                            <MultiEmailInput
+                              emails={inviteEmails}
+                              onChange={setInviteEmails}
+                              placeholder="email@ejemplo.com"
+                              disabled={addUserMutation.isPending}
+                            />
+                          </div>
+                          
+                          <div className="invite-actions-wrapper">
+                            {agenda.type !== 'COLABORATIVA' && (
+                              <select 
+                                className="role-select-compact" 
+                                value={inviteRole} 
+                                onChange={(e) => setInviteRole(e.target.value)}
+                                disabled={addUserMutation.isPending}
+                              >
+                                {availableRoles.map(role => <option key={role} value={role}>{t(`roles.${role}`, role)}</option>)}
+                              </select>
+                            )}
+                            <button 
+                              type="submit" 
+                              className="btn btn-primary btn-compact" 
+                              disabled={inviteEmails.length === 0 || addUserMutation.isPending}
+                            >
+                              {addUserMutation.isPending ? t('invitingButton') : t('inviteButton')}
+                            </button>
+                          </div>
                         </div>
                         {addUserMutation.isError && <p className="error-message mt-1">{addUserMutation.error.response?.data?.message || 'Error al invitar'}</p>}
                       </form>
                     )}
                     <div className="user-list">
-                      <h3>{t('membersCount', { count: fullAgenda?.agendaUsers.length + 1 })}</h3>
-                      {Object.entries(usersByRole).map(([role, users]) => (
-                        <div key={role}>
-                          <h4 className="role-group-title">{role}</h4>
-                          {users.map(user => (
-                            <div key={user.id} className="user-list-item">
-                              <div className="user-info">
-                                <span className="user-name">{user.name}</span>
-                                <span className="user-email text-muted">{user.email}</span>
-                              </div>
-                              <div className="user-actions">
-                                {role !== 'OWNER' && (
-                                  <>
-                                    <select 
-                                      className="role-select" 
-                                      value={fullAgenda?.agendaUsers.find(au => au.userId === user.id)?.role} 
-                                      onChange={(e) => updateUserRoleMutation.mutate({ userId: user.id, role: e.target.value })} 
-                                      disabled={!canChangeRole(fullAgenda?.agendaUsers.find(au => au.userId === user.id)?.role)}
-                                    >
-                                      {availableRoles.map(r => <option key={r} value={r}>{r}</option>)}
-                                    </select>
-                                    {canRemoveUser(fullAgenda?.agendaUsers.find(au => au.userId === user.id)?.role) && (
-                                      <button className="btn-remove" onClick={() => removeUserMutation.mutate(user.id)} disabled={removeUserMutation.isPending} title={t('removeUserButton_title')}>×</button>
-                                    )}
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ))}
+                      <h3>{t('membersCount', { count: sortedMembers.length })}</h3>
+                      <div className="members-list-container">
+                        {sortedMembers.map(member => renderUserItem(member))}
+                      </div>
                     </div>
                   </div>
                 )
@@ -244,8 +388,30 @@ function AgendaSettingsModal({ agenda, onClose }) {
           onConfirm={executeDelete}
           onCancel={() => setShowConfirmDelete(false)}
           isDeleting={deleteAgendaMutation.isPending}
-          confirmText={t('deleteButton', 'Eliminar')}
-          deletingText={t('deletingAgendaButton', 'Eliminando agenda...')}
+          confirmText={t('deleteButton')}
+          deletingText={t('deletingAgendaButton', 'Eliminando...')}
+        />
+      )}
+
+      {showConfirmLeave && (
+        <ConfirmDeleteModal
+          message={t('confirmLeaveAgenda')}
+          onConfirm={executeLeave}
+          onCancel={() => setShowConfirmLeave(false)}
+          isDeleting={leaveAgendaMutation.isPending}
+          confirmText={t('leave')}
+          deletingText={t('leaving', 'Saliendo...')}
+        />
+      )}
+
+      {userToRemove && (
+        <ConfirmDeleteModal
+          message={t('confirmRemoveUser')}
+          onConfirm={executeRemoveUser}
+          onCancel={() => setUserToRemove(null)}
+          isDeleting={removeUserMutation.isPending}
+          confirmText={t('remove')}
+          deletingText={t('removing', 'Eliminando...')}
         />
       )}
     </div>

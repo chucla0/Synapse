@@ -53,12 +53,17 @@ router.post('/:agendaId/users',
 
 /**
  * DELETE /api/agendas/:agendaId/users/:userId
- * Remove user from agenda (owner only)
+ * Remove user from agenda (permissions handled in controller)
  */
 router.delete('/:agendaId/users/:userId', 
-  requireAgendaRole(['OWNER']), 
   agendaController.removeUserFromAgenda
 );
+
+/**
+ * POST /api/agendas/:agendaId/leave
+ * Leave an agenda
+ */
+router.post('/:agendaId/leave', agendaController.leaveAgenda);
 
 /**
  * PUT /api/agendas/:agendaId/users/:userId/role

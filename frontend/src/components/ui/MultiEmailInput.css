@@ -1,0 +1,72 @@
+.multi-email-input-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-main);
+  min-height: 42px;
+  cursor: text;
+  transition: border-color 0.2s;
+}
+
+.multi-email-input-container:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-light);
+}
+
+.multi-email-input-container.error {
+  border-color: var(--error);
+}
+
+.multi-email-input-container.disabled {
+  background-color: var(--bg-hover);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.email-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #F3E8FF; /* purple-100 equivalent */
+  color: #7E22CE; /* purple-700 equivalent */
+  padding: 2px 10px;
+  border-radius: 9999px; /* rounded-full */
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.remove-chip-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #7E22CE;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.remove-chip-btn:hover {
+  opacity: 1;
+}
+
+.email-input-field {
+  flex: 1;
+  min-width: 120px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  padding: 4px 0;
+}
+
+.email-input-field::placeholder {
+  color: var(--text-muted);
+}
