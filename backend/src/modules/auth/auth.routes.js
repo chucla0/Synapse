@@ -44,7 +44,29 @@ router.put('/profile', authenticateToken, authController.updateProfile);
  * GET /api/auth/google
  * Initiate Google OAuth login
  */
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google', passport.authenticate('google', { 
+  scope: ['profile', 'email'],
+  prompt: 'select_account'
+}));
+
+/**
+ * GET /api/auth/google/connect
+ * Connect Google Calendar
+ */
+router.get('/google/connect', (req, res, next) => {
+  const options = { 
+    scope: ['profile', 'email', 'https://www.googleapis.com/auth/calendar'],
+    accessType: 'offline',
+    prompt: 'consent',
+    state: 'connect_calendar'
+  };
+
+  if (req.query.login_hint) {
+    options.loginHint = req.query.login_hint;
+  }
+
+  passport.authenticate('google', options)(req, res, next);
+});
 
 /**
  * GET /api/auth/google/callback

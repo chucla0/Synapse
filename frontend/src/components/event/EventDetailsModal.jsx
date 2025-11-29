@@ -121,7 +121,7 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
             {event.status === 'PENDING_APPROVAL' && (
                <span className="status-badge status-pending_approval">{t('pendingApproval', 'Pendiente')}</span>
             )}
-            {event.status === 'CONFIRMED' && (
+            {event.status === 'CONFIRMED' && realAgenda?.type === 'LABORAL' && (
                <span className="status-badge status-confirmed">{t('confirmed', 'Confirmado')}</span>
             )}
           </div>
@@ -154,7 +154,11 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
             <label className="detail-label"><User size={14} /> {t('createdBy', 'Creado por')}</label>
             <div className="detail-value user-info-clean">
               {event.creator?.avatar ? (
-                <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${event.creator.avatar}`} alt={event.creator.name} className="user-avatar-small" />
+                <img 
+                  src={event.creator.avatar.startsWith('http') ? event.creator.avatar : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${event.creator.avatar}`} 
+                  alt={event.creator.name} 
+                  className="user-avatar-small" 
+                />
               ) : (
                 <div className="user-avatar-placeholder-small">
                   {event.creator?.name?.charAt(0).toUpperCase()}
@@ -179,7 +183,11 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
                       {event.sharedWithUsers.map(user => (
                         <div key={user.id} className="user-info-clean">
                            {user.avatar ? (
-                              <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${user.avatar}`} alt={user.name} className="user-avatar-small" />
+                              <img 
+                                src={user.avatar.startsWith('http') ? user.avatar : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${user.avatar}`} 
+                                alt={user.name} 
+                                className="user-avatar-small" 
+                              />
                             ) : (
                               <div className="user-avatar-placeholder-small">
                                 {user.name.charAt(0).toUpperCase()}

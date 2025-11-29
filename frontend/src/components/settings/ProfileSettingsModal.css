@@ -95,3 +95,41 @@
   padding: 0.25rem 0.5rem;
   font-size: 0.875rem;
 }
+
+/* Integrations */
+.integrations-section {
+  margin-top: 0;
+}
+
+.integration-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: var(--bg-main);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.integration-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.integration-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.integration-status {
+  font-size: 0.85rem;
+}
+
+.integration-status.connected {
+  color: var(--success);
+}
+
+.integration-status.disconnected {
+  color: var(--text-secondary);
+}

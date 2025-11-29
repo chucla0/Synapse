@@ -1,53 +1,74 @@
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '../../contexts/ThemeContext';
-import { X, Check } from 'lucide-react';
-import './WebSettingsModal.css';
+import { X, Calendar, BookOpen, CheckCircle, AlertCircle } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import api from '../../utils/api';
+import { getUser } from '../../utils/auth';
+import './ProfileSettingsModal.css'; // Reuse styles for now
 
 function WebSettingsModal({ onClose }) {
   const { t } = useTranslation();
-  const { theme, setTheme, accentId, setAccentId, availableThemes, availableColors } = useTheme();
+  const queryClient = useQueryClient();
+  const currentUser = getUser();
+  const isGoogleConnected = !!currentUser?.googleId;
+
+  const syncGoogleMutation = useMutation({
+    mutationFn: () => api.post('/integrations/google/import'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agendas'] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      alert(t('googleCalendarSuccess'));
+    },
+    onError: (error) => {
+      console.error(error);
+      alert('Error al sincronizar');
+    }
+  });
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content card" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{t('webSettingsTitle')}</h2>
+          <h1>{t('webSettingsTitle', 'Configuración')}</h1>
           <button className="modal-close" onClick={onClose}><X size={24} /></button>
         </div>
 
         <div className="settings-section">
-          <h3>{t('themeLabel')}</h3>
-          <div className="theme-options">
-            {availableThemes.map((tOption) => (
-              <button
-                key={tOption}
-                className={`theme-option ${theme === tOption ? 'active' : ''}`}
-                onClick={() => setTheme(tOption)}
+          <h3>{t('integrationsTitle', 'Integraciones')}</h3>
+          <div className="integration-item">
+            <div className="integration-info">
+              <span className="integration-icon google-icon">
+                <Calendar size={20} />
+              </span>
+              <div className="integration-details">
+                <span className="integration-name">Google Calendar</span>
+                <span className={`integration-status ${isGoogleConnected ? 'connected' : 'disconnected'}`}>
+                  {isGoogleConnected ? (
+                    <><CheckCircle size={12} /> {t('connectedStatus', 'Conectado')}</>
+                  ) : (
+                    <><AlertCircle size={12} /> {t('disconnectedStatus', 'Desconectado')}</>
+                  )}
+                </span>
+              </div>
+            </div>
+            {isGoogleConnected && (
+              <button 
+                className="btn btn-secondary btn-sm"
+                onClick={() => syncGoogleMutation.mutate()}
+                disabled={syncGoogleMutation.isPending}
               >
-                {t(`theme_${tOption}`)}
+                {syncGoogleMutation.isPending ? t('syncingButton') : t('resyncButton')}
               </button>
-            ))}
+            )}
           </div>
         </div>
 
         <div className="settings-section">
-          <h3>{t('accentColorLabel')}</h3>
-          <div className="color-options">
-            {availableColors.map((color) => {
-              const displayColor = theme === 'dark' ? color.dark : color.light;
-              return (
-                <button
-                  key={color.id}
-                  className={`color-swatch ${accentId === color.id ? 'active' : ''}`}
-                  style={{ backgroundColor: displayColor }}
-                  onClick={() => setAccentId(color.id)}
-                  aria-label={color.label}
-                  title={color.label}
-                >
-                  {accentId === color.id && <span className="check-icon"><Check size={16} /></span>}
-                </button>
-              );
-            })}
+          <h3>{t('userGuideTitle', 'Guía de Usuario')}</h3>
+          <div className="guide-placeholder">
+            <BookOpen size={48} className="text-gray-400 mb-2" />
+            <p className="text-gray-500 text-sm text-center">
+              {t('guideComingSoon', 'El manual de usuario estará disponible próximamente.')}
+            </p>
           </div>
         </div>
 

@@ -4,9 +4,18 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting seed...');
+  console.log('🌱 Starting seed check...');
 
-  // 1. Clean Database
+  // Check if database is already seeded
+  const userCount = await prisma.user.count();
+  if (userCount > 0) {
+    console.log('✅ Database already seeded. Skipping seed.');
+    return;
+  }
+
+  console.log('🌱 Database is empty. Starting seed process...');
+
+  // 1. Clean Database (Safety check, though count was 0)
   await prisma.notification.deleteMany();
   await prisma.attachment.deleteMany();
   await prisma.link.deleteMany();

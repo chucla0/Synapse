@@ -50,6 +50,7 @@ const eventRoutes = require('./modules/event/event.routes');
 const notificationRoutes = require('./modules/notification/notification.routes');
 const uploadRoutes = require('./modules/upload/upload.routes');
 const linkRoutes = require('./modules/link/link.routes');
+const integrationsRoutes = require('./modules/integrations/integrations.routes');
 
 // Mount routes
 app.use('/api/auth', authRoutes);
@@ -58,6 +59,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/links', linkRoutes);
+app.use('/api/integrations', integrationsRoutes);
 
 // ============================================
 // TEST ROUTES

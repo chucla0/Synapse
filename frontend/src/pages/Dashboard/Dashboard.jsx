@@ -11,6 +11,7 @@ import CreateAgendaModal from '../../components/agenda/CreateAgendaModal';
 import ProfileSettingsModal from '../../components/settings/ProfileSettingsModal';
 import AgendaSettingsModal from '../../components/agenda/AgendaSettingsModal';
 import WebSettingsModal from '../../components/settings/WebSettingsModal';
+import WebThemeModal from '../../components/settings/WebThemeModal';
 import Home from '../Home/Home';
 import './Dashboard.css';
 
@@ -34,6 +35,7 @@ function Dashboard({ onLogout, sessionKey }) {
   const [showCreateAgenda, setShowCreateAgenda] = useState(false);
   const [showProfileSettings, setShowProfileSettings] = useState(false);
   const [showWebSettings, setShowWebSettings] = useState(false);
+  const [showWebTheme, setShowWebTheme] = useState(false);
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [editingAgenda, setEditingAgenda] = useState(null);
@@ -75,7 +77,17 @@ function Dashboard({ onLogout, sessionKey }) {
     retry: false,
   });
 
-  const agendas = agendasData?.agendas || [];
+  const agendas = (agendasData?.agendas || []).reduce((acc, current) => {
+    // Check if we already have a Google Calendar in the accumulator
+    if (current.googleCalendarId || current.name === 'Google Calendar') {
+      const hasGoogle = acc.find(a => a.googleCalendarId || a.name === 'Google Calendar');
+      if (hasGoogle) return acc; // Skip duplicate
+      
+      // Force Green Color for Google Calendar
+      return [...acc, { ...current, color: '#34A853' }];
+    }
+    return [...acc, current];
+  }, []);
 
   // Fetch notifications
   const { data: notificationsData, isLoading: notificationsLoading, refetch: refetchNotifications } = useQuery({
@@ -291,14 +303,46 @@ function Dashboard({ onLogout, sessionKey }) {
                     <span className="agenda-name">{allEventsAgenda.name}</span>
                   </div>
                 </li>
+
+                {/* Pinned Google Calendar */}
+                {agendas.find(a => a.googleCalendarId || a.name === 'Google Calendar') && (() => {
+                  const googleAgenda = agendas.find(a => a.googleCalendarId || a.name === 'Google Calendar');
+                  return (
+                    <li className={`agenda-item ${selectedAgenda === googleAgenda.id ? 'active' : ''}`}>
+                      <div className="agenda-item-main" onClick={() => setSelectedAgenda(googleAgenda.id)}>
+                        <span 
+                          className="agenda-color" 
+                          style={{ backgroundColor: googleAgenda.color }}
+                        />
+                        <span className="agenda-name">{googleAgenda.name}</span>
+                      </div>
+                      <button 
+                        className="btn-agenda-settings"
+                        onClick={() => setEditingAgenda(googleAgenda)}
+                        title={t('agendaSettings')}
+                      >
+                        <Settings size={16} />
+                      </button>
+                    </li>
+                  );
+                })()}
               </ul>
 
               {agendasLoading ? (
                 <div className="loading-agendas">{t('loading')}</div>
-              ) : filteredAgendas.length === 0 ? (
+              ) : filteredAgendas.filter(a => !a.googleCalendarId && a.name !== 'Google Calendar').length === 0 ? (
                 <p className="text-sm text-muted">{t('noAgendasFound')}</p>
               ) : sortOrder === 'type' ? (
-                Object.entries(groupedAgendas).map(([type, typeAgendas]) => (
+                Object.entries(
+                  filteredAgendas
+                    .filter(a => !a.googleCalendarId && a.name !== 'Google Calendar')
+                    .reduce((acc, agenda) => {
+                      const type = agenda.type;
+                      if (!acc[type]) acc[type] = [];
+                      acc[type].push(agenda);
+                      return acc;
+                    }, {})
+                ).map(([type, typeAgendas]) => (
                   <div key={type} className="agenda-group">
                     <h4 className="agenda-group-title">{t(`agendaType_${type}`, type)}</h4>
                     <ul className="agenda-list">
@@ -325,7 +369,9 @@ function Dashboard({ onLogout, sessionKey }) {
                 ))
               ) : (
                 <ul className="agenda-list">
-                  {filteredAgendas.map(agenda => (
+                  {filteredAgendas
+                    .filter(a => !a.googleCalendarId && a.name !== 'Google Calendar')
+                    .map(agenda => (
                     <li key={agenda.id} className={`agenda-item ${selectedAgenda === agenda.id ? 'active' : ''}`}>
                       <div className="agenda-item-main" onClick={() => setSelectedAgenda(agenda.id)}>
                         <span 
@@ -389,7 +435,14 @@ function Dashboard({ onLogout, sessionKey }) {
             onClick={() => setShowWebSettings(true)}
             title={t('webSettingsTitle')}
           >
-            <Palette size={18} style={{ marginRight: '8px' }} /> {t('webSettingsButton')}
+            <Settings size={18} style={{ marginRight: '8px' }} /> {t('webSettingsButton')}
+          </button>
+          <button 
+            className="btn btn-secondary btn-block"
+            onClick={() => setShowWebTheme(true)}
+            title={t('webThemeTitle')}
+          >
+            <Palette size={18} style={{ marginRight: '8px' }} /> {t('webThemeButton')}
           </button>
           <button 
             className="btn btn-secondary btn-block"
@@ -440,6 +493,9 @@ function Dashboard({ onLogout, sessionKey }) {
       )}
       {showWebSettings && (
         <WebSettingsModal onClose={() => setShowWebSettings(false)} />
+      )}
+      {showWebTheme && (
+        <WebThemeModal onClose={() => setShowWebTheme(false)} />
       )}
       {editingAgenda && (
         <AgendaSettingsModal 

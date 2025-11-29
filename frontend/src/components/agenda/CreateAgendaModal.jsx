@@ -30,6 +30,12 @@ function CreateAgendaModal({ onClose }) {
   });
   const [errors, setErrors] = useState({});
 
+  // Check if user already has a Google Agenda
+  // We need to access the cache or fetch agendas, but since this is a modal opened from Dashboard, 
+  // we can assume the query cache is populated.
+  const agendas = queryClient.getQueryData(['agendas'])?.agendas || [];
+  const hasGoogleAgenda = agendas.some(a => a.googleCalendarId || a.name === 'Google Calendar');
+
   const createMutation = useMutation({
     mutationFn: async (data) => {
       const response = await api.post('/agendas', data);
@@ -155,6 +161,34 @@ function CreateAgendaModal({ onClose }) {
               />
             </div>
           </div>
+
+          {!hasGoogleAgenda && (
+            <div className="google-connect-separator">
+              <div className="separator-line"></div>
+              <span className="separator-text">{t('orSeparator', 'o')}</span>
+              <div className="separator-line"></div>
+            </div>
+          )}
+
+          {!hasGoogleAgenda && (
+            <button
+              type="button"
+              className="btn-google-connect"
+              onClick={() => {
+                const user = queryClient.getQueryData(['user']) || JSON.parse(localStorage.getItem('synapse_user'));
+                const loginHint = user?.email ? `&login_hint=${encodeURIComponent(user.email)}` : '';
+                window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/auth/google/connect?${loginHint}`;
+              }}
+            >
+              <img 
+                src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" 
+                alt="Google Calendar" 
+                width="24" 
+                height="24" 
+              />
+              <span>{t('connectGoogleCalendar', 'Conectar con Google Calendar')}</span>
+            </button>
+          )}
 
           {/* Timezone (hidden, auto-detected) */}
           <input type="hidden" name="timezone" value={formData.timezone} />

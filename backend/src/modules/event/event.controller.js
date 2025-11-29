@@ -1,5 +1,6 @@
 const prisma = require('../../lib/prisma');
 const NotificationService = require('../notification/notification.service.js');
+const GoogleSyncService = require('../google-sync/google-sync.service.js');
 
 /**
  * Get all events with filters
@@ -429,6 +430,21 @@ async function createEvent(req, res) {
       }
     }
 
+
+
+    // Google Calendar Sync (Outgoing)
+    if (agenda.googleCalendarId) {
+      // We don't await this to avoid slowing down the response? 
+      // Or we should await to ensure consistency? 
+      // Let's await but catch errors so we don't fail the request if Google is down.
+      try {
+        await GoogleSyncService.createGoogleEvent(userId, event);
+      } catch (googleError) {
+        console.error('Failed to sync new event to Google Calendar:', googleError);
+        // We could add a flag "syncFailed" to the event if we wanted to retry later
+      }
+    }
+
     res.status(201).json({
       message: 'Event created successfully',
       event
@@ -614,6 +630,17 @@ async function updateEvent(req, res) {
       });
     }
 
+
+
+    // Google Calendar Sync (Outgoing)
+    if (event.agenda.googleCalendarId && updatedEvent.googleEventId) {
+      try {
+        await GoogleSyncService.updateGoogleEvent(userId, updatedEvent);
+      } catch (googleError) {
+        console.error('Failed to sync updated event to Google Calendar:', googleError);
+      }
+    }
+
     res.json({
       message: 'Event updated successfully',
       event: finalEvent
@@ -719,6 +746,17 @@ async function deleteEvent(req, res) {
         excludeSender: true,
         data: { eventTitle: event.title, agendaName: event.agenda.name },
       });
+    }
+
+
+
+    // Google Calendar Sync (Outgoing)
+    if (event.agenda.googleCalendarId && event.googleEventId) {
+      try {
+        await GoogleSyncService.deleteGoogleEvent(userId, event.googleEventId);
+      } catch (googleError) {
+        console.error('Failed to sync deleted event to Google Calendar:', googleError);
+      }
     }
 
     res.json({

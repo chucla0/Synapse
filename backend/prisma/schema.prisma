@@ -66,6 +66,8 @@ model User {
   updatedAt DateTime @updatedAt
   isVerified Boolean @default(false)
   verificationToken String?
+  googleAccessToken String?
+  googleRefreshToken String?
 
   // Relations
   ownedAgendas       Agenda[]       @relation("AgendaOwner")
@@ -86,6 +88,7 @@ model Agenda {
   type        AgendaType @default(PERSONAL)
   color       String     @default("#3B82F6") // Default blue color
   timezone    String     @default("UTC")
+  googleCalendarId String? // Link to Google Calendar ID (if mirror agenda)
   ownerId     String
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
@@ -129,6 +132,7 @@ model Event {
   endTime     DateTime
   isAllDay    Boolean     @default(false)
   status      EventStatus @default(CONFIRMED)
+  googleEventId String?   @unique // Link to Google Calendar Event
 
   // Recurrence fields (iCalendar RRULE format)
   isRecurring   Boolean  @default(false)

@@ -62,3 +62,15 @@ Notifications are triggered by specific actions and targeted to relevant users.
 - **Database**: Stores all times in UTC.
 - **API**: Returns ISO 8601 UTC strings.
 - **Frontend**: Converts to user's local time for display.
+
+## Project Structure
+
+- `backend/`: Node.js/Express API.
+  - `src/`: Source code.
+  - `prisma/`: Database schema and migrations.
+  - `scripts/`: Backend utility scripts (e.g., docker-entrypoint).
+- `frontend/`: React/Vite application.
+  - `src/`: Source code.
+  - `scripts/`: Frontend utility scripts.
+- `scripts/`: Global project scripts (e.g., seeding).
+- `docs/`: Project documentation.

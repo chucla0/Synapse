@@ -64,8 +64,8 @@ function App() {
 
 
 // ... (inside Routes)
-        <Route path="/google-callback" element={<GoogleCallback />} />
-        <Route path="/set-password" element={<SetPassword />} />
+        <Route path="/google-callback" element={<GoogleCallback onLogin={handleLogin} />} />
+        <Route path="/set-password" element={<SetPassword onLogin={handleLogin} />} />
       </Routes>
     </DateFnsLocaleProvider>
   );

@@ -5,7 +5,7 @@ import { clearAuth, setAuthData } from '../utils/auth';
 import AuthLayout from '../layouts/AuthLayout';
 import './Auth/Auth.css';
 
-export default function SetPassword() {
+export default function SetPassword({ onLogin }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -55,6 +55,7 @@ export default function SetPassword() {
         await api.post('/auth/set-password', { password });
       }
       
+      if (onLogin) onLogin();
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Error al establecer la contraseña');

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { setAuthData } from '../utils/auth';
 import api from '../utils/api';
 
-export default function GoogleCallback() {
+export default function GoogleCallback({ onLogin }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -43,6 +43,7 @@ export default function GoogleCallback() {
           if (needsPassword === 'true') {
             navigate('/set-password');
           } else {
+            if (onLogin) onLogin();
             navigate('/dashboard');
           }
         } catch (err) {

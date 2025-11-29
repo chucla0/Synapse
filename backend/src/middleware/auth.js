@@ -29,6 +29,7 @@ async function authenticateToken(req, res, next) {
         email: true,
         name: true,
         avatar: true,
+        googleId: true,
       }
     });
 

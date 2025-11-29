@@ -143,6 +143,25 @@ function ProfileSettingsModal({ onClose }) {
     }
   });
 
+  const syncGoogleMutation = useMutation({
+    mutationFn: () => api.post('/integrations/google/import'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agendas'] });
+      // Show success message (maybe reuse errors state for success or add new state)
+      // For now, let's just alert or log
+      alert(t('googleCalendarSuccess'));
+    },
+    onError: (error) => {
+      const message = error.response?.data?.message || 'Error al sincronizar';
+      setErrors({ submit: message });
+    }
+  });
+
+  const handleSyncGoogle = () => {
+    setErrors({});
+    syncGoogleMutation.mutate();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
@@ -314,6 +333,8 @@ function ProfileSettingsModal({ onClose }) {
                 disabled={updateProfileMutation.isPending}
               />
             </div>
+            
+
 
             {/* Error message */}
             {errors.submit && (
