@@ -1,0 +1,21 @@
+services:
+  backend:
+    # Use the image built by CI/CD
+    image: ${DOCKER_USERNAME:-your_user}/synapse-backend:latest
+    environment:
+      NODE_ENV: production
+    # Production command: run migrations then start
+    command: sh -c "npx prisma migrate deploy && npm run start"
+
+  frontend:
+    # Use the image built by CI/CD
+    image: ${DOCKER_USERNAME:-your_user}/synapse-frontend:latest
+    build:
+      target: production
+    # Expose ports for HTTP (redirect) and HTTPS
+    ports:
+      - "80:80"
+      - "443:443"
+    # Mount Let's Encrypt certificates
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
