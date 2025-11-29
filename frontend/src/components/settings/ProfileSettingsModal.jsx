@@ -250,7 +250,7 @@ function ProfileSettingsModal({ onClose }) {
               <div className="avatar-upload-area">
                 {formData.avatar ? (
                   <img 
-                    src={`${API_URL}${formData.avatar}`}
+                    src={formData.avatar.startsWith('http') ? formData.avatar : `${API_URL}${formData.avatar}`}
                     alt="Avatar Preview" 
                     className="avatar-preview" 
                   />

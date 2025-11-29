@@ -21,10 +21,19 @@ export function setRefreshToken(token) {
 
 export function getUser() {
   const userStr = localStorage.getItem(USER_KEY);
-  return userStr ? JSON.parse(userStr) : null;
+  if (!userStr || userStr === 'undefined') return null;
+  try {
+    return JSON.parse(userStr);
+  } catch (e) {
+    return null;
+  }
 }
 
 export function setUser(user) {
+  if (!user) {
+    localStorage.removeItem(USER_KEY);
+    return;
+  }
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
 

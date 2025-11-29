@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowDown, User, Briefcase, PartyPopper, GraduationCap, Sun, Moon } from 'lucide-react';
+import { ArrowDown, User, Briefcase, PartyPopper, GraduationCap, Sun, Moon, Layers, Shield, Zap, Users, MessageCircle, Lock, Bell, Move } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import '../pages/Auth/Auth.css';
 
@@ -73,88 +73,127 @@ const AuthLayout = ({ children, title, subtitle }) => {
             </p>
           </section>
 
-          {/* Agenda Types Section */}
-          <section className="scroll-section agendas-section">
-            <h2>{t('auth_agendas_title')}</h2>
-            <div className="agenda-showcase">
+          {/* Bento Grid Features Section */}
+          <section className="scroll-section bento-section">
+            <div className="bento-grid">
               
-              <div className="showcase-item">
-                <div className="icon-box personal"><User size={24} /></div>
-                <div className="text-box">
+              {/* Main Feature - Large */}
+              <div className="bento-item bento-main">
+                <div className="bento-icon"><Layers size={40} /></div>
+                <h3>{t('auth_bento_main_title')}</h3>
+                <p>{t('auth_bento_main_desc')}</p>
+              </div>
+
+              {/* Privacy - Tall */}
+              <div className="bento-item bento-privacy">
+                <div className="bento-icon"><Shield size={32} /></div>
+                <h3>{t('auth_bento_privacy_title')}</h3>
+                <p>{t('auth_bento_privacy_desc')}</p>
+              </div>
+
+              {/* Speed - Small */}
+              <div className="bento-item bento-speed">
+                <div className="bento-icon"><Zap size={32} /></div>
+                <h3>{t('auth_bento_speed_title')}</h3>
+                <p>{t('auth_bento_speed_desc')}</p>
+              </div>
+
+              {/* Collaboration - Medium */}
+              <div className="bento-item bento-collab">
+                <div className="bento-icon"><Users size={32} /></div>
+                <h3>{t('auth_bento_collab_title')}</h3>
+                <p>{t('auth_bento_collab_desc')}</p>
+              </div>
+
+            </div>
+          </section>
+
+          {/* Detailed Agendas Section - Bento Style */}
+          <section className="scroll-section agendas-bento-section">
+            <h2>{t('auth_agenda_section_title')}</h2>
+            <div className="bento-grid-agendas">
+              
+              <div className="bento-card personal">
+                <div className="card-icon"><User size={40} /></div>
+                <div className="card-content">
                   <h3>{t('auth_agenda_personal_title')}</h3>
-                  <p>
-                    {t('auth_agenda_personal_description')}
-                  </p>
+                  <h4>{t('auth_agenda_personal_subtitle')}</h4>
+                  <p>{t('auth_agenda_personal_desc')}</p>
                 </div>
               </div>
 
-              <div className="showcase-item">
-                <div className="icon-box work"><Briefcase size={24} /></div>
-                <div className="text-box">
+              <div className="bento-card work">
+                <div className="card-icon"><Briefcase size={40} /></div>
+                <div className="card-content">
                   <h3>{t('auth_agenda_work_title')}</h3>
-                  <p>
-                    {t('auth_agenda_work_description')}
-                  </p>
+                  <h4>{t('auth_agenda_work_subtitle')}</h4>
+                  <p>{t('auth_agenda_work_desc')}</p>
                 </div>
               </div>
 
-              <div className="showcase-item">
-                <div className="icon-box social"><PartyPopper size={24} /></div>
-                <div className="text-box">
+              <div className="bento-card social">
+                <div className="card-icon"><PartyPopper size={40} /></div>
+                <div className="card-content">
                   <h3>{t('auth_agenda_social_title')}</h3>
-                  <p>
-                    {t('auth_agenda_social_description')}
-                  </p>
+                  <h4>{t('auth_agenda_social_subtitle')}</h4>
+                  <p>{t('auth_agenda_social_desc')}</p>
                 </div>
               </div>
 
-              <div className="showcase-item">
-                <div className="icon-box studies"><GraduationCap size={24} /></div>
-                <div className="text-box">
+              <div className="bento-card studies">
+                <div className="card-icon"><GraduationCap size={40} /></div>
+                <div className="card-content">
                   <h3>{t('auth_agenda_studies_title')}</h3>
-                  <p>
-                    {t('auth_agenda_studies_description')}
-                  </p>
+                  <h4>{t('auth_agenda_studies_subtitle')}</h4>
+                  <p>{t('auth_agenda_studies_desc')}</p>
                 </div>
               </div>
 
             </div>
           </section>
 
-          {/* Design & Simplicity */}
-          <section className="scroll-section design-section">
-            <h2>{t('auth_design_title')}</h2>
-            <div className="design-grid">
-              <div className="design-card">
-                <h3>{t('auth_design_customizable_title')}</h3>
-                <p>
-                  {t('auth_design_customizable_desc')}
-                </p>
+          {/* Features Section - Bento Style */}
+          <section className="scroll-section features-bento-section">
+            <h2>{t('auth_features_section_title')}</h2>
+            <div className="bento-grid-features">
+
+              {/* Chat */}
+              <div className="bento-card feature-card">
+                <div className="card-icon feature"><MessageCircle size={32} /></div>
+                <h3>{t('auth_feature_chat_title')}</h3>
+                <p>{t('auth_feature_chat_desc')}</p>
               </div>
-              <div className="design-card">
-                <h3>{t('auth_design_simple_title')}</h3>
-                <p>
-                  {t('auth_design_simple_desc')}
-                </p>
+
+              {/* Roles */}
+              <div className="bento-card feature-card">
+                <div className="card-icon feature"><Lock size={32} /></div>
+                <h3>{t('auth_feature_roles_title')}</h3>
+                <p>{t('auth_feature_roles_desc')}</p>
               </div>
+
+              {/* Notifications */}
+              <div className="bento-card feature-card">
+                <div className="card-icon feature"><Bell size={32} /></div>
+                <h3>{t('auth_feature_notifications_title')}</h3>
+                <p>{t('auth_feature_notifications_desc')}</p>
+              </div>
+
+              {/* Drag & Drop */}
+              <div className="bento-card feature-card">
+                <div className="card-icon feature"><Move size={32} /></div>
+                <h3>{t('auth_feature_dnd_title')}</h3>
+                <p>{t('auth_feature_dnd_desc')}</p>
+              </div>
+
             </div>
           </section>
 
-          {/* Coming Soon - Chat */}
-          <section className="scroll-section future-section">
-            <div className="future-badge">{t('auth_future_badge')}</div>
-            <h2>{t('auth_future_title')}</h2>
-            <p>
-              {t('auth_future_desc')}
-            </p>
-          </section>
-
-          {/* Security */}
-          <section className="scroll-section security-section">
-            <h2>{t('auth_security_title')}</h2>
-            <p>
-              {t('auth_security_desc')}
-            </p>
+          {/* Revolution CTA Section */}
+          <section className="scroll-section revolution-section">
+            <div className="revolution-content">
+              <h2>{t('auth_security_title')}</h2>
+              <p>{t('auth_security_desc')}</p>
+            </div>
           </section>
 
           <footer className="presentation-footer-scroll">

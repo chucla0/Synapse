@@ -75,6 +75,7 @@
   "alreadyAccountPrompt": "Already have an account?",
   "registerLink": "Sign up",
   "loginLink": "Log in",
+  "googleLogin": "Continue with Google",
   "loading": "Loading...",
   "noAgendas": "You have no agendas",
   "welcomeTitle": "Welcome to Synapse Agenda",

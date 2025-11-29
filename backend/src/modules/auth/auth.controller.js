@@ -4,6 +4,7 @@ const authService = require('./auth.service');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 const { sendEmail } = require('../../utils/mailer');
 
 /**
@@ -358,11 +359,188 @@ async function verify(req, res) {
   }
 }
 
+/**
+ * Google OAuth callback controller
+ */
+async function googleCallback(req, res) {
+  try {
+    const user = req.user;
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+    // If it's a new user (not in DB yet)
+    if (user.isNewUser) {
+      // Generate a temporary registration token containing the Google profile info
+      // We use a short expiration time for security
+      const tempToken = jwt.sign(
+        { 
+          email: user.email,
+          name: user.name,
+          googleId: user.googleId,
+          avatar: user.avatar,
+          type: 'google_registration'
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      return res.redirect(`${frontendUrl}/google-callback?tempToken=${tempToken}&isNewUser=true`);
+    }
+
+    // Existing user flow
+    const accessToken = authService.generateAccessToken(user.id);
+    const refreshToken = authService.generateRefreshToken(user.id);
+
+    // Check if user needs to set a password (if password is null)
+    if (!user.password) {
+      return res.redirect(`${frontendUrl}/google-callback?accessToken=${accessToken}&refreshToken=${refreshToken}&needsPassword=true`);
+    }
+
+    // Normal redirect
+    res.redirect(`${frontendUrl}/google-callback?accessToken=${accessToken}&refreshToken=${refreshToken}`);
+
+  } catch (error) {
+    console.error('Google callback error:', error);
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=auth_failed`);
+  }
+}
+
+/**
+ * Complete Google Login (Create user with password)
+ */
+async function completeGoogleLogin(req, res) {
+  try {
+    const { tempToken, password } = req.body;
+
+    if (!tempToken || !password) {
+      return res.status(400).json({
+        error: 'Validation error',
+        message: 'Token and password are required'
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        error: 'Validation error',
+        message: 'Password must be at least 6 characters long'
+      });
+    }
+
+    // Verify temp token
+    let decoded;
+    try {
+      decoded = jwt.verify(tempToken, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({
+        error: 'Invalid token',
+        message: 'Registration session expired or invalid'
+      });
+    }
+
+    if (decoded.type !== 'google_registration') {
+      return res.status(401).json({
+        error: 'Invalid token',
+        message: 'Invalid token type'
+      });
+    }
+
+    // Check if user already exists (race condition check)
+    const existingUser = await prisma.user.findUnique({
+      where: { email: decoded.email }
+    });
+
+    if (existingUser) {
+      return res.status(409).json({
+        error: 'Registration failed',
+        message: 'User already exists'
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user
+    const user = await prisma.user.create({
+      data: {
+        email: decoded.email,
+        name: decoded.name,
+        googleId: decoded.googleId,
+        avatar: decoded.avatar,
+        password: hashedPassword,
+        isVerified: true // Google verified
+      }
+    });
+
+    // Generate real tokens
+    const accessToken = authService.generateAccessToken(user.id);
+    const refreshToken = authService.generateRefreshToken(user.id);
+
+    res.status(201).json({
+      message: 'Registration successful',
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar
+      },
+      tokens: {
+        accessToken,
+        refreshToken,
+        expiresIn: process.env.JWT_EXPIRES_IN || '24h'
+      }
+    });
+
+  } catch (error) {
+    console.error('Complete Google login error:', error);
+    res.status(500).json({
+      error: 'Registration failed',
+      message: 'Internal server error'
+    });
+  }
+}
+
+/**
+ * Set password for Google users (Legacy/Existing users)
+ */
+async function setPassword(req, res) {
+  try {
+    const userId = req.user.id;
+    const { password } = req.body;
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({
+        error: 'Validation error',
+        message: 'Password must be at least 6 characters long'
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword }
+    });
+
+    res.json({
+      message: 'Password set successfully'
+    });
+
+  } catch (error) {
+    console.error('Set password error:', error);
+    res.status(500).json({
+      error: 'Failed to set password',
+      message: 'Internal server error'
+    });
+  }
+}
+
 module.exports = {
   login,
   register,
   refreshToken,
   getProfile,
   updateProfile,
-  verify
+  verify,
+  googleCallback,
+  completeGoogleLogin,
+  setPassword
 };

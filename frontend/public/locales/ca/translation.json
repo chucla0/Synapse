@@ -75,6 +75,7 @@
   "alreadyAccountPrompt": "Ja tens un compte?",
   "registerLink": "Registra't",
   "loginLink": "Inicia Sessió",
+  "googleLogin": "Continua amb Google",
   "loading": "Carregant...",
   "noAgendas": "No tens agendes",
   "welcomeTitle": "Benvingut a Synapse Agenda",

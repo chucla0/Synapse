@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const prisma = require('./lib/prisma');
+const passport = require('./config/passport');
 
 // Initialize Express app
 const app = express();
@@ -17,6 +18,7 @@ app.use(cors({
 
 // Body parser
 app.use(express.json());
+app.use(passport.initialize());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the 'public' directory

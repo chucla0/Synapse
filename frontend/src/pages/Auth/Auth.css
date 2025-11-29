@@ -133,8 +133,11 @@
 }
 
 .dark-theme .big-title {
-  /* Keep gradient but maybe adjust drop shadow or colors if needed */
-  /* For solid look request, we can make it solid or keep gradient as it pops on dark */
+  /* Vibrant solid gradient for dark mode */
+  background: linear-gradient(135deg, #FF8C42 0%, #2ECC71 50%, #3498DB 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
 }
 
@@ -199,228 +202,292 @@
   color: var(--text-secondary);
 }
 
-/* Agenda Showcase */
-.agendas-section h2 {
+/* Bento Grid Section */
+.bento-section {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 250px);
+  gap: 1.5rem;
+}
+
+.bento-item {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.dark-theme .bento-item {
+  background: rgba(30, 41, 59, 0.7);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.bento-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.dark-theme .bento-item:hover {
+  background: rgba(30, 41, 59, 0.9);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Grid Areas */
+.bento-main {
+  grid-column: span 2;
+  grid-row: span 1;
+  background: linear-gradient(135deg, rgba(255, 195, 160, 0.2) 0%, rgba(160, 207, 255, 0.2) 100%);
+}
+
+.dark-theme .bento-main {
+  background: linear-gradient(135deg, rgba(255, 140, 66, 0.1) 0%, rgba(52, 152, 219, 0.1) 100%);
+}
+
+.bento-privacy {
+  grid-column: span 1;
+  grid-row: span 2;
+  background: linear-gradient(180deg, rgba(159, 230, 182, 0.2) 0%, rgba(46, 204, 113, 0.1) 100%);
+}
+
+.dark-theme .bento-privacy {
+  background: linear-gradient(180deg, rgba(46, 204, 113, 0.1) 0%, rgba(39, 174, 96, 0.05) 100%);
+}
+
+.bento-speed {
+  grid-column: span 1;
+  grid-row: span 1;
+}
+
+.bento-collab {
+  grid-column: span 1;
+  grid-row: span 1;
+}
+
+/* Content Styling */
+.bento-icon {
+  margin-bottom: auto; /* Pushes icon to top */
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  color: #333;
+}
+
+.dark-theme .bento-icon {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.bento-item h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.dark-theme .bento-item h3 {
+  color: white;
+}
+
+.bento-item p {
+  font-size: 1rem;
+  color: #666;
+  line-height: 1.4;
+}
+
+.dark-theme .bento-item p {
+  color: #aaa;
+}
+
+/* Responsive Bento */
+@media (max-width: 1200px) {
+  .bento-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+  }
+  
+  .bento-main { grid-column: span 2; }
+  .bento-privacy { grid-column: span 1; grid-row: span 1; }
+  .bento-speed { grid-column: span 1; }
+  .bento-collab { grid-column: span 2; }
+}
+
+/* Background Orbs */
+.bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: 0;
+  opacity: 0.4;
+  animation: floatOrb 20s infinite ease-in-out;
+}
+
+.orb-1 {
+  width: 500px;
+  height: 500px;
+  background: #FFC3A0;
+  top: -100px;
+  right: -100px;
+  animation-delay: 0s;
+}
+
+.orb-2 {
+  width: 400px;
+  height: 400px;
+  background: #A0CFFF;
+  bottom: 10%;
+  left: -100px;
+  animation-delay: -5s;
+}
+
+.orb-3 {
+  width: 300px;
+  height: 300px;
+  background: #9FE6B6;
+  top: 40%;
+  right: 10%;
+  animation-delay: -10s;
+}
+
+.dark-theme .bg-orb {
+  opacity: 0.15;
+}
+
+@keyframes floatOrb {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(30px, -30px); }
+}
+
+/* Scroll Sections - Increased Spacing */
+.scroll-section {
+  margin-bottom: 10rem; /* Increased from default/previous */
+  position: relative;
+  z-index: 1; /* Ensure content is above orbs */
+}
+
+/* Unified Bento Card Styles */
+.agendas-bento-section h2, .features-bento-section h2 {
   font-size: 3rem;
   text-align: center;
   margin-bottom: 4rem;
   color: #333;
 }
 
-.dark-theme .agendas-section h2 {
+.dark-theme .agendas-bento-section h2, .dark-theme .features-bento-section h2 {
   color: var(--text-main);
 }
 
-.agenda-showcase {
+.bento-grid-agendas {
   display: grid;
-  gap: 4rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3rem; /* Increased gap */
+  margin-bottom: 6rem;
 }
 
-.showcase-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 2rem;
-  background: rgba(255,255,255,0.6);
-  padding: 2rem;
-  border-radius: 1.5rem;
-  transition: transform 0.3s, background-color 0.3s;
-}
-
-.dark-theme .showcase-item {
-  background: var(--bg-card); /* Solid dark card */
-  border: 1px solid var(--border);
-}
-
-.showcase-item:hover {
-  transform: translateY(-5px);
-  background: rgba(255,255,255,0.9);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-}
-
-.dark-theme .showcase-item:hover {
-  background: var(--bg-hover);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-
-.icon-box {
-  font-size: 3rem;
-  min-width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  border-radius: 1rem;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-}
-
-.dark-theme .icon-box {
-  background: var(--bg-hover); /* Slightly lighter than card */
-}
-
-.icon-box.personal { color: #FFC3A0; }
-.icon-box.work { color: #A0CFFF; }
-.icon-box.social { color: #FCA5A5; }
-.icon-box.studies { color: #9FE6B6; }
-
-.text-box h3 {
-  font-size: 1.8rem;
-  margin-bottom: 1rem;
-  color: #333;
-}
-
-.dark-theme .text-box h3 {
-  color: var(--text-main);
-}
-
-.text-box p {
-  font-size: 1.1rem;
-  color: #666;
-  line-height: 1.6;
-}
-
-.dark-theme .text-box p {
-  color: var(--text-secondary);
-}
-
-/* Design Section */
-.design-section {
-  text-align: center;
-}
-
-.design-section h2 {
-  font-size: 3rem;
-  margin-bottom: 3rem;
-  color: var(--text-black);
-}
-
-.design-grid {
+.bento-grid-features {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3rem; /* Increased gap */
+  margin-bottom: 6rem;
 }
 
-.design-card {
-  background: #fff;
+.bento-card {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  border-radius: 2rem;
   padding: 3rem;
-  border-radius: 2rem;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-  transition: background-color 0.3s;
-}
-
-.dark-theme .design-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-}
-
-.design-card h3 {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  color: var(--text-main);
-}
-
-.design-card p {
-    color: var(--text-secondary);
-}
-
-/* Future Section */
-.future-section {
-  text-align: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 4rem;
-  border-radius: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid rgba(0, 0, 0, 0.08); /* Darker border for light mode */
   position: relative;
   overflow: hidden;
+  height: 100%;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.02);
 }
 
-.dark-theme .future-section {
-    /* Keep gradient or make it a solid accent color? 
-       User asked for solid colors, but this is a specific "feature" section.
-       Let's keep it but maybe darken it or make it solid dark purple.
-    */
-    background: #4c1d95; /* Solid dark purple */
+.dark-theme .bento-card {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
 }
 
-.future-badge {
-  background: rgba(255,255,255,0.2);
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  border-radius: 2rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-  letter-spacing: 1px;
+.bento-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.12);
 }
 
-.future-section h2 {
-  font-size: 2.5rem;
-  margin-bottom: 1.5rem;
+.dark-theme .bento-card:hover {
+  background: rgba(30, 41, 59, 0.8);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Revolution/Privacy CTA Section */
+.revolution-section {
+  padding: 8rem 2rem;
+  margin-bottom: 6rem;
+}
+
+.revolution-content {
+  background: linear-gradient(135deg, #FFC3A0 0%, #9FE6B6 50%, #A0CFFF 100%);
+  border-radius: 3rem;
+  padding: 6rem 3rem;
+  text-align: center;
+  color: #333;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.revolution-content:hover {
+  transform: scale(1.01);
+}
+
+.dark-theme .revolution-content {
+  background: linear-gradient(135deg, #FF8C42 0%, #2ECC71 50%, #3498DB 100%);
   color: white;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.4);
 }
 
-.future-section p {
-  font-size: 1.2rem;
-  color: rgba(255,255,255,0.9);
-  max-width: 600px;
+.revolution-content h2 {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 2rem;
+  letter-spacing: -0.5px;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.revolution-content p {
+  font-size: 1.4rem;
+  max-width: 800px;
   margin: 0 auto;
-}
-
-/* Security Section */
-.security-section {
-  text-align: center;
-  max-width: 700px;
-  margin: 0 auto;
-}
-
-.security-section h2 {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
-  color: var(--text-black);
-}
-
-.security-section p {
-    color: var(--text-secondary);
-}
-
-.presentation-footer-scroll {
-  text-align: center;
-  padding: 4rem 0 2rem 0;
-  color: #999;
-  font-size: 0.9rem;
-}
-
-.dark-theme .presentation-footer-scroll {
-  color: var(--text-muted);
-}
-
-/* Background Shapes */
-.bg-shape {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  z-index: 1;
-  opacity: 0.5;
-}
-
-.dark-theme .bg-shape {
-  opacity: 0.15; /* Much more subtle in dark mode */
-}
-
-.shape-1 {
-  width: 600px;
-  height: 600px;
-  background: #FFC3A0;
-  top: -100px;
-  right: -200px;
-}
-
-.shape-2 {
-  width: 500px;
-  height: 500px;
-  background: #A0CFFF;
-  bottom: 0;
-  left: -100px;
+  color: rgba(255,255,255,0.95);
+  font-weight: 500;
+  line-height: 1.6;
 }
 
 /* Language Switcher */
@@ -560,8 +627,8 @@
 
 .auth-form .input:focus {
   background-color: var(--bg-main);
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-light);
+  border-color: #A0CFFF;
+  box-shadow: 0 0 0 3px rgba(160, 207, 255, 0.3);
 }
 
 .auth-footer {
@@ -572,14 +639,14 @@
 }
 
 .link {
-  color: var(--accent); /* Use accent color */
+  color: #A0CFFF; /* Use accent color from gradient */
   font-weight: 700;
   text-decoration: none;
 }
 
 .link:hover {
-    color: var(--accent-hover);
-    text-decoration: underline;
+  color: #9FE6B6;
+  text-decoration: underline;
 }
 
 .btn-block {
@@ -589,16 +656,9 @@
   margin-top: 1rem;
 }
 
-/* Fixed color for auth buttons as requested - All Logo Colors Gradient */
+/* Fixed color for auth buttons as requested - Matching Title Gradient */
 .auth-form .btn-primary {
-  background: linear-gradient(
-    120deg, 
-    var(--agenda-1), 
-    var(--agenda-3), 
-    var(--accent), 
-    var(--agenda-2)
-  ); /* Peach, Yellow, Green, Blue */
-  background-size: 300% 300%;
+  background: linear-gradient(135deg, #FFC3A0 0%, #9FE6B6 50%, #A0CFFF 100%);
   color: #333;
   border: none;
   transition: all 0.3s ease;
@@ -606,15 +666,9 @@
 }
 
 .auth-form .btn-primary:hover:not(:disabled) {
-  animation: gradient-shift 3s ease infinite;
+  opacity: 0.9;
   transform: translateY(-1px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-}
-
-@keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
 }
 
 .alert {
@@ -629,4 +683,70 @@
   background-color: rgba(220, 53, 69, 0.1);
   color: var(--error);
   border-color: rgba(220, 53, 69, 0.2);
+}
+
+/* Google Login Button */
+.btn-google {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.btn-google:hover {
+  background-color: var(--bg-hover);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.btn-google:focus {
+  outline: none;
+  border-color: #A0CFFF;
+  box-shadow: 0 0 0 3px rgba(160, 207, 255, 0.3);
+}
+
+.auth-separator {
+  margin: 1.5rem 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  width: 100%;
+}
+
+.btn-google svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.dark-theme .btn-google {
+  background-color: var(--bg-card);
+  border-color: var(--border);
+  color: var(--text-main);
+}
+
+.dark-theme .btn-google:hover {
+  background-color: var(--bg-hover);
+}
+
+.auth-form .btn-secondary {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.auth-form .btn-secondary:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-main);
+  border-color: var(--text-secondary);
 }

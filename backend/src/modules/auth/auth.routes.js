@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const passport = require('passport');
 const authController = require('./auth.controller');
 const { authenticateToken } = require('../../middleware/auth');
 
@@ -38,5 +39,33 @@ router.get('/profile', authenticateToken, authController.getProfile);
  * Update current user profile (protected route)
  */
 router.put('/profile', authenticateToken, authController.updateProfile);
+
+/**
+ * GET /api/auth/google
+ * Initiate Google OAuth login
+ */
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+/**
+ * GET /api/auth/google/callback
+ * Handle Google OAuth callback
+ */
+router.get(
+  '/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: '/login' }),
+  authController.googleCallback
+);
+
+/**
+ * POST /api/auth/google/complete
+ * Complete Google OAuth registration (create user with password)
+ */
+router.post('/google/complete', authController.completeGoogleLogin);
+
+/**
+ * POST /api/auth/set-password
+ * Set password for Google users
+ */
+router.post('/set-password', authenticateToken, authController.setPassword);
 
 module.exports = router;

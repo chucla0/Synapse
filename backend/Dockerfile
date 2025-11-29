@@ -30,8 +30,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install only production dependencies
-RUN npm ci --only=production
+# Install all dependencies
+RUN npm ci
 
 # Copy generated Prisma Client from builder
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma

@@ -164,7 +164,10 @@ function Dashboard({ onLogout, sessionKey }) {
         <div className="sidebar-user">
           <div className="user-avatar">
             {user?.avatar ? (
-              <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${user.avatar}`} alt={user.name} />
+              <img 
+                src={user.avatar.startsWith('http') ? user.avatar : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${user.avatar}`} 
+                alt={user.name} 
+              />
             ) : (
               <div className="user-avatar-initials">
                 {user?.name?.charAt(0).toUpperCase()}

@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import Dashboard from './pages/Dashboard/Dashboard';
+import GoogleCallback from './pages/GoogleCallback';
+import SetPassword from './pages/SetPassword';
 import { getToken } from './utils/auth';
 import { DateFnsLocaleProvider } from './contexts/LocaleContext';
 
@@ -59,6 +61,11 @@ function App() {
           path="/" 
           element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} 
         />
+
+
+// ... (inside Routes)
+        <Route path="/google-callback" element={<GoogleCallback />} />
+        <Route path="/set-password" element={<SetPassword />} />
       </Routes>
     </DateFnsLocaleProvider>
   );
