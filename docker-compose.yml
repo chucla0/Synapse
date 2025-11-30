@@ -33,7 +33,7 @@ services:
     restart: unless-stopped
     mem_limit: 1g
     environment:
-      NODE_ENV: ${NODE_ENV:-development}
+      NODE_ENV: development
       PORT: 3000
       DATABASE_URL: postgresql://${POSTGRES_USER:-synapse}:${POSTGRES_PASSWORD:-synapse_password}@postgres:5432/${POSTGRES_DB:-synapse_db}?schema=public
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
@@ -50,6 +50,10 @@ services:
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
     ports:
       - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    entrypoint: ["/bin/sh", "/app/scripts/docker-entrypoint.sh"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -63,13 +67,21 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      target: ${FRONTEND_TARGET:-development}
+      target: development
       args:
         VITE_API_URL: ${VITE_API_URL}
     container_name: synapse-frontend
     restart: unless-stopped
     environment:
       VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    stdin_open: true
+    tty: true
+    entrypoint: ["/bin/sh", "/app/scripts/docker-entrypoint.sh"]
     depends_on:
       - backend
     networks:

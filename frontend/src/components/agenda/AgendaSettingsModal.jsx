@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import api from '../../utils/api';
 import { getUser } from '../../utils/auth';
-import ConfirmDeleteModal from '../ConfirmDeleteModal';
+import ConfirmDeleteModal from '../ui/ConfirmDeleteModal';
 import MultiEmailInput from '../ui/MultiEmailInput';
 import './AgendaSettingsModal.css';
 

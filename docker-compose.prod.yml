@@ -1,17 +1,79 @@
 services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: synapse-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-synapse}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-synapse_password}
+      POSTGRES_DB: ${POSTGRES_DB:-synapse_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - synapse-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-synapse} -d ${POSTGRES_DB:-synapse_db}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API (Node.js + Express + Prisma)
   backend:
-    # Use the image built by CI/CD
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     image: ${DOCKER_USERNAME:-your_user}/synapse-backend:latest
+    container_name: synapse-backend
+    restart: unless-stopped
+    mem_limit: 1g
     environment:
       NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-synapse}:${POSTGRES_PASSWORD:-synapse_password}@postgres:5432/${POSTGRES_DB:-synapse_db}?schema=public
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_SECURE: ${SMTP_SECURE}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+    ports:
+      - "3000:3000"
     # Production command: run migrations then start
     command: sh -c "npx prisma migrate deploy && npm run start"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - synapse-network
+    extra_hosts:
+      - "synapse.daw.inspedralbes.cat:34.77.10.20"
 
+  # Frontend (React + Vite)
   frontend:
-    # Use the image built by CI/CD
-    image: ${DOCKER_USERNAME:-your_user}/synapse-frontend:latest
     build:
+      context: ./frontend
+      dockerfile: Dockerfile
       target: production
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+    image: ${DOCKER_USERNAME:-your_user}/synapse-frontend:latest
+    container_name: synapse-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: ${VITE_API_URL}
     # Expose ports for HTTP (redirect) and HTTPS
     ports:
       - "80:80"
@@ -19,3 +81,15 @@ services:
     # Mount Let's Encrypt certificates
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - backend
+    networks:
+      - synapse-network
+
+networks:
+  synapse-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

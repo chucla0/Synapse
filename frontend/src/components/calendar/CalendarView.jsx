@@ -10,7 +10,7 @@ import MonthView from './MonthView';
 import YearView from './YearView';
 import CreateEventModal from '../event/CreateEventModal';
 import EventDetailsModal from '../event/EventDetailsModal';
-import ConfirmDeleteModal from '../ConfirmDeleteModal';
+import ConfirmDeleteModal from '../ui/ConfirmDeleteModal';
 import { addDays, addWeeks, addMonths } from '../../utils/date';
 import { useDateFnsLocale } from '../../contexts/LocaleContext';
 

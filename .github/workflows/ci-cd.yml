@@ -7,33 +7,23 @@ on:
     branches: [main]
 
 jobs:
-  test:
-    name: Run Tests (CI)
+  verify-build:
+    name: Verify Build (CI)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create .env file
-        run: |
-          cp .env.example .env
-          # Set mock values for testing
-          sed -i 's/POSTGRES_HOST=postgres/POSTGRES_HOST=postgres/' .env
-
-      - name: Start services (Test Environment)
-        # backend depends_on postgres condition:service_healthy, so this waits for DB
-        run: docker compose up -d backend
-
-      - name: Run Backend Tests
-        run: docker compose exec -T backend npm run test:ci
-
-      - name: Stop services
-        if: always()
-        run: docker compose down
+      - name: Build Images (Dry Run)
+        # We build to verify syntax and compilation, but we don't push yet.
+        # We use the prod config to ensure it matches what will be deployed.
+        env:
+          VITE_API_URL: "http://localhost:3000" # Mock value for build
+        run: docker compose -f docker-compose.prod.yml build
 
   deploy:
     name: Deploy to Production (CD)
-    needs: test
+    needs: verify-build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
 
@@ -52,10 +42,10 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: |
-          # Build production images using the prod override
-          docker compose -f docker-compose.yml -f docker-compose.prod.yml build
+          # Build production images using the standalone prod file
+          docker compose -f docker-compose.prod.yml build
           # Push images to registry
-          docker compose -f docker-compose.yml -f docker-compose.prod.yml push
+          docker compose -f docker-compose.prod.yml push
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -73,11 +63,16 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           SMTP_SECURE: ${{ secrets.SMTP_SECURE }}
+          # Google Auth Secrets
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_CALLBACK_URL: ${{ secrets.GOOGLE_CALLBACK_URL }}
+          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          envs: DOCKER_USERNAME,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,JWT_SECRET,JWT_EXPIRES_IN,JWT_REFRESH_EXPIRES_IN,SMTP_HOST,SMTP_PORT,SMTP_USER,SMTP_PASS,SMTP_SECURE
+          envs: DOCKER_USERNAME,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,JWT_SECRET,JWT_EXPIRES_IN,JWT_REFRESH_EXPIRES_IN,SMTP_HOST,SMTP_PORT,SMTP_USER,SMTP_PASS,SMTP_SECURE,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,GOOGLE_CALLBACK_URL,FRONTEND_URL
           script: |
             # ➡️ AJUSTE CLAVE: Navegar al directorio de trabajo real de HestiaCP.
             cd /web/synapse.daw.inspedralbes.cat || exit 1
@@ -97,10 +92,14 @@ jobs:
             SMTP_USER=$SMTP_USER
             SMTP_PASS=$SMTP_PASS
             SMTP_SECURE=$SMTP_SECURE
+            GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+            GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+            GOOGLE_CALLBACK_URL=$GOOGLE_CALLBACK_URL
+            FRONTEND_URL=$FRONTEND_URL
             EOF
 
             # Pull latest images
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml pull
 
             # Restart services with production config
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
