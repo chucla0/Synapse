@@ -47,8 +47,8 @@
 
 .month-day.other-month {
   background-color: transparent; /* Inherit from .month-day or container */
-  color: var(--text-muted);
-  opacity: 0.7; /* Dim the whole cell slightly */
+  color: #4B5563; /* Gray-600 for better visibility than opacity */
+  opacity: 1; /* Remove opacity to use specific color */
 }
 
 /* Remove cell background for today to avoid conflict, only highlight number */
@@ -67,6 +67,7 @@
 .day-number {
   font-weight: 600;
   font-size: 0.875rem;
+  color: var(--text-bright, var(--text-main)); /* Fallback to main if bright not set */
   margin-bottom: var(--spacing-xs);
   display: inline-block;
   width: 24px;

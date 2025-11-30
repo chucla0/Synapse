@@ -1,81 +1,260 @@
-.settings-section {
-  margin-bottom: var(--spacing-xl);
-}
+/* WebSettingsModal.css */
 
-.settings-section h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: var(--spacing-md);
-  color: var(--text-secondary);
-}
-
-.theme-options {
+.modal-content.web-settings-modal {
+  width: 1000px;
+  height: 700px;
+  max-width: 95vw;
+  max-height: 90vh;
   display: flex;
-  gap: var(--spacing-md);
+  flex-direction: column;
+  padding: 0; /* Override default card padding */
+  overflow: hidden;
 }
 
-.theme-option {
+.web-settings-header {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-card);
+}
+
+.web-settings-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.web-settings-body {
+  display: flex;
   flex: 1;
+  overflow: hidden;
+}
+
+/* Sidebar Navigation */
+.settings-sidebar {
+  width: 250px;
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
   padding: var(--spacing-md);
-  border: 2px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg-main);
-  color: var(--text-main);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-base);
-}
-
-.theme-option:hover:not(:disabled) {
-  border-color: var(--accent);
-  background: var(--bg-hover);
-}
-
-.theme-option.active {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: white; /* Or dark text depending on contrast, sticking to white for active state usually safe or dark if accent is light */
-  color: #333; /* Since accents are pastel, dark text is better */
-}
-
-.theme-option.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background: var(--bg-main);
-  border-style: dashed;
-}
-
-.color-options {
   display: flex;
-  gap: var(--spacing-md);
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  overflow-y: auto;
 }
 
-.color-swatch {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 2px solid transparent;
+.settings-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: left;
   cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.settings-nav-item:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.settings-nav-item.active {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.settings-nav-icon {
+  opacity: 0.7;
+}
+
+.settings-nav-item.active .settings-nav-icon {
+  opacity: 1;
+  color: var(--accent); /* Optional: tint icon with accent */
+}
+
+/* Content Area */
+.settings-content {
+  flex: 1;
+  padding: var(--spacing-xl);
+  overflow-y: auto;
+  background-color: var(--bg-card);
+}
+
+.settings-section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Form Elements */
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  gap: var(--spacing-lg);
+}
+
+.setting-info {
+  flex: 1;
+}
+
+.setting-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--text-main);
+}
+
+.setting-description {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.setting-control {
+  min-width: 200px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: var(--accent);
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--accent);
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+/* Integration Card */
+.integration-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg-main);
+}
+
+.integration-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.integration-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-hover);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-base);
-  box-shadow: var(--shadow-sm);
-}
-
-.color-swatch:hover {
-  transform: scale(1.1);
-  box-shadow: var(--shadow-md);
-}
-
-.color-swatch.active {
-  border-color: var(--text-main);
-  transform: scale(1.1);
-}
-
-.check-icon {
-  color: rgba(0, 0, 0, 0.6);
-  font-weight: bold;
   font-size: 1.2rem;
+}
+
+.integration-meta h4 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.integration-status-badge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background-color: var(--bg-hover);
+  color: var(--text-muted);
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.integration-status-badge.connected {
+  background-color: rgba(159, 230, 182, 0.2); /* Light Green */
+  color: #2e7d32;
+}
+
+/* Help Links */
+.help-link-list {
+  list-style: none;
+  padding: 0;
+}
+
+.help-link-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  color: var(--text-main);
+}
+
+.help-link-item:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--accent);
+}
+
+.version-info {
+  text-align: center;
+  margin-top: var(--spacing-xl);
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }

@@ -13,6 +13,7 @@ import EventDetailsModal from '../event/EventDetailsModal';
 import ConfirmDeleteModal from '../ui/ConfirmDeleteModal';
 import { addDays, addWeeks, addMonths } from '../../utils/date';
 import { useDateFnsLocale } from '../../contexts/LocaleContext';
+import { useSettings } from '../../contexts/SettingsContext';
 
 import { rrulestr } from 'rrule';
 import './CalendarView.css';
@@ -24,18 +25,35 @@ const VIEW_TYPES = {
   YEAR: 'year',
 };
 
+
+
+// ...
+
 function CalendarView({ agenda, agendas = [] }) {
   const { t } = useTranslation();
+  const { settings, getWeekStartDay } = useSettings();
   const locale = useDateFnsLocale();
   const queryClient = useQueryClient();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
-  const [viewType, setViewType] = useState(VIEW_TYPES.MONTH);
+  
+  // Initialize view type from settings, fallback to MONTH
+  const [viewType, setViewType] = useState(() => {
+    const defaultView = settings.display.defaultView;
+    return Object.values(VIEW_TYPES).includes(defaultView) ? defaultView : VIEW_TYPES.MONTH;
+  });
+
+  const weekStartsOn = getWeekStartDay();
+
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [editingEvent, setEditingEvent] = useState(null);
   const [eventToDelete, setEventToDelete] = useState(null);
   const [activeDragEvent, setActiveDragEvent] = useState(null);
+
+  // ... (rest of state)
+
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -366,6 +384,7 @@ function CalendarView({ agenda, agendas = [] }) {
                   events={expandedEvents}
                   agendaColor={agenda.color}
                   onEventClick={handleEventClick}
+                  weekStartsOn={weekStartsOn}
                 />
               )}
               {viewType === VIEW_TYPES.MONTH && (
@@ -376,6 +395,7 @@ function CalendarView({ agenda, agendas = [] }) {
                   onEventClick={handleEventClick}
                   selectedDate={selectedDate}
                   onDayClick={handleDayClick}
+                  weekStartsOn={weekStartsOn}
                 />
               )}
               {viewType === VIEW_TYPES.YEAR && (

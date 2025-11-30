@@ -212,6 +212,44 @@ function Dashboard({ onLogout, sessionKey }) {
 
           {currentView === 'agendas' && (
             <>
+
+              
+              <ul className="agenda-list">
+                {/* All Events Option */}
+                <li className={`agenda-item ${selectedAgenda === ALL_EVENTS_AGENDA_ID ? 'active' : ''}`}>
+                  <div className="agenda-item-main" onClick={() => setSelectedAgenda(ALL_EVENTS_AGENDA_ID)}>
+                    <span 
+                      className="agenda-color" 
+                      style={{ backgroundColor: allEventsAgenda.color }}
+                    />
+                    <span className="agenda-name">{allEventsAgenda.name}</span>
+                  </div>
+                </li>
+
+                {/* Pinned Google Calendar */}
+                {agendas.find(a => a.googleCalendarId || a.name === 'Google Calendar') && (() => {
+                  const googleAgenda = agendas.find(a => a.googleCalendarId || a.name === 'Google Calendar');
+                  return (
+                    <li className={`agenda-item ${selectedAgenda === googleAgenda.id ? 'active' : ''}`}>
+                      <div className="agenda-item-main" onClick={() => setSelectedAgenda(googleAgenda.id)}>
+                        <span 
+                          className="agenda-color" 
+                          style={{ backgroundColor: googleAgenda.color }}
+                        />
+                        <span className="agenda-name">{googleAgenda.name}</span>
+                      </div>
+                      <button 
+                        className="btn-agenda-settings"
+                        onClick={() => setEditingAgenda(googleAgenda)}
+                        title={t('agendaSettings')}
+                      >
+                        <Settings size={16} />
+                      </button>
+                    </li>
+                  );
+                })()}
+              </ul>
+
               <div className="agenda-search-container">
                 <input
                   type="text"
@@ -291,42 +329,6 @@ function Dashboard({ onLogout, sessionKey }) {
                   </div>
                 </div>
               </div>
-              
-              <ul className="agenda-list">
-                {/* All Events Option */}
-                <li className={`agenda-item ${selectedAgenda === ALL_EVENTS_AGENDA_ID ? 'active' : ''}`}>
-                  <div className="agenda-item-main" onClick={() => setSelectedAgenda(ALL_EVENTS_AGENDA_ID)}>
-                    <span 
-                      className="agenda-color" 
-                      style={{ backgroundColor: allEventsAgenda.color }}
-                    />
-                    <span className="agenda-name">{allEventsAgenda.name}</span>
-                  </div>
-                </li>
-
-                {/* Pinned Google Calendar */}
-                {agendas.find(a => a.googleCalendarId || a.name === 'Google Calendar') && (() => {
-                  const googleAgenda = agendas.find(a => a.googleCalendarId || a.name === 'Google Calendar');
-                  return (
-                    <li className={`agenda-item ${selectedAgenda === googleAgenda.id ? 'active' : ''}`}>
-                      <div className="agenda-item-main" onClick={() => setSelectedAgenda(googleAgenda.id)}>
-                        <span 
-                          className="agenda-color" 
-                          style={{ backgroundColor: googleAgenda.color }}
-                        />
-                        <span className="agenda-name">{googleAgenda.name}</span>
-                      </div>
-                      <button 
-                        className="btn-agenda-settings"
-                        onClick={() => setEditingAgenda(googleAgenda)}
-                        title={t('agendaSettings')}
-                      >
-                        <Settings size={16} />
-                      </button>
-                    </li>
-                  );
-                })()}
-              </ul>
 
               {agendasLoading ? (
                 <div className="loading-agendas">{t('loading')}</div>
@@ -486,7 +488,10 @@ function Dashboard({ onLogout, sessionKey }) {
 
       {/* Modals */}
       {showCreateAgenda && (
-        <CreateAgendaModal onClose={() => setShowCreateAgenda(false)} />
+        <CreateAgendaModal 
+          onClose={() => setShowCreateAgenda(false)} 
+          existingAgendas={agendas}
+        />
       )}
       {showProfileSettings && (
         <ProfileSettingsModal onClose={() => setShowProfileSettings(false)} />

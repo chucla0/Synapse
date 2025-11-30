@@ -25,9 +25,9 @@ export function formatDateTime(date) {
 /**
  * Get days for month view
  */
-export function getMonthDays(date) {
-  const start = startOfWeek(startOfMonth(date), { weekStartsOn: 1 });
-  const end = endOfWeek(endOfMonth(date), { weekStartsOn: 1 });
+export function getMonthDays(date, { weekStartsOn = 1 } = {}) {
+  const start = startOfWeek(startOfMonth(date), { weekStartsOn });
+  const end = endOfWeek(endOfMonth(date), { weekStartsOn });
   
   return eachDayOfInterval({ start, end });
 }
@@ -35,9 +35,9 @@ export function getMonthDays(date) {
 /**
  * Get days for week view
  */
-export function getWeekDays(date) {
-  const start = startOfWeek(date, { weekStartsOn: 1 });
-  const end = endOfWeek(date, { weekStartsOn: 1 });
+export function getWeekDays(date, { weekStartsOn = 1 } = {}) {
+  const start = startOfWeek(date, { weekStartsOn });
+  const end = endOfWeek(date, { weekStartsOn });
   
   return eachDayOfInterval({ start, end });
 }

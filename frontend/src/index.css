@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
 
 :root {
   /* 
@@ -6,34 +6,34 @@
   */
 
   /* Palette */
-  --bg-main: #FFFFFF; /* Base/Fondo: Blanco Puro */
-  --bg-card: #FFFFFF;
-  --bg-hover: #F9F9F9;
-  
+  --bg-main: #ffffff; /* Base/Fondo: Blanco Puro */
+  --bg-card: #ffffff;
+  --bg-hover: #f9f9f9;
+
   --text-main: #111827; /* Gray-900 - High Contrast */
   --text-black: #000000; /* Pure Black */
   --text-secondary: #374151; /* Gray-700 - Readable Secondary */
-  --text-muted: #6B7280; /* Gray-500 - Readable Muted */
-  
-  --accent: #9FE6B6; /* Primario/Acción: Verde Menta Pastel */
-  --accent-hover: #88D8A0;
+  --text-muted: #6b7280; /* Gray-500 - Readable Muted */
+
+  --accent: #9fe6b6; /* Primario/Acción: Verde Menta Pastel */
+  --accent-hover: #88d8a0;
   --accent-light: rgba(159, 230, 182, 0.2);
-  
-  --focus-today: #E6F7FF; /* Foco/Hoy: Azul Niebla Pastel */
-  
-  --border: #EEEEEE; /* Gris Extremadamente Claro */
+
+  --focus-today: #e6f7ff; /* Foco/Hoy: Azul Niebla Pastel */
+
+  --border: #eeeeee; /* Gris Extremadamente Claro */
 
   /* Agenda Colors (Pastel) */
-  --agenda-1: #FFC3A0; /* Melocotón Suave */
-  --agenda-2: #A0CFFF; /* Azul Cielo Pastel */
-  --agenda-3: #FFEAA7; /* Amarillo Crema Pastel */
-  --agenda-4: #F5A9B8; /* Rosa Algodón Suave */
-  
+  --agenda-1: #ffc3a0; /* Melocotón Suave */
+  --agenda-2: #a0cfff; /* Azul Cielo Pastel */
+  --agenda-3: #ffeaa7; /* Amarillo Crema Pastel */
+  --agenda-4: #f5a9b8; /* Rosa Algodón Suave */
+
   /* Status Colors */
-  --success: #9FE6B6;
-  --warning: #FFEAA7;
-  --error: #F5A9B8;
-  --info: #A0CFFF;
+  --success: #9fe6b6;
+  --warning: #ffeaa7;
+  --error: #f5a9b8;
+  --info: #a0cfff;
 
   /* Spacing & Radius */
   --spacing-xs: 0.25rem;
@@ -50,9 +50,9 @@
   --shadow-card-hover: 0 8px 30px rgba(0, 0, 0, 0.06);
   --transition-fast: 150ms ease-out;
   --transition-base: 300ms ease-out;
-  
-  --bg-sidebar: #F9FAFB; /* Sidebar Light */
-  
+
+  --bg-sidebar: #f9fafb; /* Sidebar Light */
+
   --event-bg-opacity: 0.25;
 }
 
@@ -60,22 +60,24 @@
   /* Dark Mode */
   --bg-main: #111827; /* Gray 900 - Main Content (Lighter than sidebar) */
   --bg-sidebar: #030712; /* Gray 950 - Sidebar (Darker/Matte) */
-  --bg-card: #1F2937; /* Gray 800 - Cards/Modals */
+  --bg-card: #1f2937; /* Gray 800 - Cards/Modals */
   --bg-hover: #374151; /* Gray 700 - Hover states */
-  
-  --text-main: #F9FAFB; /* Gray 50 */
-  --text-black: #F3F4F6; /* Gray 100 - Better readability than pure white */
-  --text-secondary: #D1D5DB; /* Gray 300 */
-  --text-muted: #9CA3AF; /* Gray 400 */
-  
-  --border: #374151; /* Gray 700 - Subtle but visible divider */
-  
-  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-  --shadow-card-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
-  
-  --event-bg-opacity: 0.50;
-}
 
+  --text-main: #f9fafb; /* Gray 50 */
+  --text-black: #f3f4f6; /* Gray 100 - Better readability than pure white */
+  --text-secondary: #d1d5db; /* Gray 300 */
+  --text-muted: #9ca3af; /* Gray 400 */
+  --text-bright: #f9fafb; /* Gray 50 - High Contrast for Numbers */
+
+  --border: #374151; /* Gray 700 - Subtle but visible divider */
+
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.5),
+    0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.5),
+    0 4px 6px -2px rgba(0, 0, 0, 0.3);
+
+  --event-bg-opacity: 0.5;
+}
 
 /* Reset */
 *,
@@ -87,7 +89,7 @@
 }
 
 body {
-  font-family: 'Nunito', sans-serif; /* Fuente Principal */
+  font-family: "Nunito", sans-serif; /* Fuente Principal */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--bg-main);
@@ -96,7 +98,13 @@ body {
 }
 
 /* Global Typography Overrides */
-h1, h2, h3, h4, h5, h6, label {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+label {
   color: var(--text-black);
 }
 
@@ -140,7 +148,7 @@ h1, h2, h3, h4, h5, h6, label {
   cursor: pointer;
   transition: all var(--transition-fast);
   text-decoration: none;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .btn:disabled {
@@ -191,7 +199,7 @@ h1, h2, h3, h4, h5, h6, label {
   color: var(--text-main);
   font-size: 0.9rem;
   transition: all var(--transition-fast);
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
 }
 
 .input:focus {
@@ -201,7 +209,7 @@ h1, h2, h3, h4, h5, h6, label {
 }
 
 .input::placeholder {
-  color: #CCCCCC; /* Gris clarito */
+  color: #cccccc; /* Gris clarito */
   opacity: 1;
 }
 
@@ -219,7 +227,7 @@ select:disabled,
 /* Date & Time Input Styling */
 input[type="date"],
 input[type="datetime-local"] {
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   color: var(--text-main);
   cursor: text;
 }

@@ -63,14 +63,13 @@ const DroppableMonthDay = ({ day, children, className, onClick }) => {
   );
 };
 
-function MonthView({ date, events, agendaColor, onEventClick, selectedDate, onDayClick }) {
+function MonthView({ date, events, agendaColor, onEventClick, selectedDate, onDayClick, weekStartsOn = 1 }) {
   const locale = useDateFnsLocale();
   const [expandedDay, setExpandedDay] = useState(null);
-  const monthDays = getMonthDays(date);
+  const monthDays = getMonthDays(date, { weekStartsOn });
   const groupedEvents = groupEventsByDay(events);
 
-  // Dynamically generate week days based on locale
-  const weekStartsOn = locale.options?.weekStartsOn || 0;
+  // Dynamically generate week days based on locale and weekStartsOn
   const weekDays = eachDayOfInterval({
     start: startOfWeek(new Date(), { weekStartsOn }),
     end: endOfWeek(new Date(), { weekStartsOn }),

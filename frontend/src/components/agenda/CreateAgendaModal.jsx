@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import api from '../../utils/api';
@@ -18,7 +18,7 @@ const AGENDA_COLORS = {
   COLABORATIVA: '#F5A9B8'  // Rosa Algodón Suave
 };
 
-function CreateAgendaModal({ onClose }) {
+function CreateAgendaModal({ onClose, existingAgendas = [] }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
@@ -29,12 +29,17 @@ function CreateAgendaModal({ onClose }) {
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
   });
   const [errors, setErrors] = useState({});
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setShowTypeDropdown(false);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   // Check if user already has a Google Agenda
-  // We need to access the cache or fetch agendas, but since this is a modal opened from Dashboard, 
-  // we can assume the query cache is populated.
-  const agendas = queryClient.getQueryData(['agendas'])?.agendas || [];
-  const hasGoogleAgenda = agendas.some(a => a.googleCalendarId || a.name === 'Google Calendar');
+  const hasGoogleAgenda = existingAgendas.some(a => a.googleCalendarId || a.name === 'Google Calendar');
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
@@ -132,21 +137,32 @@ function CreateAgendaModal({ onClose }) {
           <div className="form-group">
             <label htmlFor="type">{t('agendaTypeLabel')}</label>
             <div className="type-selector-container" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-              <select
-                id="type"
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-                className="input"
-                disabled={createMutation.isPending}
-                style={{ flex: 1 }}
-              >
-                {AGENDA_TYPES.map(type => (
-                  <option key={type.value} value={type.value}>
-                    {type.label} - {type.description}
-                  </option>
-                ))}
-              </select>
+              <div className="custom-dropdown" onClick={(e) => e.stopPropagation()}>
+                <button 
+                  type="button"
+                  className="dropdown-toggle"
+                  onClick={() => setShowTypeDropdown(!showTypeDropdown)}
+                >
+                  {AGENDA_TYPES.find(t => t.value === formData.type)?.label || formData.type}
+                  <span className="dropdown-arrow">▼</span>
+                </button>
+                {showTypeDropdown && (
+                  <ul className="dropdown-menu">
+                    {AGENDA_TYPES.map(type => (
+                      <li 
+                        key={type.value} 
+                        className={`dropdown-item ${formData.type === type.value ? 'active' : ''}`}
+                        onClick={() => {
+                          handleChange({ target: { name: 'type', value: type.value } });
+                          setShowTypeDropdown(false);
+                        }}
+                      >
+                        {type.label} - {type.description}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
               <div 
                 className="color-preview" 
                 style={{ 

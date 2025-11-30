@@ -62,9 +62,9 @@ const DroppableWeekSlot = ({ day, hour, children }) => {
   );
 };
 
-function WeekView({ date, events, agendaColor, onEventClick }) {
+function WeekView({ date, events, agendaColor, onEventClick, weekStartsOn = 1 }) {
   const locale = useDateFnsLocale();
-  const weekDays = getWeekDays(date);
+  const weekDays = getWeekDays(date, { weekStartsOn });
   const groupedEvents = groupEventsByDay(events);
 
   return (
