@@ -92,11 +92,17 @@
 }
 
 .settings-section-title {
-  font-size: 1.1rem;
+  font-size: 24px;
   font-weight: 700;
+  color: #1F2937;
+  /* Light Mode */
   margin-bottom: var(--spacing-lg);
   padding-bottom: var(--spacing-sm);
   border-bottom: 1px solid var(--border);
+}
+
+.dark-theme .settings-section-title {
+  color: var(--text-main);
 }
 
 /* Form Elements */
@@ -455,9 +461,10 @@ body[data-theme='dark'] .delete-confirm-box {
 
 .form-section-subtitle {
   color: var(--text-main);
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: var(--spacing-md);
+  font-size: 18px;
+  font-weight: 600;
+  margin-top: 24px;
+  margin-bottom: 12px;
   padding-bottom: var(--spacing-xs);
   border-bottom: 1px solid var(--border);
 }
@@ -465,10 +472,15 @@ body[data-theme='dark'] .delete-confirm-box {
 /* Labels */
 .form-group label {
   display: block;
-  color: var(--text-main);
+  color: #374151;
+  /* Light Mode */
   font-weight: 600;
   margin-bottom: 6px;
-  font-size: 0.95rem;
+  font-size: 14px;
+}
+
+.dark-theme .form-group label {
+  color: var(--text-main);
 }
 
 /* Inputs & Textareas - Scoped to avoid global pollution if possible, or just rely on index.css */
@@ -563,9 +575,9 @@ body[data-theme='dark'] .delete-confirm-box {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  border: 1px solid var(--border);
+  border: 1px solid #D1D5DB;
+  /* Light Gray for inactive */
   border-radius: 20px;
-  /* Pill shape */
   cursor: pointer;
   background-color: var(--bg-main);
   color: var(--text-secondary);
@@ -639,6 +651,20 @@ body[data-theme='dark'] .delete-confirm-box {
   gap: 4px;
 }
 
+.time-input-group input[type="time"] {
+  border: 1px solid #D1D5DB;
+  background-color: #FFFFFF;
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+
+.dark-theme .time-input-group input[type="time"] {
+  background-color: var(--bg-card);
+  border-color: var(--border);
+}
+
 .time-separator {
   color: var(--text-muted);
   font-weight: bold;
@@ -652,4 +678,33 @@ body[data-theme='dark'] .delete-confirm-box {
 
 .text-muted {
   color: #9CA3AF;
+}
+
+/* Read-only Data Display */
+.read-only-data {
+  font-size: 16px;
+  font-weight: 400;
+  color: #1F2937;
+  /* Light Mode */
+  padding: 0.5rem 0;
+}
+
+.dark-theme .read-only-data {
+  color: var(--text-main);
+}
+
+/* Status Radio Button Active State */
+.status-option.active {
+  border: 1px solid #10B981;
+  /* Green for Available */
+}
+
+.status-option.active[data-status="busy"] {
+  border-color: #F59E0B;
+  /* Orange for Busy */
+}
+
+.status-option.active[data-status="away"] {
+  border-color: #EF4444;
+  /* Red for Away */
 }

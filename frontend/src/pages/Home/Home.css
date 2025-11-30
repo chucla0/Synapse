@@ -33,31 +33,55 @@
 
 .filter-pills {
   display: flex;
-  gap: 0.5rem;
-  background: var(--bg-card);
-  padding: 0.25rem;
-  border-radius: 20px;
-  border: 1px solid var(--border);
+  gap: 1.5rem;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  border: none;
+  border-bottom: 2px solid var(--border);
 }
 
 .filter-pill {
   background: none;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 16px;
-  color: var(--text-secondary);
+  padding: 0.75rem 0.5rem;
+  border-radius: 0;
+  color: #4B5563;
+  /* Light Mode Inactive */
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 500;
   transition: all 0.2s;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+}
+
+.dark-theme .filter-pill {
+  color: #A0AEC0;
+  /* Dark Mode Inactive */
 }
 
 .filter-pill:hover {
-  color: var(--text-primary);
+  color: #1F2937;
+  /* Light Mode Hover */
+}
+
+.dark-theme .filter-pill:hover {
+  color: #FFFFFF;
+  /* Dark Mode Hover */
 }
 
 .filter-pill.active {
-  color: white;
-  font-weight: 500;
+  color: #1F2937;
+  /* Light Mode Active */
+  font-weight: 600;
+  border-bottom-color: #F59E0B;
+  /* Accent Underline */
+}
+
+.dark-theme .filter-pill.active {
+  color: #FFFFFF;
+  /* Dark Mode Active */
 }
 
 .agenda-filter {
@@ -97,7 +121,8 @@
 .dropdown-menu {
   position: absolute;
   top: 100%;
-  right: 0; /* Align right for this specific dropdown if needed, or left */
+  right: 0;
+  /* Align right for this specific dropdown if needed, or left */
   left: 0;
   width: 100%;
   background: var(--bg-card);
@@ -140,9 +165,15 @@
 }
 
 .home-header h1 {
-  font-size: 2rem;
+  font-size: 32px;
   font-weight: 700;
-  color: var(--text-main);
+  color: #1F2937;
+  /* Light Mode */
+}
+
+.dark-theme .home-header h1 {
+  color: #FFFFFF;
+  /* Dark Mode */
 }
 
 .notifications-list {
@@ -211,14 +242,28 @@
 
 .notification-message {
   margin: 0;
-  color: var(--text-main);
+  color: #1F2937;
+  /* Light Mode */
   font-size: 0.95rem;
   line-height: 1.4;
+  font-weight: 600;
+  /* Bold for prominence */
+}
+
+.dark-theme .notification-message {
+  color: #FFFFFF;
+  /* Dark Mode */
 }
 
 .notification-time {
   font-size: 0.8rem;
-  color: var(--text-secondary);
+  color: #6B7280;
+  /* Light Mode - Medium Gray */
+}
+
+.dark-theme .notification-time {
+  color: #9CA3AF;
+  /* Dark Mode - Medium Gray */
 }
 
 .notification-actions {
@@ -228,10 +273,12 @@
 }
 
 .unread-dot {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   display: block;
+  background-color: #F59E0B;
+  /* Accent Orange */
 }
 
 .menu-container {
@@ -312,10 +359,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem; /* Larger font for initials */
+  font-size: 1.25rem;
+  /* Larger font for initials */
   font-weight: 700;
   color: white;
-  background: var(--accent); /* Accent color for initials background */
+  background: var(--accent);
+  /* Accent color for initials background */
 }
 
 

@@ -43,7 +43,8 @@
 }
 
 .agenda-form {
-  padding: 0; /* Padding is on the .card */
+  padding: 0;
+  /* Padding is on the .card */
 }
 
 .form-group {
@@ -53,9 +54,16 @@
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: var(--text-secondary);
+  font-weight: 600;
+  /* Semibold */
+  color: #1F2937;
+  /* Light Mode */
   font-size: 0.875rem;
+}
+
+.dark-theme .form-group label {
+  color: #FFFFFF;
+  /* Dark Mode */
 }
 
 /* Input styles are now global */
@@ -116,20 +124,55 @@
   gap: 12px;
   width: 100%;
   padding: 0.75rem;
-  background-color: var(--bg-card);
-  border: 1px solid var(--border);
+  background-color: #FFFFFF;
+  /* White for logo visibility */
+  border: 1px solid #D1D5DB;
   border-radius: var(--radius-md);
-  color: var(--text-main);
+  color: #1F2937;
+  /* Dark text */
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-base);
 }
 
+.dark-theme .btn-google-connect {
+  background-color: var(--bg-card);
+  border-color: var(--border);
+  color: var(--text-main);
+}
+
 .btn-google-connect:hover {
+  background-color: #F9FAFB;
+  /* Light gray hover */
+  border-color: #9CA3AF;
+}
+
+.dark-theme .btn-google-connect:hover {
   background-color: var(--bg-main);
   border-color: var(--text-muted);
 }
 
 .google-icon {
   flex-shrink: 0;
+}
+
+/* Required Field Asterisk */
+.required-asterisk {
+  color: #EF4444;
+  /* Vibrant Red */
+  margin-left: 2px;
+}
+
+/* Input Contrast Improvement for Dark Mode */
+.dark-theme .input,
+.dark-theme .textarea {
+  background-color: #374151;
+  /* Lighter gray than modal background */
+  border-color: #4B5563;
+}
+
+.dark-theme .input:focus,
+.dark-theme .textarea:focus {
+  border-color: var(--accent);
+  background-color: #374151;
 }

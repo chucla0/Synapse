@@ -31,10 +31,11 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  background-color: #F3E8FF; /* purple-100 equivalent */
-  color: #7E22CE; /* purple-700 equivalent */
+  background-color: var(--accent-light);
+  color: var(--text-black);
   padding: 2px 10px;
-  border-radius: 9999px; /* rounded-full */
+  border-radius: 9999px;
+  /* rounded-full */
   font-size: 0.875rem;
   font-weight: 500;
 }
@@ -45,7 +46,7 @@
   justify-content: center;
   background: none;
   border: none;
-  color: #7E22CE;
+  color: var(--text-black);
   cursor: pointer;
   padding: 0;
   opacity: 0.7;

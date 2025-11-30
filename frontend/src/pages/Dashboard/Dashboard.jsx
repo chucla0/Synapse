@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Settings, ChevronDown, Palette, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Settings, ChevronDown, Palette, ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useSettings } from '../../contexts/SettingsContext';
 import api from '../../utils/api';
@@ -220,7 +220,7 @@ function Dashboard({ onLogout, sessionKey }) {
   const currentAgenda = selectedAgenda === ALL_EVENTS_AGENDA_ID ? allEventsAgenda : agendas.find(a => a.id === selectedAgenda);
 
   return (
-    <div className="dashboard">
+    <div className={`dashboard ${!isSidebarOpen ? 'sidebar-collapsed' : ''}`}>
       {/* Sidebar */}
       <aside className={`sidebar ${!isSidebarOpen ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
@@ -499,9 +499,10 @@ function Dashboard({ onLogout, sessionKey }) {
             <Settings size={18} style={{ marginRight: '8px' }} /> {t('webSettingsButton')}
           </button>
           <button
-            className="btn btn-secondary btn-block"
+            className="btn btn-logout btn-block"
             onClick={handleLogout}
           >
+            <LogOut size={18} style={{ marginRight: '8px' }} />
             {t('logout')}
           </button>
         </div>

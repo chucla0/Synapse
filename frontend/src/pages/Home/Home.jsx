@@ -12,7 +12,7 @@ function Home({ notifications, agendas = [], isLoading, refetch }) {
   const { accentColor } = useTheme();
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [activeMenuId, setActiveMenuId] = useState(null);
-  
+
   // Filter states
   const [filterType, setFilterType] = useState('all'); // 'all', 'unread', 'invites'
   const [selectedAgendaId, setSelectedAgendaId] = useState('all');
@@ -86,15 +86,15 @@ function Home({ notifications, agendas = [], isLoading, refetch }) {
     if (filterType === 'unread' && n.isRead) return false;
     if (filterType === 'invites' && n.type !== 'AGENDA_INVITE') return false;
     if (filterType === 'approvals' && !['EVENT_PENDING_APPROVAL', 'EVENT_APPROVED', 'EVENT_REJECTED'].includes(n.type)) return false;
-    
+
     // Agenda filter
     if (selectedAgendaId !== 'all' && n.agenda?.id !== selectedAgendaId) return false;
 
     return true;
   });
 
-  const selectedAgendaName = selectedAgendaId === 'all' 
-    ? t('filterByAgenda') 
+  const selectedAgendaName = selectedAgendaId === 'all'
+    ? t('filterByAgenda')
     : agendas.find(a => a.id === selectedAgendaId)?.name || t('filterByAgenda');
 
   return (
@@ -106,47 +106,27 @@ function Home({ notifications, agendas = [], isLoading, refetch }) {
       {/* Filters Bar */}
       <div className="filters-bar">
         <div className="filter-pills">
-          <button 
+          <button
             className={`filter-pill ${filterType === 'all' ? 'active' : ''}`}
             onClick={() => setFilterType('all')}
-            style={filterType === 'all' ? {
-              backgroundColor: accentColor, 
-              color: '#333333',
-              fontWeight: 600
-            } : {}}
           >
             {t('filterAll')}
           </button>
-          <button 
+          <button
             className={`filter-pill ${filterType === 'unread' ? 'active' : ''}`}
             onClick={() => setFilterType('unread')}
-            style={filterType === 'unread' ? {
-              backgroundColor: accentColor, 
-              color: '#333333',
-              fontWeight: 600
-            } : {}}
           >
             {t('filterUnread')}
           </button>
-          <button 
+          <button
             className={`filter-pill ${filterType === 'invites' ? 'active' : ''}`}
             onClick={() => setFilterType('invites')}
-            style={filterType === 'invites' ? {
-              backgroundColor: accentColor, 
-              color: '#333333',
-              fontWeight: 600
-            } : {}}
           >
             {t('filterInvites')}
           </button>
-          <button 
+          <button
             className={`filter-pill ${filterType === 'approvals' ? 'active' : ''}`}
             onClick={() => setFilterType('approvals')}
-            style={filterType === 'approvals' ? {
-              backgroundColor: accentColor, 
-              color: '#333333',
-              fontWeight: 600
-            } : {}}
           >
             {t('filterApprovals')}
           </button>
@@ -154,19 +134,19 @@ function Home({ notifications, agendas = [], isLoading, refetch }) {
 
         <div className="agenda-filter">
           <div className="custom-dropdown" onClick={(e) => e.stopPropagation()}>
-            <button 
+            <button
               type="button"
               className="dropdown-toggle"
               onClick={() => setShowAgendaDropdown(!showAgendaDropdown)}
               style={selectedAgendaId !== 'all' ? {
-                backgroundColor: accentColor, 
+                backgroundColor: accentColor,
                 color: '#333333',
                 borderColor: accentColor,
                 fontWeight: 600
               } : {}}
             >
               {selectedAgendaName}
-              <span 
+              <span
                 className="dropdown-arrow"
                 style={selectedAgendaId !== 'all' ? { color: '#333333' } : {}}
               >
@@ -175,7 +155,7 @@ function Home({ notifications, agendas = [], isLoading, refetch }) {
             </button>
             {showAgendaDropdown && (
               <ul className="dropdown-menu">
-                <li 
+                <li
                   className={`dropdown-item ${selectedAgendaId === 'all' ? 'active' : ''}`}
                   onClick={() => {
                     setSelectedAgendaId('all');
@@ -185,14 +165,14 @@ function Home({ notifications, agendas = [], isLoading, refetch }) {
                   {t('filterByAgenda')}
                 </li>
                 {agendas.map(agenda => (
-                  <li 
-                    key={agenda.id} 
+                  <li
+                    key={agenda.id}
                     className={`dropdown-item ${selectedAgendaId === agenda.id ? 'active' : ''}`}
                     onClick={() => {
                       setSelectedAgendaId(agenda.id);
                       setShowAgendaDropdown(false);
                     }}
-                    style={selectedAgendaId === agenda.id ? {backgroundColor: accentColor, color: 'white'} : {}}
+                    style={selectedAgendaId === agenda.id ? { backgroundColor: accentColor, color: 'white' } : {}}
                   >
                     {agenda.name}
                   </li>
@@ -210,10 +190,10 @@ function Home({ notifications, agendas = [], isLoading, refetch }) {
           <div className="empty-state">
             <p>{notifications.length === 0 ? t('noNotifications') : t('noAgendasFound') /* Reusing string for empty filter result */}</p>
             {(filterType !== 'all' || selectedAgendaId !== 'all') && (
-              <button 
+              <button
                 className="btn-link"
                 onClick={() => { setFilterType('all'); setSelectedAgendaId('all'); }}
-                style={{color: accentColor}}
+                style={{ color: accentColor }}
               >
                 {t('clearFilters')}
               </button>
@@ -222,8 +202,8 @@ function Home({ notifications, agendas = [], isLoading, refetch }) {
         ) : (
           <div className="notifications-list">
             {filteredNotifications.map((notification) => (
-              <div 
-                key={notification.id} 
+              <div
+                key={notification.id}
                 className={`notification-card ${!notification.isRead ? 'unread' : ''}`}
                 onClick={() => handleNotificationClick(notification)}
                 style={{ '--hover-color': `${accentColor}15` }}
@@ -233,7 +213,7 @@ function Home({ notifications, agendas = [], isLoading, refetch }) {
                     {notification.sender?.avatar ? (
                       <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${notification.sender.avatar}`} alt={notification.sender.name} />
                     ) : (
-                      <div className="avatar-initials" style={{backgroundColor: accentColor}}>
+                      <div className="avatar-initials" style={{ backgroundColor: accentColor }}>
                         {notification.sender?.name?.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -250,11 +230,11 @@ function Home({ notifications, agendas = [], isLoading, refetch }) {
 
                 <div className="notification-actions">
                   {!notification.isRead && (
-                    <span className="unread-dot" style={{backgroundColor: accentColor}}></span>
+                    <span className="unread-dot" style={{ backgroundColor: accentColor }}></span>
                   )}
-                  
+
                   <div className="menu-container">
-                    <button 
+                    <button
                       className="menu-trigger"
                       onClick={(e) => toggleMenu(e, notification.id)}
                     >

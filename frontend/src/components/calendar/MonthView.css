@@ -18,8 +18,14 @@
   text-align: center;
   font-weight: 600;
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  color: #1F2937;
+  /* Light Mode Header */
   text-transform: uppercase;
+}
+
+.dark-theme .month-weekday {
+  color: #E5E7EB;
+  /* Dark Mode Header - Brighter */
 }
 
 .month-grid {
@@ -52,11 +58,18 @@
 
 .month-day.other-month {
   background-color: transparent;
-  /* Inherit from .month-day or container */
-  color: #4B5563;
-  /* Gray-600 for better visibility than opacity */
   opacity: 1;
-  /* Remove opacity to use specific color */
+}
+
+.month-day.other-month .day-number {
+  color: #999999;
+  /* Light Mode Adjacent Day */
+  font-weight: 400;
+}
+
+.dark-theme .month-day.other-month .day-number {
+  color: #9CA3AF;
+  /* Dark Mode Adjacent Day - Brighter */
 }
 
 /* Remove cell background for today to avoid conflict, only highlight number */
@@ -76,8 +89,8 @@
 .day-number {
   font-weight: 600;
   font-size: 0.875rem;
-  color: var(--text-bright, var(--text-main));
-  /* Fallback to main if bright not set */
+  color: #333333;
+  /* Light Mode Current Day */
   margin-bottom: var(--spacing-xs);
   display: inline-block;
   width: 24px;
@@ -87,10 +100,20 @@
   border-radius: 50%;
 }
 
+.dark-theme .day-number {
+  color: #FFFFFF;
+  /* Dark Mode Current Day - Pure White */
+  font-weight: 700;
+}
+
 .month-day.today .day-number {
   background-color: var(--accent);
   color: #333333;
   /* Dark text for contrast */
+}
+
+.dark-theme .month-day.selected .day-number {
+  color: #FFFFFF;
 }
 
 .day-events {

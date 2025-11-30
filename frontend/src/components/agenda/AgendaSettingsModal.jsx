@@ -218,7 +218,7 @@ function AgendaSettingsModal({ agenda, onClose }) {
           <div className="user-avatar-wrapper">
             {user.avatar ? (
               <img
-                src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${user.avatar}`}
+                src={user.avatar.startsWith('http') ? user.avatar : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${user.avatar}`}
                 alt={user.name}
                 className="user-avatar-circle"
               />

@@ -80,8 +80,15 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
     staleTime: 0, // Always fetch fresh
   });
 
+  // Fetch agendas to check if Google Calendar is actually connected
+  const { data: agendasData } = useQuery({
+    queryKey: ['agendas'],
+    queryFn: async () => (await api.get('/agendas')).data,
+  });
+
   const userProfile = profileData?.user || currentUser;
-  const isGoogleConnected = !!userProfile?.googleId;
+  // Check if there's an actual Google Calendar agenda, not just Google authentication
+  const isGoogleConnected = agendasData?.agendas?.some(a => a.googleCalendarId || a.name === 'Google Calendar') || false;
 
   const [activeTab, setActiveTab] = useState(initialTab);
 
@@ -760,8 +767,8 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
               </div>
             </div>
 
+            <h3 className="form-section-subtitle">{t('workingHoursLabel', 'Horario de Trabajo')}</h3>
             <div className="form-group">
-              <label>{t('workingHoursLabel', 'Horario de Trabajo')}</label>
               <div className="working-hours-inputs">
                 <div className="time-input-group">
                   <label className="text-xs text-muted">{t('startTime', 'Inicio')}</label>

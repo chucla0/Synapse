@@ -47,6 +47,40 @@ const MultiEmailInput = ({ emails, onChange, placeholder, disabled }) => {
     }
   };
 
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedText = e.clipboardData.getData('text');
+
+    // Extract all potential emails from pasted text
+    // Split by common separators: comma, semicolon, space, newline, tab
+    const potentialEmails = pastedText.split(/[,;\s\n\t]+/).filter(text => text.trim());
+
+    const validEmails = [];
+    const invalidEmails = [];
+
+    potentialEmails.forEach(email => {
+      const trimmedEmail = email.trim();
+      if (trimmedEmail && isValidEmail(trimmedEmail)) {
+        // Only add if not already in the list
+        if (!emails.includes(trimmedEmail) && !validEmails.includes(trimmedEmail)) {
+          validEmails.push(trimmedEmail);
+        }
+      } else if (trimmedEmail) {
+        invalidEmails.push(trimmedEmail);
+      }
+    });
+
+    if (validEmails.length > 0) {
+      onChange([...emails, ...validEmails]);
+      setInputValue('');
+      setError(null);
+    }
+
+    if (invalidEmails.length > 0 && validEmails.length === 0) {
+      setError(`Email(s) inválido(s): ${invalidEmails.join(', ')}`);
+    }
+  };
+
   return (
     <div className={`multi-email-input-container ${disabled ? 'disabled' : ''} ${error ? 'error' : ''}`} onClick={() => inputRef.current?.focus()}>
       {emails.map((email, index) => (
@@ -77,6 +111,7 @@ const MultiEmailInput = ({ emails, onChange, placeholder, disabled }) => {
         }}
         onKeyDown={handleKeyDown}
         onBlur={handleBlur}
+        onPaste={handlePaste}
         placeholder={emails.length === 0 ? placeholder : ''}
         disabled={disabled}
       />

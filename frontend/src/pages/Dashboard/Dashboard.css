@@ -71,7 +71,8 @@
 .btn-sidebar-toggle {
   position: absolute;
   top: 50%;
-  left: 268px; /* 280px (sidebar) - 12px (half button) */
+  left: 268px;
+  /* 280px (sidebar) - 12px (half button) */
   transform: translateY(-50%);
   z-index: 1001;
   background-color: var(--bg-card);
@@ -92,6 +93,24 @@
 .btn-sidebar-toggle:hover {
   color: var(--text-main);
   background-color: var(--bg-hover);
+}
+
+/* Sidebar collapsed state */
+.sidebar.collapsed {
+  transform: translateX(-280px);
+  width: 0;
+  min-width: 0;
+  border-right: none;
+}
+
+/* Adjust toggle button position when sidebar is collapsed */
+.sidebar.collapsed~.btn-sidebar-toggle {
+  left: 12px;
+}
+
+/* Adjust main content when sidebar is collapsed */
+.dashboard.sidebar-collapsed .main-content {
+  margin-left: 0;
 }
 
 .sidebar-logo {
@@ -180,7 +199,8 @@
 .btn-sidebar-toggle {
   position: absolute;
   top: 50%;
-  left: 268px; /* 280px (sidebar) - 12px (half button) */
+  left: 268px;
+  /* 280px (sidebar) - 12px (half button) */
   transform: translateY(-50%);
   z-index: 1001;
   background-color: var(--bg-card);
@@ -300,7 +320,8 @@
   padding: var(--spacing-md) 0;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-secondary); /* Darker gray */
+  color: var(--text-secondary);
+  /* Darker gray */
   cursor: pointer;
   position: relative;
   transition: color var(--transition-fast);
@@ -311,7 +332,8 @@
 }
 
 .nav-link.active {
-  color: var(--text-main); /* Darkest for active */
+  color: var(--text-main);
+  /* Darkest for active */
 }
 
 .nav-link.active::after {
@@ -320,17 +342,20 @@
   bottom: -1px;
   left: 0;
   width: 100%;
-  height: 3px; /* Slightly thicker */
+  height: 3px;
+  /* Slightly thicker */
   background-color: var(--accent);
 }
 
 .nav-title {
   margin-bottom: var(--spacing-md);
-  font-weight: 700; /* Bold */
+  font-weight: 700;
+  /* Bold */
   letter-spacing: 0.5px;
   text-transform: uppercase;
   font-size: 0.75rem;
-  color: var(--text-main); /* Darker */
+  color: var(--text-main);
+  /* Darker */
 }
 
 .agenda-search-container {
@@ -348,7 +373,8 @@
   color: var(--text-main);
   font-size: 0.9rem;
   transition: border-color var(--transition-fast);
-  min-width: 0; /* Prevent flex overflow */
+  min-width: 0;
+  /* Prevent flex overflow */
 }
 
 .search-input:focus {
@@ -357,7 +383,8 @@
 }
 
 .sort-dropdown-container {
-  width: 80px; /* Fixed width for sort */
+  width: 80px;
+  /* Fixed width for sort */
 }
 
 .sort-select {
@@ -383,8 +410,10 @@
 
 .agenda-group-title {
   font-size: 0.75rem;
-  font-weight: 700; /* Bold */
-  color: var(--text-main); /* Darker */
+  font-weight: 700;
+  /* Bold */
+  color: var(--text-main);
+  /* Darker */
   text-transform: uppercase;
   margin-bottom: var(--spacing-sm);
   padding-left: var(--spacing-xs);
@@ -416,7 +445,8 @@
   gap: var(--spacing-sm);
   padding: var(--spacing-sm) var(--spacing-md);
   cursor: pointer;
-  color: var(--text-secondary); /* Darker gray */
+  color: var(--text-secondary);
+  /* Darker gray */
   border-radius: var(--radius-md);
   font-weight: 500;
 }
@@ -424,17 +454,21 @@
 .agenda-item:hover {
   background: var(--bg-main);
 }
+
 .agenda-item:hover .agenda-item-main {
   color: var(--text-main);
 }
 
 .agenda-item.active {
   background: var(--bg-main);
-  box-shadow: inset 3px 0 0 0 var(--accent); /* Thicker indicator */
+  box-shadow: inset 3px 0 0 0 var(--accent);
+  /* Thicker indicator */
 }
+
 .agenda-item.active .agenda-item-main {
   color: var(--text-main);
-  font-weight: 700; /* Bold for active */
+  font-weight: 700;
+  /* Bold for active */
 }
 
 .btn-agenda-settings {
@@ -550,8 +584,15 @@
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .dropdown-item {
@@ -651,6 +692,31 @@
   color: var(--text-main);
 }
 
+/* Logout Button - Danger Style with Adaptive Colors */
+.btn-logout {
+  background: transparent;
+  border: 1px solid #DC2626;
+  /* Light Mode Red */
+  color: #DC2626;
+  transition: all var(--transition-fast);
+}
 
+.btn-logout:hover:not(:disabled) {
+  background-color: rgba(220, 38, 38, 0.1);
+  /* Light red tint */
+  border-color: #B91C1C;
+  /* Darker red on hover */
+}
 
+.dark-theme .btn-logout {
+  border-color: #EF4444;
+  /* Dark Mode Vivid Red */
+  color: #EF4444;
+}
 
+.dark-theme .btn-logout:hover:not(:disabled) {
+  background-color: rgba(239, 68, 68, 0.15);
+  /* Subtle red glow */
+  border-color: #F87171;
+  /* Lighter red on hover */
+}
