@@ -14,16 +14,18 @@ const DraggableWeekEvent = ({ event, agendaColor, onEventClick, locale, timeForm
   });
 
   const baseColor = event.color || event.agenda?.color || agendaColor;
-  
+
   const style = {
     ...event.style,
     height: `${Math.max(parseFloat(event.style.height), 20)}px`,
     backgroundColor: hexToRgba(baseColor, 'var(--event-bg-opacity)'),
     borderLeftColor: baseColor,
-    cursor: 'grab',
-    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    cursor: isDragging ? 'grabbing' : 'grab',
+    // Keep original in place as shadow
+    transform: isDragging ? undefined : (transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined),
     zIndex: isDragging ? 100 : 10,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.4 : 1,
+    transition: isDragging ? 'none' : undefined,
   };
 
   return (
@@ -69,7 +71,7 @@ function WeekView({ date, events, agendaColor, onEventClick, weekStartsOn = 1 })
   const locale = useDateFnsLocale();
   const weekDays = getWeekDays(date, { weekStartsOn });
   const groupedEvents = groupEventsByDay(events);
-  
+
   const timeFormatStr = settings.display.timeFormat === '24h' ? 'HH:mm' : 'h:mm a';
 
   return (

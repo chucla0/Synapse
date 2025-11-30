@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { format, startOfWeek, addMinutes, setHours, setMinutes } from 'date-fns';
 import { DndContext, useSensor, useSensors, PointerSensor, DragOverlay } from '@dnd-kit/core';
 import api from '../../utils/api';
+import { hexToRgba } from '../../utils/colors';
 import DayView from './DayView';
 import WeekView from './WeekView';
 import MonthView from './MonthView';
@@ -36,7 +37,7 @@ function CalendarView({ agenda, agendas = [] }) {
   const queryClient = useQueryClient();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
-  
+
   // Initialize view type from settings, fallback to MONTH
   const [viewType, setViewType] = useState(() => {
     const defaultView = settings.display.defaultView;
@@ -58,7 +59,7 @@ function CalendarView({ agenda, agendas = [] }) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 2,
       },
     })
   );
@@ -104,9 +105,9 @@ function CalendarView({ agenda, agendas = [] }) {
         setSelectedEvent(null);
         queryClient.invalidateQueries({ queryKey: ['events', agenda.id] });
         if (agenda.id === 'all_events') {
-             queryClient.invalidateQueries({ queryKey: ['events'] });
+          queryClient.invalidateQueries({ queryKey: ['events'] });
         } else {
-             queryClient.invalidateQueries({ queryKey: ['events', 'all_events'] });
+          queryClient.invalidateQueries({ queryKey: ['events', 'all_events'] });
         }
       }
     });
@@ -114,15 +115,18 @@ function CalendarView({ agenda, agendas = [] }) {
 
   const handleDragStart = (event) => {
     const { active } = event;
-    // Find the event object from the active ID
-    // We need to search in expandedEvents
-    // But expandedEvents is derived inside the render... 
-    // We should memoize expandedEvents or search in the data we have.
-    // For now, let's assume we can find it.
-    // We'll pass the event object in the draggable data if possible, or search here.
-    const eventId = active.id;
-    const foundEvent = expandedEvents.find(e => e.id === eventId);
-    setActiveDragEvent(foundEvent);
+    // Prefer data passed from draggable which includes layout styles for WeekView
+    // Also capture the initial width from the rect to match dimensions exactly
+    const eventData = active.data.current || expandedEvents.find(e => e.id === active.id);
+
+    if (eventData) {
+      // If we have layout styles (WeekView), we might want to capture the specific width
+      // from the DOM element because style.width might be a percentage relative to a parent we're leaving.
+      const rect = active.rect.current?.initial;
+      const width = rect ? rect.width : undefined;
+
+      setActiveDragEvent({ ...eventData, _dragWidth: width });
+    }
   };
 
   const handleDragEnd = (event) => {
@@ -133,7 +137,7 @@ function CalendarView({ agenda, agendas = [] }) {
 
     const eventId = active.id;
     const targetId = over.id;
-    
+
     // Find original event
     const originalEvent = expandedEvents.find(e => e.id === eventId);
     if (!originalEvent) return;
@@ -147,7 +151,7 @@ function CalendarView({ agenda, agendas = [] }) {
       // Month View Drop: day_yyyy-MM-dd
       const dateStr = targetId.replace('day_', '');
       const targetDate = new Date(dateStr);
-      
+
       // Keep original time, change date
       newStartTime.setFullYear(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
       newEndTime = new Date(newStartTime.getTime() + duration);
@@ -157,7 +161,7 @@ function CalendarView({ agenda, agendas = [] }) {
       const [_, dateStr, timeStr] = targetId.split('_');
       const [hours, minutes] = timeStr.split(':').map(Number);
       const targetDate = new Date(dateStr);
-      
+
       newStartTime.setFullYear(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
       newStartTime.setHours(hours, minutes, 0, 0);
 
@@ -166,14 +170,14 @@ function CalendarView({ agenda, agendas = [] }) {
         const dropY = active.rect.current.translated.top;
         const cellTop = over.rect.top;
         const cellHeight = over.rect.height;
-        
+
         // Calculate offset in minutes
         const relativeY = dropY - cellTop;
         const minutesOffset = (relativeY / cellHeight) * 60;
-        
+
         // Snap to nearest 15 minutes
         const snappedMinutes = Math.round(minutesOffset / 15) * 15;
-        
+
         // Add snapped minutes to the base time
         newStartTime = addMinutes(newStartTime, snappedMinutes);
       }
@@ -191,7 +195,7 @@ function CalendarView({ agenda, agendas = [] }) {
     // Let's assume we update the ID we have. If it's a generated ID (with underscore), we might need to handle it.
     // If ID has underscore, it's an instance.
     const realId = originalEvent.originalEventId || originalEvent.id;
-    
+
     // If it's a recurring instance, we probably shouldn't move it unless we detach it.
     // For now, let's just update the event.
     updateMutation.mutate({
@@ -316,7 +320,7 @@ function CalendarView({ agenda, agendas = [] }) {
     } else if (viewType === VIEW_TYPES.DAY) {
       baseDate = new Date(currentDate);
     } else if (viewType === VIEW_TYPES.WEEK) {
-      const weekStartsOn = locale?.options?.weekStartsOn || 1; 
+      const weekStartsOn = locale?.options?.weekStartsOn || 1;
       baseDate = startOfWeek(currentDate, { weekStartsOn });
     }
     baseDate.setHours(now.getHours(), now.getMinutes(), 0, 0);
@@ -371,16 +375,16 @@ function CalendarView({ agenda, agendas = [] }) {
           ) : (
             <>
               {viewType === VIEW_TYPES.DAY && (
-                <DayView 
-                  date={currentDate} 
+                <DayView
+                  date={currentDate}
                   events={expandedEvents}
                   agendaColor={agenda.color}
                   onEventClick={handleEventClick}
                 />
               )}
               {viewType === VIEW_TYPES.WEEK && (
-                <WeekView 
-                  date={currentDate} 
+                <WeekView
+                  date={currentDate}
                   events={expandedEvents}
                   agendaColor={agenda.color}
                   onEventClick={handleEventClick}
@@ -388,8 +392,8 @@ function CalendarView({ agenda, agendas = [] }) {
                 />
               )}
               {viewType === VIEW_TYPES.MONTH && (
-                <MonthView 
-                  date={currentDate} 
+                <MonthView
+                  date={currentDate}
                   events={expandedEvents}
                   agendaColor={agenda.color}
                   onEventClick={handleEventClick}
@@ -399,8 +403,8 @@ function CalendarView({ agenda, agendas = [] }) {
                 />
               )}
               {viewType === VIEW_TYPES.YEAR && (
-                <YearView 
-                  date={currentDate} 
+                <YearView
+                  date={currentDate}
                   events={expandedEvents}
                   agendaColor={agenda.color}
                   onEventClick={handleEventClick}
@@ -412,7 +416,7 @@ function CalendarView({ agenda, agendas = [] }) {
 
         {/* Create Event Modal */}
         {showCreateEvent && (
-          <CreateEventModal 
+          <CreateEventModal
             agenda={agenda}
             agendas={agendas}
             initialDate={editingEvent ? null : getInitialDateForCreateEvent()}
@@ -420,7 +424,7 @@ function CalendarView({ agenda, agendas = [] }) {
             onClose={() => {
               setShowCreateEvent(false);
               setEditingEvent(null);
-            }} 
+            }}
           />
         )}
 
@@ -451,28 +455,58 @@ function CalendarView({ agenda, agendas = [] }) {
             deletingText={t('deletingButton', 'Eliminando...')}
           />
         )}
-
-        <DragOverlay>
-          {activeDragEvent ? (
+      </div>
+      <DragOverlay dropAnimation={null}>
+        {activeDragEvent ? (
+          <div style={{
+            height: activeDragEvent.style?.height ? `${Math.max(parseFloat(activeDragEvent.style.height), 20)}px` : '22px',
+            width: activeDragEvent._dragWidth ? `${activeDragEvent._dragWidth}px` : 'auto',
+            padding: activeDragEvent.style?.height ? '4px 8px' : '0 6px',
+            backgroundColor: hexToRgba(activeDragEvent.color || agenda.color, 'var(--event-bg-opacity)'),
+            borderLeft: `4px solid ${activeDragEvent.color || agenda.color}`,
+            borderRadius: '0 4px 4px 0',
+            fontSize: '0.75rem',
+            fontWeight: '500',
+            color: 'var(--text-main)',
+            display: 'flex',
+            flexDirection: activeDragEvent.style?.height ? 'column' : 'row',
+            alignItems: activeDragEvent.style?.height ? 'flex-start' : 'center',
+            justifyContent: activeDragEvent.style?.height ? 'flex-start' : 'flex-start',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)', // Sombra más pronunciada al levantar
+            opacity: 1,
+            cursor: 'grabbing',
+            overflow: 'hidden',
+            transform: 'scale(1.02)', // Ligero efecto de "levantar"
+          }}>
             <div style={{
-              padding: '4px 8px',
-              backgroundColor: activeDragEvent.color || agenda.color,
-              color: 'white',
-              borderRadius: '4px',
-              fontSize: '0.8rem',
-              fontWeight: 'bold',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-              opacity: 0.9,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              width: '100%',
+              fontWeight: '700',
+              fontSize: activeDragEvent.style?.height ? '0.85rem' : '0.75rem',
+              lineHeight: activeDragEvent.style?.height ? '1.2' : '1'
             }}>
               {activeDragEvent.title}
             </div>
-          ) : null}
-        </DragOverlay>
-      </div>
-    </DndContext>
+
+            {activeDragEvent.style?.height && (
+              <div style={{
+                fontSize: '0.7rem',
+                opacity: 0.9,
+                marginTop: '2px',
+                fontWeight: '500'
+              }}>
+                {format(new Date(activeDragEvent.startTime), settings.display.timeFormat === '24h' ? 'HH:mm' : 'h:mm a', { locale })}
+                {' - '}
+                {format(new Date(activeDragEvent.endTime), settings.display.timeFormat === '24h' ? 'HH:mm' : 'h:mm a', { locale })}
+              </div>
+            )}
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext >
   );
 }
 
 export default CalendarView;
-
-

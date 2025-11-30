@@ -12,14 +12,16 @@ const DraggableMonthEvent = ({ event, agendaColor, onEventClick, locale }) => {
     id: event.id,
     data: event,
   });
-  
+
   const style = {
     backgroundColor: hexToRgba(event.color || event.agenda?.color || agendaColor, 'var(--event-bg-opacity)'),
     borderLeftColor: event.color || event.agenda?.color || agendaColor,
-    cursor: 'grab',
-    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    cursor: isDragging ? 'grabbing' : 'grab',
+    // When dragging, we don't transform the original element, so it stays in place as a "shadow"
+    transform: isDragging ? undefined : (transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined),
     zIndex: isDragging ? 100 : 'auto',
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.4 : 1,
+    transition: isDragging ? 'none' : undefined,
   };
 
   return (
@@ -38,8 +40,8 @@ const DraggableMonthEvent = ({ event, agendaColor, onEventClick, locale }) => {
       <div className="event-content">
         <span className="event-title">{event.title}</span>
         <div className="event-icons">
-          {event._count?.links > 0 && <span className="event-icon" title={`${event._count.links} enlaces`}><LinkIcon size={10} style={{marginRight: '2px'}} /> {event._count.links}</span>}
-          {event._count?.attachments > 0 && <span className="event-icon" title={`${event._count.attachments} archivos`}><Paperclip size={10} style={{marginRight: '2px'}} /> {event._count.attachments}</span>}
+          {event._count?.links > 0 && <span className="event-icon" title={`${event._count.links} enlaces`}><LinkIcon size={10} style={{ marginRight: '2px' }} /> {event._count.links}</span>}
+          {event._count?.attachments > 0 && <span className="event-icon" title={`${event._count.attachments} archivos`}><Paperclip size={10} style={{ marginRight: '2px' }} /> {event._count.attachments}</span>}
         </div>
       </div>
     </div>
@@ -117,7 +119,7 @@ function MonthView({ date, events, agendaColor, onEventClick, selectedDate, onDa
                   />
                 ))}
                 {dayEvents.length > 3 && (
-                  <div 
+                  <div
                     className="more-events text-sm"
                     onClick={(e) => {
                       e.stopPropagation();
