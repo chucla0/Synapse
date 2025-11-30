@@ -302,5 +302,19 @@
   "profile": "Profile",
   "syncError": "Sync error",
   "imageProcessError": "Error processing image",
-  "profileUpdateError": "Error updating profile"
+  "profileUpdateError": "Error updating profile",
+  "bioLabel": "Bio",
+  "bioPlaceholder": "Tell us a little about yourself (max 200 chars)",
+  "linksLabel": "Custom Links",
+  "addLinkButton": "Add Link",
+  "linkUrlPlaceholder": "https://...",
+  "linkTitlePlaceholder": "Title (e.g. LinkedIn)",
+  "statusLabel": "Status",
+  "status_AVAILABLE": "Available",
+  "status_AWAY": "Away",
+  "status_BUSY": "Busy",
+  "workingHoursLabel": "Working Hours",
+  "startTime": "Start Time",
+  "endTime": "End Time",
+  "maxLinksReached": "Max 5 links allowed"
 }

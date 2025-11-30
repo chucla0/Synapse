@@ -288,5 +288,19 @@
   "profile": "Perfil",
   "syncError": "Error en sincronitzar",
   "imageProcessError": "Error en processar la imatge",
-  "profileUpdateError": "Error en actualitzar el perfil"
+  "profileUpdateError": "Error en actualitzar el perfil",
+  "bioLabel": "Biografia",
+  "bioPlaceholder": "Explica'ns una mica sobre tu (màx. 200 caràcters)",
+  "linksLabel": "Enllaços Personalitzats",
+  "addLinkButton": "Afegir Enllaç",
+  "linkUrlPlaceholder": "https://...",
+  "linkTitlePlaceholder": "Títol (ex. LinkedIn)",
+  "statusLabel": "Estat",
+  "status_AVAILABLE": "Disponible",
+  "status_AWAY": "Absent",
+  "status_BUSY": "Ocupat",
+  "workingHoursLabel": "Horari de Treball",
+  "startTime": "Hora d'Inici",
+  "endTime": "Hora de Fi",
+  "maxLinksReached": "Màxim 5 enllaços permesos"
 }

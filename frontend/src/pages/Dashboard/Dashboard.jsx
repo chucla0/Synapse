@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Settings, ChevronDown, Palette, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import api from '../../utils/api';
 import { clearAuth, getUser } from '../../utils/auth';
 import CalendarView from '../../components/calendar/CalendarView';
@@ -104,6 +105,65 @@ function Dashboard({ onLogout, sessionKey }) {
 
   const notifications = notificationsData?.notifications || [];
   const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  // Notification Delivery Logic
+  const { settings } = useSettings();
+  const [prevNotificationsCount, setPrevNotificationsCount] = useState(0);
+
+  useEffect(() => {
+    if (notificationsLoading) return;
+
+    // Check if we have new notifications
+    if (notifications.length > prevNotificationsCount) {
+      // Get the latest notification (assuming sorted by date desc, or just take the first one if unread)
+      // Since we don't have guaranteed sort here, let's assume the API returns sorted or we just check the difference.
+      // For simplicity in polling, if count increases, we assume new notifications arrived.
+      // We only alert if the NEWEST notification is unread and recent.
+      
+      // Ideally we would compare IDs, but for MVP polling:
+      if (prevNotificationsCount > 0) { // Don't alert on initial load
+        const latestNotification = notifications[0]; // Assuming API returns newest first
+        
+        if (latestNotification && !latestNotification.isRead) {
+           const userStatus = user?.status || 'AVAILABLE';
+           const browserNotifications = settings?.notifications?.browserNotifications ?? true;
+           const soundEnabled = settings?.notifications?.soundEnabled ?? true;
+
+           // Logic Table Implementation
+           let shouldDeliver = false;
+
+           if (userStatus === 'AVAILABLE') {
+             if (browserNotifications) {
+               shouldDeliver = true;
+             }
+           } else if (userStatus === 'BUSY' || userStatus === 'AWAY') {
+             // Suppress
+             shouldDeliver = false;
+           }
+
+           if (shouldDeliver) {
+             // 1. Push Notification
+             if (Notification.permission === 'granted') {
+               new Notification('Synapse', {
+                 body: `${latestNotification.sender?.name || 'Synapse'}: ${t(`notification_type_${latestNotification.type}`)}`,
+                 icon: '/synapse_logo.jpg'
+               });
+             } else if (Notification.permission !== 'denied') {
+               Notification.requestPermission();
+             }
+
+             // 2. Sound
+             if (soundEnabled) {
+               const audio = new Audio('/sounds/notification.mp3'); // Ensure this file exists or use a default
+               audio.play().catch(e => console.log('Audio play failed', e));
+             }
+           }
+        }
+      }
+    }
+    
+    setPrevNotificationsCount(notifications.length);
+  }, [notifications, notificationsLoading, prevNotificationsCount, user?.status, settings, t]);
 
   const ALL_EVENTS_AGENDA_ID = 'all_events';
 

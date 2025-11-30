@@ -390,3 +390,187 @@ input:checked + .slider:before {
   font-size: 0.9rem;
   margin-top: var(--spacing-sm);
 }
+
+/* --- Enhanced Profile Styles (Dark Mode Optimized) --- */
+
+/* Section Layout */
+.form-section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.form-section-subtitle {
+  color: #FFFFFF;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Labels */
+.form-group label {
+  display: block;
+  color: #FFFFFF; /* White labels */
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+}
+
+/* Inputs & Textareas */
+.input,
+.textarea {
+  width: 100%;
+  background-color: var(--bg-main); /* Dark gray background */
+  border: 1px solid #4B5563; /* Thin light gray border */
+  color: #FFFFFF; /* White text */
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2); /* Assuming accent-rgb exists or fallback */
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: #9CA3AF; /* Medium gray placeholder */
+}
+
+/* Read-only Email */
+.input[readonly],
+.input:disabled {
+  background-color: rgba(255, 255, 255, 0.05); /* Slightly lighter/different */
+  color: #9CA3AF; /* Dark gray text */
+  border-color: #374151;
+  cursor: not-allowed;
+}
+
+/* Character Count */
+.char-count {
+  display: block;
+  text-align: right;
+  font-size: 0.8rem;
+  color: #9CA3AF;
+  margin-top: 4px;
+}
+
+/* Links Section */
+.link-row {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  align-items: center;
+}
+
+.link-title-input {
+  flex: 1;
+}
+
+.link-url-input {
+  flex: 2;
+}
+
+.btn-icon {
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+/* Add Link Button */
+.btn-secondary.mt-2 { /* Targeting the Add Link button specifically if possible, or use inline style in JSX to add a class */
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.btn-secondary.mt-2:hover {
+  background-color: rgba(var(--accent-rgb), 0.1); /* Fallback if var not exists, usually opacity on accent color */
+  background-color: color-mix(in srgb, var(--accent), transparent 90%);
+}
+
+/* Status Selector */
+.status-selector {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.status-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 20px; /* Pill shape */
+  cursor: pointer;
+  background-color: var(--bg-main);
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.status-option:hover {
+  background-color: var(--bg-hover);
+}
+
+.status-option.active {
+  background-color: var(--bg-hover);
+  border-color: var(--accent); /* Or specific status color */
+  color: #FFFFFF;
+}
+
+.status-option input {
+  display: none; /* Hide radio button */
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-available .status-dot { background-color: #10B981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
+.status-away .status-dot { background-color: #F59E0B; box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
+.status-busy .status-dot { background-color: #EF4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+
+.status-option.active.status-available { border-color: #10B981; background-color: rgba(16, 185, 129, 0.1); }
+.status-option.active.status-away { border-color: #F59E0B; background-color: rgba(245, 158, 11, 0.1); }
+.status-option.active.status-busy { border-color: #EF4444; background-color: rgba(239, 68, 68, 0.1); }
+
+/* Working Hours */
+.working-hours-inputs {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.time-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.time-separator {
+  color: var(--text-muted);
+  font-weight: bold;
+  margin-top: 18px; /* Align with input */
+}
+
+.text-xs {
+  font-size: 0.75rem;
+}
+
+.text-muted {
+  color: #9CA3AF;
+}

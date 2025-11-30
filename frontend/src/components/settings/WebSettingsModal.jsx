@@ -79,6 +79,10 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
   const [formData, setFormData] = useState({
     name: currentUser?.name || '',
     avatar: currentUser?.avatar || '',
+    bio: currentUser?.bio || '',
+    links: currentUser?.links || [],
+    status: currentUser?.status || 'AVAILABLE',
+    workingHours: currentUser?.workingHours || { start: '09:00', end: '17:00' },
     currentPassword: '',
     newPassword: '',
   });
@@ -170,6 +174,11 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
     const payload = {};
     if (formData.name !== currentUser.name) payload.name = formData.name;
     if (formData.avatar !== currentUser.avatar) payload.avatar = formData.avatar;
+    if (formData.bio !== currentUser.bio) payload.bio = formData.bio;
+    if (JSON.stringify(formData.links) !== JSON.stringify(currentUser.links)) payload.links = formData.links;
+    if (formData.status !== currentUser.status) payload.status = formData.status;
+    if (JSON.stringify(formData.workingHours) !== JSON.stringify(currentUser.workingHours)) payload.workingHours = formData.workingHours;
+
     if (formData.newPassword) {
       payload.newPassword = formData.newPassword;
       payload.currentPassword = formData.currentPassword;
@@ -546,67 +555,209 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
       );
     }
 
+    const handleAddLink = () => {
+      if ((formData.links || []).length < 5) {
+        setFormData({
+          ...formData,
+          links: [...(formData.links || []), { url: '', title: '' }]
+        });
+      }
+    };
+
+    const handleRemoveLink = (index) => {
+      const newLinks = [...(formData.links || [])];
+      newLinks.splice(index, 1);
+      setFormData({ ...formData, links: newLinks });
+    };
+
+    const handleLinkChange = (index, field, value) => {
+      const newLinks = [...(formData.links || [])];
+      newLinks[index][field] = value;
+      setFormData({ ...formData, links: newLinks });
+    };
+
     return (
       <form onSubmit={handleProfileSubmit} className="profile-form">
-        <div className="form-group">
-          <label htmlFor="email">{t('emailLabel', 'Email')}</label>
-          <input
-            type="email"
-            id="email"
-            value={currentUser?.email || ''}
-            className="input"
-            disabled
-            readOnly
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="name">{t('nameLabel', 'Nombre')}</label>
-          <input
-            type="text"
-            id="name"
-            value={formData.name}
-            onChange={(e) => setFormData({...formData, name: e.target.value})}
-            className="input"
-            disabled={updateProfileMutation.isPending}
-          />
-        </div>
-
-        <div className="form-group">
-          <label>{t('avatarUrlLabel', 'Foto de Perfil')}</label>
-          <div className="avatar-upload-area">
-            {formData.avatar ? (
-              <img 
-                src={formData.avatar.startsWith('http') ? formData.avatar : `${API_URL}${formData.avatar}`}
-                alt="Avatar Preview" 
-                className="avatar-preview" 
-              />
-            ) : (
-              <div className="avatar-preview avatar-preview-default">
-                {currentUser?.name?.charAt(0).toUpperCase()}
+        {/* Identity Section */}
+        <div className="form-section">
+          <h4 className="form-section-subtitle">{t('identity', 'Identidad Básica')}</h4>
+          
+          <div className="form-group">
+            <label>{t('avatarUrlLabel', 'Foto de Perfil')}</label>
+            <div className="avatar-upload-area">
+              {formData.avatar ? (
+                <img 
+                  src={formData.avatar.startsWith('http') ? formData.avatar : `${API_URL}${formData.avatar}`}
+                  alt="Avatar Preview" 
+                  className="avatar-preview" 
+                />
+              ) : (
+                <div className="avatar-preview avatar-preview-default">
+                  {currentUser?.name?.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="avatar-actions">
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  style={{ display: 'none' }}
+                />
+                <label htmlFor="avatar-upload" className="btn btn-secondary btn-sm">
+                  {t('changeImageButton', 'Cambiar')}
+                </label>
+                {formData.avatar && (
+                  <button 
+                    type="button" 
+                    className="btn btn-danger btn-sm"
+                    onClick={handleDeleteAvatar}
+                    title={t('deleteImageButton', 'Eliminar')}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
               </div>
-            )}
-            <div className="avatar-actions">
-              <input
-                type="file"
-                id="avatar-upload"
-                accept="image/*"
-                onChange={handleAvatarChange}
-                style={{ display: 'none' }}
-              />
-              <label htmlFor="avatar-upload" className="btn btn-secondary btn-sm">
-                {t('changeImageButton', 'Cambiar')}
-              </label>
-              {formData.avatar && (
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="name">{t('nameLabel', 'Nombre Visible')}</label>
+            <input
+              type="text"
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              className="input"
+              disabled={updateProfileMutation.isPending}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="bio">{t('bioLabel', 'Biografía')}</label>
+            <textarea
+              id="bio"
+              value={formData.bio || ''}
+              onChange={(e) => setFormData({...formData, bio: e.target.value.slice(0, 200)})}
+              className="input textarea"
+              placeholder={t('bioPlaceholder', 'Cuéntanos un poco sobre ti...')}
+              rows={3}
+              maxLength={200}
+              disabled={updateProfileMutation.isPending}
+            />
+            <span className="char-count">{(formData.bio || '').length}/200</span>
+          </div>
+        </div>
+
+        {/* Contact & Connections */}
+        <div className="form-section">
+          <h4 className="form-section-subtitle">{t('contactAndConnections', 'Contacto y Conexiones')}</h4>
+          
+          <div className="form-group">
+            <label htmlFor="email">{t('emailLabel', 'Email Principal')}</label>
+            <input
+              type="email"
+              id="email"
+              value={currentUser?.email || ''}
+              className="input"
+              disabled
+              readOnly
+            />
+          </div>
+
+          <div className="form-group">
+            <label>{t('linksLabel', 'Enlaces Personalizados')}</label>
+            {(formData.links || []).map((link, index) => (
+              <div key={index} className="link-row">
+                <input
+                  type="text"
+                  placeholder={t('linkTitlePlaceholder', 'Título')}
+                  value={link.title}
+                  onChange={(e) => handleLinkChange(index, 'title', e.target.value)}
+                  className="input link-title-input"
+                />
+                <input
+                  type="url"
+                  placeholder={t('linkUrlPlaceholder', 'URL')}
+                  value={link.url}
+                  onChange={(e) => handleLinkChange(index, 'url', e.target.value)}
+                  className="input link-url-input"
+                />
                 <button 
                   type="button" 
-                  className="btn btn-danger btn-sm"
-                  onClick={handleDeleteAvatar}
-                  title={t('deleteImageButton', 'Eliminar')}
+                  className="btn btn-icon btn-danger"
+                  onClick={() => handleRemoveLink(index)}
                 >
                   <Trash2 size={16} />
                 </button>
-              )}
+              </div>
+            ))}
+            {(formData.links || []).length < 5 && (
+              <button 
+                type="button" 
+                className="btn btn-secondary btn-sm mt-2"
+                onClick={handleAddLink}
+              >
+                + {t('addLinkButton', 'Añadir Enlace')}
+              </button>
+            )}
+            {(formData.links || []).length >= 5 && (
+              <p className="text-sm text-muted mt-1">{t('maxLinksReached', 'Máximo 5 enlaces')}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Availability */}
+        <div className="form-section">
+          <h4 className="form-section-subtitle">{t('availability', 'Disponibilidad')}</h4>
+          
+          <div className="form-group">
+            <label>{t('statusLabel', 'Estado de Disponibilidad')}</label>
+            <div className="status-selector">
+              {['AVAILABLE', 'AWAY', 'BUSY'].map(status => (
+                <label key={status} className={`status-option ${formData.status === status ? 'active' : ''} status-${status.toLowerCase()}`}>
+                  <input
+                    type="radio"
+                    name="status"
+                    value={status}
+                    checked={formData.status === status}
+                    onChange={(e) => setFormData({...formData, status: e.target.value})}
+                  />
+                  <span className="status-dot"></span>
+                  {t(`status_${status}`, status)}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>{t('workingHoursLabel', 'Horario de Trabajo')}</label>
+            <div className="working-hours-inputs">
+              <div className="time-input-group">
+                <label className="text-xs text-muted">{t('startTime', 'Inicio')}</label>
+                <input
+                  type="time"
+                  value={formData.workingHours?.start || '09:00'}
+                  onChange={(e) => setFormData({
+                    ...formData, 
+                    workingHours: { ...formData.workingHours, start: e.target.value }
+                  })}
+                  className="input"
+                />
+              </div>
+              <span className="time-separator">-</span>
+              <div className="time-input-group">
+                <label className="text-xs text-muted">{t('endTime', 'Fin')}</label>
+                <input
+                  type="time"
+                  value={formData.workingHours?.end || '17:00'}
+                  onChange={(e) => setFormData({
+                    ...formData, 
+                    workingHours: { ...formData.workingHours, end: e.target.value }
+                  })}
+                  className="input"
+                />
+              </div>
             </div>
           </div>
         </div>

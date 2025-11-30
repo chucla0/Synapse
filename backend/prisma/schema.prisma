@@ -51,6 +51,12 @@ enum NotificationType {
   EVENT_REJECTED
 }
 
+enum UserStatus {
+  AVAILABLE
+  AWAY
+  BUSY
+}
+
 // ============================================
 // MODELS
 // ============================================
@@ -68,6 +74,10 @@ model User {
   verificationToken String?
   googleAccessToken String?
   googleRefreshToken String?
+  bio       String?
+  links     Json?
+  status    UserStatus @default(AVAILABLE)
+  workingHours Json?
 
   // Relations
   ownedAgendas       Agenda[]       @relation("AgendaOwner")

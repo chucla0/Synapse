@@ -315,5 +315,19 @@
   "profile": "Perfil",
   "syncError": "Error al sincronizar",
   "imageProcessError": "Error al procesar la imagen",
-  "profileUpdateError": "Error al actualizar el perfil"
+  "profileUpdateError": "Error al actualizar el perfil",
+  "bioLabel": "Biografía",
+  "bioPlaceholder": "Cuéntanos un poco sobre ti (máx. 200 caracteres)",
+  "linksLabel": "Enlaces Personalizados",
+  "addLinkButton": "Añadir Enlace",
+  "linkUrlPlaceholder": "https://...",
+  "linkTitlePlaceholder": "Título (ej. LinkedIn)",
+  "statusLabel": "Estado",
+  "status_AVAILABLE": "Disponible",
+  "status_AWAY": "Ausente",
+  "status_BUSY": "Ocupado",
+  "workingHoursLabel": "Horario de Trabajo",
+  "startTime": "Hora de Inicio",
+  "endTime": "Hora de Fin",
+  "maxLinksReached": "Máximo 5 enlaces permitidos"
 }
