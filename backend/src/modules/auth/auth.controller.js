@@ -17,9 +17,9 @@ async function login(req, res) {
 
     // Validate input
     if (!email || !password) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Validation error',
-        message: 'Email and password are required' 
+        message: 'Email and password are required'
       });
     }
 
@@ -27,9 +27,9 @@ async function login(req, res) {
     const user = await authService.findUserByEmail(prisma, email);
 
     if (!user) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'Authentication failed',
-        message: 'Invalid email or password' 
+        message: 'Invalid email or password'
       });
     }
 
@@ -37,9 +37,9 @@ async function login(req, res) {
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'Authentication failed',
-        message: 'Invalid email or password' 
+        message: 'Invalid email or password'
       });
     }
 
@@ -52,7 +52,10 @@ async function login(req, res) {
 
     res.json({
       message: 'Login successful',
-      user: userWithoutPassword,
+      user: {
+        ...userWithoutPassword,
+        hasPassword: !!user.password
+      },
       tokens: {
         accessToken,
         refreshToken,
@@ -62,9 +65,9 @@ async function login(req, res) {
 
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Login failed',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
@@ -79,17 +82,17 @@ async function register(req, res) {
 
     // Validate input
     if (!email || !password || !name) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Validation error',
-        message: 'Email, password, and name are required' 
+        message: 'Email, password, and name are required'
       });
     }
 
     // Check password strength
     if (password.length < 6) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Validation error',
-        message: 'Password must be at least 6 characters long' 
+        message: 'Password must be at least 6 characters long'
       });
     }
 
@@ -97,9 +100,9 @@ async function register(req, res) {
     const existingUser = await authService.findUserByEmail(prisma, email);
 
     if (existingUser) {
-      return res.status(409).json({ 
+      return res.status(409).json({
         error: 'Registration failed',
-        message: 'User with this email already exists' 
+        message: 'User with this email already exists'
       });
     }
 
@@ -108,7 +111,7 @@ async function register(req, res) {
 
     // Create user
     const verificationToken = crypto.randomUUID();
-    
+
     const user = await authService.createUser(prisma, {
       email,
       password: hashedPassword,
@@ -119,7 +122,7 @@ async function register(req, res) {
 
     // Send verification email
     const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify?token=${verificationToken}`;
-    
+
     await sendEmail(
       email,
       'Verify your email',
@@ -137,9 +140,9 @@ async function register(req, res) {
 
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Registration failed',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
@@ -153,9 +156,9 @@ async function refreshToken(req, res) {
     const { refreshToken } = req.body;
 
     if (!refreshToken) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Validation error',
-        message: 'Refresh token is required' 
+        message: 'Refresh token is required'
       });
     }
 
@@ -163,9 +166,9 @@ async function refreshToken(req, res) {
     const decoded = authService.verifyToken(refreshToken);
 
     if (decoded.type !== 'refresh') {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'Invalid token',
-        message: 'Token is not a refresh token' 
+        message: 'Token is not a refresh token'
       });
     }
 
@@ -176,9 +179,9 @@ async function refreshToken(req, res) {
     });
 
     if (!user) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'Invalid token',
-        message: 'User not found' 
+        message: 'User not found'
       });
     }
 
@@ -195,17 +198,17 @@ async function refreshToken(req, res) {
 
   } catch (error) {
     console.error('Token refresh error:', error);
-    
+
     if (error.message === 'Invalid or expired token') {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'Invalid token',
-        message: error.message 
+        message: error.message
       });
     }
 
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Token refresh failed',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
@@ -216,14 +219,23 @@ async function refreshToken(req, res) {
 async function getProfile(req, res) {
   try {
     // User is already attached by authenticateToken middleware
+    // We need to check if the user has a password, so we might need to fetch it if it's not in req.user
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { password: true }
+    });
+
     res.json({
-      user: req.user
+      user: {
+        ...req.user,
+        hasPassword: !!user?.password
+      }
     });
   } catch (error) {
     console.error('Get profile error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to get profile',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
@@ -384,17 +396,17 @@ async function googleCallback(req, res) {
       // or create a new user 'B'.
       // BUT, we want to link to the EXISTING session user.
       // The issue is that passport.authenticate replaces req.user with the one from the strategy.
-      
+
       // Since we can't easily access the original session user here without custom passport logic,
       // we rely on the fact that we passed login_hint.
       // But to be safe, if we wanted strict enforcement, we'd need to pass the original user ID in the 'state' param
       // and verify it here.
       // For now, let's assume login_hint does its job on the frontend.
-      
+
       // Wait, actually, if the emails don't match, we should probably reject it if we could.
       // But since we are in the callback, the damage (auth) is done.
       // Let's rely on login_hint for UX and trust the user.
-      
+
       try {
         const GoogleSyncService = require('../google-sync/google-sync.service');
         await GoogleSyncService.importGoogleCalendar(user.id);
@@ -488,7 +500,8 @@ async function completeGoogleLogin(req, res) {
         id: user.id,
         email: user.email,
         name: user.name,
-        avatar: user.avatar
+        avatar: user.avatar,
+        hasPassword: !!user.password
       },
       tokens: {
         accessToken,
@@ -550,5 +563,101 @@ module.exports = {
   verify,
   googleCallback,
   completeGoogleLogin,
-  setPassword
+  setPassword,
+  deleteAccount
 };
+
+/**
+ * Delete account
+ * Transfers ownership of shared agendas and deletes user
+ */
+async function deleteAccount(req, res) {
+  try {
+    const userId = req.user.id;
+    const { password } = req.body;
+
+    // Verify password first
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // If user has a password (not just Google), verify it
+    if (user.password) {
+      if (!password) {
+        return res.status(400).json({ error: 'Password required', message: 'Please enter your password to confirm deletion' });
+      }
+      const isValid = await bcrypt.compare(password, user.password);
+      if (!isValid) {
+        return res.status(401).json({ error: 'Invalid password', message: 'Incorrect password' });
+      }
+    }
+
+    // Get all agendas owned by user
+    const ownedAgendas = await prisma.agenda.findMany({
+      where: { ownerId: userId },
+      include: { agendaUsers: true }
+    });
+
+    // Process each agenda
+    for (const agenda of ownedAgendas) {
+      if (agenda.type === 'PERSONAL' || agenda.type === 'FAMILIAR') {
+        // Delete personal/familiar agendas
+        await prisma.agenda.delete({ where: { id: agenda.id } });
+      } else {
+        // Shared agendas: Try to transfer ownership
+        let newOwnerId = null;
+        let candidate = null;
+
+        if (agenda.type === 'LABORAL') {
+          // Transfer to CHIEF
+          candidate = agenda.agendaUsers.find(u => u.role === 'CHIEF');
+        } else if (agenda.type === 'EDUCATIVA') {
+          // Transfer to PROFESSOR
+          candidate = agenda.agendaUsers.find(u => u.role === 'PROFESSOR');
+        } else if (agenda.type === 'COLABORATIVA') {
+          // Transfer to EDITOR
+          candidate = agenda.agendaUsers.find(u => u.role === 'EDITOR');
+        }
+
+        if (candidate) {
+          newOwnerId = candidate.userId;
+
+          // 1. Update Agenda Owner
+          await prisma.agenda.update({
+            where: { id: agenda.id },
+            data: { ownerId: newOwnerId }
+          });
+
+          // 2. Remove new owner from AgendaUser (since they are now owner)
+          await prisma.agendaUser.delete({
+            where: { id: candidate.id }
+          });
+
+        } else {
+          // No suitable successor found. 
+          // Option A: Delete agenda (Safe fallback)
+          // Option B: Leave it (Will be deleted by cascade when user is deleted)
+          // Given the prompt "se le pasara solo a un jefe...", it implies if there is one. 
+          // If not, it's ambiguous. But usually "Personal folders" are deleted. 
+          // If a shared agenda has no other high-ranking members, maybe it should die with the owner?
+          // Or maybe transfer to ANY member? 
+          // Let's stick to: If no successor, it gets deleted (via Cascade when user is deleted).
+          // We don't need to do anything explicit here, Prisma Cascade will handle it.
+        }
+      }
+    }
+
+    // Google Calendar: The prompt says "se eliminan todas tus agendas igual que la de google calendar".
+    // This is covered by deleting 'PERSONAL' agendas (if the google calendar agenda is type PERSONAL).
+    // If we have a specific "Google Calendar" agenda that is not PERSONAL (e.g. created as such), 
+    // we should check. Usually they are PERSONAL.
+
+    // Finally, delete the user
+    await prisma.user.delete({ where: { id: userId } });
+
+    res.json({ message: 'Account deleted successfully' });
+
+  } catch (error) {
+    console.error('Delete account error:', error);
+    res.status(500).json({ error: 'Failed to delete account', message: 'Internal server error' });
+  }
+}

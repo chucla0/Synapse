@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import './ConfirmDeleteModal.css';
 
-function ConfirmDeleteModal({ message, onConfirm, onCancel, isDeleting, confirmText, deletingText }) {
+function ConfirmDeleteModal({ message, onConfirm, onCancel, isDeleting, confirmText, deletingText, children, disabled }) {
   const { t } = useTranslation();
 
   return (
@@ -13,14 +13,15 @@ function ConfirmDeleteModal({ message, onConfirm, onCancel, isDeleting, confirmT
         </div>
         <div className="modal-body">
           <p>{message}</p>
+          {children}
         </div>
         <div className="modal-actions">
           <button className="btn btn-secondary" onClick={onCancel} disabled={isDeleting}>
             {t('cancelButton', 'Cancelar')}
           </button>
-          <button className="btn btn-danger" onClick={onConfirm} disabled={isDeleting}>
-            {isDeleting 
-              ? (deletingText || t('deletingButton', 'Eliminando...')) 
+          <button className="btn btn-danger" onClick={onConfirm} disabled={isDeleting || disabled}>
+            {isDeleting
+              ? (deletingText || t('deletingButton', 'Eliminando...'))
               : (confirmText || t('deleteButton', 'Eliminar'))
             }
           </button>

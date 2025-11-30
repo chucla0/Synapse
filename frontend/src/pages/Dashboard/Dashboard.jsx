@@ -27,8 +27,6 @@ const typeOrder = {
   'EDUCATIVA': 3,
   'SOCIAL': 4,
   'COLABORATIVA': 5,
-  'SOCIAL': 4,
-  'COLABORATIVA': 5,
 };
 
 function Dashboard({ onLogout, sessionKey }) {
@@ -46,9 +44,10 @@ function Dashboard({ onLogout, sessionKey }) {
   const [currentView, setCurrentView] = useState('agendas'); // 'home', 'agendas'
   const navigate = useNavigate();
   const user = getUser();
+  const { updateSetting } = useSettings();
 
   const { accentColor } = useTheme();
-  
+
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   const isAnyModalOpen = showCreateAgenda || showProfileSettings || showWebSettings || editingAgenda;
@@ -83,7 +82,7 @@ function Dashboard({ onLogout, sessionKey }) {
     if (current.googleCalendarId || current.name === 'Google Calendar') {
       const hasGoogle = acc.find(a => a.googleCalendarId || a.name === 'Google Calendar');
       if (hasGoogle) return acc; // Skip duplicate
-      
+
       // Force Green Color for Google Calendar
       return [...acc, { ...current, color: '#34A853' }];
     }
@@ -98,7 +97,7 @@ function Dashboard({ onLogout, sessionKey }) {
       return response.data;
     },
     staleTime: 30000,
-    refetchInterval: 60000,
+    refetchInterval: 20000,
     refetchOnWindowFocus: false,
     retry: false,
   });
@@ -119,49 +118,49 @@ function Dashboard({ onLogout, sessionKey }) {
       // Since we don't have guaranteed sort here, let's assume the API returns sorted or we just check the difference.
       // For simplicity in polling, if count increases, we assume new notifications arrived.
       // We only alert if the NEWEST notification is unread and recent.
-      
+
       // Ideally we would compare IDs, but for MVP polling:
       if (prevNotificationsCount > 0) { // Don't alert on initial load
         const latestNotification = notifications[0]; // Assuming API returns newest first
-        
+
         if (latestNotification && !latestNotification.isRead) {
-           const userStatus = user?.status || 'AVAILABLE';
-           const browserNotifications = settings?.notifications?.browserNotifications ?? true;
-           const soundEnabled = settings?.notifications?.soundEnabled ?? true;
+          const userStatus = user?.status || 'AVAILABLE';
+          const browserNotifications = settings?.notifications?.browserNotifications ?? true;
+          const soundEnabled = settings?.notifications?.soundEnabled ?? true;
 
-           // Logic Table Implementation
-           let shouldDeliver = false;
+          // Logic Table Implementation
+          let shouldDeliver = false;
 
-           if (userStatus === 'AVAILABLE') {
-             if (browserNotifications) {
-               shouldDeliver = true;
-             }
-           } else if (userStatus === 'BUSY' || userStatus === 'AWAY') {
-             // Suppress
-             shouldDeliver = false;
-           }
+          if (userStatus === 'AVAILABLE') {
+            if (browserNotifications) {
+              shouldDeliver = true;
+            }
+          } else if (userStatus === 'BUSY' || userStatus === 'AWAY') {
+            // Suppress
+            shouldDeliver = false;
+          }
 
-           if (shouldDeliver) {
-             // 1. Push Notification
-             if (Notification.permission === 'granted') {
-               new Notification('Synapse', {
-                 body: `${latestNotification.sender?.name || 'Synapse'}: ${t(`notification_type_${latestNotification.type}`)}`,
-                 icon: '/synapse_logo.jpg'
-               });
-             } else if (Notification.permission !== 'denied') {
-               Notification.requestPermission();
-             }
+          if (shouldDeliver) {
+            // 1. Push Notification
+            if (Notification.permission === 'granted') {
+              new Notification('Synapse', {
+                body: `${latestNotification.sender?.name || 'Synapse'}: ${t(`notification_type_${latestNotification.type}`)}`,
+                icon: '/synapse_logo.jpg'
+              });
+            } else if (Notification.permission !== 'denied') {
+              Notification.requestPermission();
+            }
 
-             // 2. Sound
-             if (soundEnabled) {
-               const audio = new Audio('/sounds/notification.mp3'); // Ensure this file exists or use a default
-               audio.play().catch(e => console.log('Audio play failed', e));
-             }
-           }
+            // 2. Sound
+            if (soundEnabled) {
+              const audio = new Audio('/sounds/notification.mp3'); // Ensure this file exists or use a default
+              audio.play().catch(e => console.log('Audio play failed', e));
+            }
+          }
         }
       }
     }
-    
+
     setPrevNotificationsCount(notifications.length);
   }, [notifications, notificationsLoading, prevNotificationsCount, user?.status, settings, t]);
 
@@ -186,7 +185,7 @@ function Dashboard({ onLogout, sessionKey }) {
     navigate('/login');
   };
 
-  const filteredAgendas = agendas.filter(agenda => 
+  const filteredAgendas = agendas.filter(agenda =>
     agenda.name.toLowerCase().includes(searchTerm.toLowerCase())
   ).sort((a, b) => {
     switch (sortOrder) {
@@ -209,13 +208,13 @@ function Dashboard({ onLogout, sessionKey }) {
   });
 
   // Group agendas by type if sortOrder is 'type'
-  const groupedAgendas = sortOrder === 'type' 
+  const groupedAgendas = sortOrder === 'type'
     ? filteredAgendas.reduce((acc, agenda) => {
-        const type = agenda.type;
-        if (!acc[type]) acc[type] = [];
-        acc[type].push(agenda);
-        return acc;
-      }, {})
+      const type = agenda.type;
+      if (!acc[type]) acc[type] = [];
+      acc[type].push(agenda);
+      return acc;
+    }, {})
     : null;
 
   const currentAgenda = selectedAgenda === ALL_EVENTS_AGENDA_ID ? allEventsAgenda : agendas.find(a => a.id === selectedAgenda);
@@ -225,9 +224,9 @@ function Dashboard({ onLogout, sessionKey }) {
       {/* Sidebar */}
       <aside className={`sidebar ${!isSidebarOpen ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
-          <img 
-            src="/synapse_logo.jpg" 
-            alt="Synapse" 
+          <img
+            src="/synapse_logo.jpg"
+            alt="Synapse"
             className="sidebar-logo"
           />
           <h2>Synapse</h2>
@@ -236,9 +235,9 @@ function Dashboard({ onLogout, sessionKey }) {
         <div className="sidebar-user">
           <div className="user-avatar">
             {user?.avatar ? (
-              <img 
-                src={user.avatar.startsWith('http') ? user.avatar : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${user.avatar}`} 
-                alt={user.name} 
+              <img
+                src={user.avatar.startsWith('http') ? user.avatar : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${user.avatar}`}
+                alt={user.name}
               />
             ) : (
               <div className="user-avatar-initials">
@@ -250,7 +249,7 @@ function Dashboard({ onLogout, sessionKey }) {
             <p className="user-name">{user?.name}</p>
             <p className="user-email text-sm text-muted">{user?.email}</p>
           </div>
-          <button 
+          <button
             className="btn-settings"
             onClick={() => setShowProfileSettings(true)}
             title={t('profileSettings')}
@@ -263,7 +262,7 @@ function Dashboard({ onLogout, sessionKey }) {
           <div className="main-nav-links">
             <button className={`nav-link ${currentView === 'home' ? 'active' : ''}`} onClick={() => setCurrentView('home')}>
               {t('homeTitle', 'Inicio')}
-              {unreadCount > 0 && <span className="notification-badge-sidebar" style={{backgroundColor: accentColor}}></span>}
+              {unreadCount > 0 && <span className="notification-badge-sidebar" style={{ backgroundColor: accentColor }}></span>}
             </button>
             <button className={`nav-link ${currentView === 'agendas' ? 'active' : ''}`} onClick={() => setCurrentView('agendas')}>
               {t('myAgendas')}
@@ -273,13 +272,13 @@ function Dashboard({ onLogout, sessionKey }) {
           {currentView === 'agendas' && (
             <>
 
-              
+
               <ul className="agenda-list">
                 {/* All Events Option */}
                 <li className={`agenda-item ${selectedAgenda === ALL_EVENTS_AGENDA_ID ? 'active' : ''}`}>
                   <div className="agenda-item-main" onClick={() => setSelectedAgenda(ALL_EVENTS_AGENDA_ID)}>
-                    <span 
-                      className="agenda-color" 
+                    <span
+                      className="agenda-color"
                       style={{ backgroundColor: allEventsAgenda.color }}
                     />
                     <span className="agenda-name">{allEventsAgenda.name}</span>
@@ -292,13 +291,13 @@ function Dashboard({ onLogout, sessionKey }) {
                   return (
                     <li className={`agenda-item ${selectedAgenda === googleAgenda.id ? 'active' : ''}`}>
                       <div className="agenda-item-main" onClick={() => setSelectedAgenda(googleAgenda.id)}>
-                        <span 
-                          className="agenda-color" 
+                        <span
+                          className="agenda-color"
                           style={{ backgroundColor: googleAgenda.color }}
                         />
                         <span className="agenda-name">{googleAgenda.name}</span>
                       </div>
-                      <button 
+                      <button
                         className="btn-agenda-settings"
                         onClick={() => setEditingAgenda(googleAgenda)}
                         title={t('agendaSettings')}
@@ -320,10 +319,10 @@ function Dashboard({ onLogout, sessionKey }) {
                 />
                 <div className="sort-dropdown-container">
                   <div className="custom-dropdown" onClick={(e) => e.stopPropagation()}>
-                    <button 
+                    <button
                       className="dropdown-toggle"
                       onClick={() => setShowSortDropdown(!showSortDropdown)}
-                      style={{borderColor: accentColor}}
+                      style={{ borderColor: accentColor }}
                     >
                       {sortOrder === 'name_asc' && t('sortBy_name_asc')}
                       {sortOrder === 'name_desc' && t('sortBy_name_desc')}
@@ -334,53 +333,53 @@ function Dashboard({ onLogout, sessionKey }) {
                     </button>
                     {showSortDropdown && (
                       <ul className="dropdown-menu">
-                        <li 
+                        <li
                           className={`dropdown-item ${sortOrder === 'name_asc' ? 'active' : ''}`}
                           onClick={() => {
                             setSortOrder('name_asc');
                             setShowSortDropdown(false);
                           }}
-                          style={sortOrder === 'name_asc' ? {backgroundColor: accentColor, color: 'white'} : {}}
+                          style={sortOrder === 'name_asc' ? { backgroundColor: accentColor, color: 'white' } : {}}
                         >
                           {t('sortBy_name_asc')}
                         </li>
-                        <li 
+                        <li
                           className={`dropdown-item ${sortOrder === 'name_desc' ? 'active' : ''}`}
                           onClick={() => {
                             setSortOrder('name_desc');
                             setShowSortDropdown(false);
                           }}
-                          style={sortOrder === 'name_desc' ? {backgroundColor: accentColor, color: 'white'} : {}}
+                          style={sortOrder === 'name_desc' ? { backgroundColor: accentColor, color: 'white' } : {}}
                         >
                           {t('sortBy_name_desc')}
                         </li>
-                        <li 
+                        <li
                           className={`dropdown-item ${sortOrder === 'date_desc' ? 'active' : ''}`}
                           onClick={() => {
                             setSortOrder('date_desc');
                             setShowSortDropdown(false);
                           }}
-                          style={sortOrder === 'date_desc' ? {backgroundColor: accentColor, color: 'white'} : {}}
+                          style={sortOrder === 'date_desc' ? { backgroundColor: accentColor, color: 'white' } : {}}
                         >
                           {t('sortBy_date_desc')}
                         </li>
-                        <li 
+                        <li
                           className={`dropdown-item ${sortOrder === 'date_asc' ? 'active' : ''}`}
                           onClick={() => {
                             setSortOrder('date_asc');
                             setShowSortDropdown(false);
                           }}
-                          style={sortOrder === 'date_asc' ? {backgroundColor: accentColor, color: 'white'} : {}}
+                          style={sortOrder === 'date_asc' ? { backgroundColor: accentColor, color: 'white' } : {}}
                         >
                           {t('sortBy_date_asc')}
                         </li>
-                        <li 
+                        <li
                           className={`dropdown-item ${sortOrder === 'type' ? 'active' : ''}`}
                           onClick={() => {
                             setSortOrder('type');
                             setShowSortDropdown(false);
                           }}
-                          style={sortOrder === 'type' ? {backgroundColor: accentColor, color: 'white'} : {}}
+                          style={sortOrder === 'type' ? { backgroundColor: accentColor, color: 'white' } : {}}
                         >
                           {t('sortBy_type')}
                         </li>
@@ -411,13 +410,13 @@ function Dashboard({ onLogout, sessionKey }) {
                       {typeAgendas.map(agenda => (
                         <li key={agenda.id} className={`agenda-item ${selectedAgenda === agenda.id ? 'active' : ''}`}>
                           <div className="agenda-item-main" onClick={() => setSelectedAgenda(agenda.id)}>
-                            <span 
-                              className="agenda-color" 
+                            <span
+                              className="agenda-color"
                               style={{ backgroundColor: agenda.color }}
                             />
                             <span className="agenda-name">{agenda.name}</span>
                           </div>
-                          <button 
+                          <button
                             className="btn-agenda-settings"
                             onClick={() => setEditingAgenda(agenda)}
                             title={t('agendaSettings')}
@@ -434,27 +433,27 @@ function Dashboard({ onLogout, sessionKey }) {
                   {filteredAgendas
                     .filter(a => !a.googleCalendarId && a.name !== 'Google Calendar')
                     .map(agenda => (
-                    <li key={agenda.id} className={`agenda-item ${selectedAgenda === agenda.id ? 'active' : ''}`}>
-                      <div className="agenda-item-main" onClick={() => setSelectedAgenda(agenda.id)}>
-                        <span 
-                          className="agenda-color" 
-                          style={{ backgroundColor: agenda.color }}
-                        />
-                        <span className="agenda-name">{agenda.name}</span>
-                      </div>
-                      <button 
-                        className="btn-agenda-settings"
-                        onClick={() => setEditingAgenda(agenda)}
-                        title={t('agendaSettings')}
-                      >
-                        <Settings size={16} />
-                      </button>
-                    </li>
-                  ))}
+                      <li key={agenda.id} className={`agenda-item ${selectedAgenda === agenda.id ? 'active' : ''}`}>
+                        <div className="agenda-item-main" onClick={() => setSelectedAgenda(agenda.id)}>
+                          <span
+                            className="agenda-color"
+                            style={{ backgroundColor: agenda.color }}
+                          />
+                          <span className="agenda-name">{agenda.name}</span>
+                        </div>
+                        <button
+                          className="btn-agenda-settings"
+                          onClick={() => setEditingAgenda(agenda)}
+                          title={t('agendaSettings')}
+                        >
+                          <Settings size={16} />
+                        </button>
+                      </li>
+                    ))}
                 </ul>
               )}
-    
-              <button 
+
+              <button
                 className="btn btn-primary btn-block mt-2"
                 onClick={() => setShowCreateAgenda(true)}
               >
@@ -467,7 +466,7 @@ function Dashboard({ onLogout, sessionKey }) {
         <div className="sidebar-footer">
           <div className="language-switcher">
             <div className="custom-dropdown" onClick={(e) => e.stopPropagation()}>
-              <button 
+              <button
                 className="dropdown-toggle"
                 onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
               >
@@ -477,11 +476,11 @@ function Dashboard({ onLogout, sessionKey }) {
               {showLanguageDropdown && (
                 <ul className="dropdown-menu">
                   {Object.keys(lngs).map((lng) => (
-                    <li 
-                      key={lng} 
+                    <li
+                      key={lng}
                       className={`dropdown-item dropdown-item-${lng} ${i18n.resolvedLanguage === lng ? 'active' : ''}`}
                       onClick={() => {
-                        i18n.changeLanguage(lng);
+                        updateSetting('display', 'language', lng);
                         setShowLanguageDropdown(false);
                       }}
                     >
@@ -492,14 +491,14 @@ function Dashboard({ onLogout, sessionKey }) {
               )}
             </div>
           </div>
-          <button 
+          <button
             className="btn btn-secondary btn-block"
             onClick={() => setShowWebSettings(true)}
             title={t('webSettingsTitle')}
           >
             <Settings size={18} style={{ marginRight: '8px' }} /> {t('webSettingsButton')}
           </button>
-          <button 
+          <button
             className="btn btn-secondary btn-block"
             onClick={handleLogout}
           >
@@ -520,11 +519,11 @@ function Dashboard({ onLogout, sessionKey }) {
       {/* Main Content */}
       <main className="main-content">
         {currentView === 'home' ? (
-          <Home 
-            sessionKey={sessionKey} 
-            notifications={notifications} 
+          <Home
+            sessionKey={sessionKey}
+            notifications={notifications}
             agendas={agendas}
-            isLoading={notificationsLoading} 
+            isLoading={notificationsLoading}
             refetch={refetchNotifications}
           />
         ) : currentAgenda ? (
@@ -541,25 +540,25 @@ function Dashboard({ onLogout, sessionKey }) {
 
       {/* Modals */}
       {showCreateAgenda && (
-        <CreateAgendaModal 
-          onClose={() => setShowCreateAgenda(false)} 
+        <CreateAgendaModal
+          onClose={() => setShowCreateAgenda(false)}
           existingAgendas={agendas}
         />
       )}
       {showProfileSettings && (
-        <WebSettingsModal 
-          onClose={() => setShowProfileSettings(false)} 
+        <WebSettingsModal
+          onClose={() => setShowProfileSettings(false)}
           initialTab="profile"
         />
       )}
       {showWebSettings && (
-        <WebSettingsModal 
-          onClose={() => setShowWebSettings(false)} 
+        <WebSettingsModal
+          onClose={() => setShowWebSettings(false)}
           initialTab="display"
         />
       )}
       {editingAgenda && (
-        <AgendaSettingsModal 
+        <AgendaSettingsModal
           agenda={editingAgenda}
           onClose={() => setEditingAgenda(null)}
         />

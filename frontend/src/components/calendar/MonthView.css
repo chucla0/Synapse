@@ -2,7 +2,8 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  height: 100%; /* Keep height 100% as fallback or for explicit sizing */
+  height: 100%;
+  /* Keep height 100% as fallback or for explicit sizing */
 }
 
 .month-header {
@@ -24,10 +25,13 @@
 .month-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: repeat(var(--week-count, 6), 1fr); /* Dynamic rows based on weeks */
+  grid-template-rows: repeat(var(--week-count, 6), 1fr);
+  /* Dynamic rows based on weeks */
   flex: 1;
-  background-color: var(--border); /* Grid lines color */
-  gap: 1px; /* Creates the grid lines */
+  background-color: var(--border);
+  /* Grid lines color */
+  gap: 1px;
+  /* Creates the grid lines */
 }
 
 .month-day {
@@ -38,7 +42,8 @@
   flex-direction: column;
   position: relative;
   transition: background-color 0.2s, box-shadow 0.2s;
-  cursor: pointer; /* User requested cursor pointer on hover, usually good to have it always if clickable */
+  cursor: pointer;
+  /* User requested cursor pointer on hover, usually good to have it always if clickable */
 }
 
 .month-day:hover {
@@ -46,28 +51,33 @@
 }
 
 .month-day.other-month {
-  background-color: transparent; /* Inherit from .month-day or container */
-  color: #4B5563; /* Gray-600 for better visibility than opacity */
-  opacity: 1; /* Remove opacity to use specific color */
+  background-color: transparent;
+  /* Inherit from .month-day or container */
+  color: #4B5563;
+  /* Gray-600 for better visibility than opacity */
+  opacity: 1;
+  /* Remove opacity to use specific color */
 }
 
 /* Remove cell background for today to avoid conflict, only highlight number */
 .month-day.today {
-  background-color: var(--bg-card); 
+  background-color: var(--bg-card);
 }
+
 .month-day.today:hover {
   background-color: var(--bg-hover);
 }
 
 .month-day.selected {
-  box-shadow: inset 0 0 0 2px #A855F7; /* purple-500 ring */
+  box-shadow: inset 0 0 0 2px var(--accent);
   /* No dark background */
 }
 
 .day-number {
   font-weight: 600;
   font-size: 0.875rem;
-  color: var(--text-bright, var(--text-main)); /* Fallback to main if bright not set */
+  color: var(--text-bright, var(--text-main));
+  /* Fallback to main if bright not set */
   margin-bottom: var(--spacing-xs);
   display: inline-block;
   width: 24px;
@@ -78,8 +88,9 @@
 }
 
 .month-day.today .day-number {
-  background-color: #A855F7; /* purple-500 */
-  color: white;
+  background-color: var(--accent);
+  color: #333333;
+  /* Dark text for contrast */
 }
 
 .day-events {
@@ -106,19 +117,19 @@
   display: flex;
   align-items: center;
   line-height: 1;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .month-event:hover {
   transform: scale(1.02);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   z-index: 10;
   filter: brightness(1.1);
 }
 
 .month-event.pending-approval {
   opacity: 0.7;
-  border: 1px dashed rgba(255,255,255,0.5);
+  border: 1px dashed rgba(255, 255, 255, 0.5);
 }
 
 .event-content {
@@ -214,6 +225,13 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

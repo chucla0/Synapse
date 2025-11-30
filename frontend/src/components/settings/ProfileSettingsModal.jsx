@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import Cropper from 'react-easy-crop';
 import { X, Trash2 } from 'lucide-react';
 import api from '../../utils/api';
-import { getUser, setUser } from '../../utils/auth';
+import { getUser, setUser, clearAuth } from '../../utils/auth';
 import './ProfileSettingsModal.css';
 
 // Helper to create the cropped image
@@ -60,7 +60,7 @@ function ProfileSettingsModal({ onClose }) {
     newPassword: '',
   });
   const [errors, setErrors] = useState({});
-  
+
   // Cropper state
   const [imageSrc, setImageSrc] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -93,11 +93,11 @@ function ProfileSettingsModal({ onClose }) {
     try {
       const croppedImageBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
       const file = new File([croppedImageBlob], "avatar.jpg", { type: "image/jpeg" });
-      
+
       // Upload immediately
       const uploadResponse = await uploadAvatarMutation.mutateAsync(file);
       const newAvatarUrl = uploadResponse.data.filePath;
-      
+
       setFormData(prev => ({ ...prev, avatar: newAvatarUrl }));
       setIsCropping(false);
       setImageSrc(null);
@@ -162,10 +162,29 @@ function ProfileSettingsModal({ onClose }) {
     syncGoogleMutation.mutate();
   };
 
+  // Delete Account Logic
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+
+  const deleteAccountMutation = useMutation({
+    mutationFn: (data) => api.delete('/auth/profile', { data }),
+    onSuccess: () => {
+      clearAuth();
+      window.location.href = '/login';
+    },
+    onError: (error) => {
+      setErrors(prev => ({ ...prev, delete: error.response?.data?.message || 'Error al eliminar la cuenta' }));
+    }
+  });
+
+  const handleDeleteAccount = () => {
+    deleteAccountMutation.mutate({ password: deletePassword });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
-    
+
     const payload = {};
     if (formData.name !== currentUser.name) {
       payload.name = formData.name;
@@ -183,7 +202,7 @@ function ProfileSettingsModal({ onClose }) {
       onClose();
       return;
     }
-    
+
     updateProfileMutation.mutate(payload);
   };
 
@@ -257,7 +276,7 @@ function ProfileSettingsModal({ onClose }) {
                 id="name"
                 name="name"
                 value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="input"
                 disabled={updateProfileMutation.isPending}
               />
@@ -268,10 +287,10 @@ function ProfileSettingsModal({ onClose }) {
               <label>{t('avatarUrlLabel')}</label>
               <div className="avatar-upload-area">
                 {formData.avatar ? (
-                  <img 
+                  <img
                     src={formData.avatar.startsWith('http') ? formData.avatar : `${API_URL}${formData.avatar}`}
-                    alt="Avatar Preview" 
-                    className="avatar-preview" 
+                    alt="Avatar Preview"
+                    className="avatar-preview"
                   />
                 ) : (
                   <div className="avatar-preview avatar-preview-default">
@@ -290,8 +309,8 @@ function ProfileSettingsModal({ onClose }) {
                     {t('changeImageButton')}
                   </label>
                   {formData.avatar && (
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="btn btn-danger btn-sm"
                       onClick={handleDeleteAvatar}
                       title={t('deleteImageButton')}
@@ -302,7 +321,7 @@ function ProfileSettingsModal({ onClose }) {
                 </div>
               </div>
             </div>
-            
+
             <hr className="divider" />
 
             {/* Password Change */}
@@ -314,7 +333,7 @@ function ProfileSettingsModal({ onClose }) {
                 id="currentPassword"
                 name="currentPassword"
                 value={formData.currentPassword}
-                onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
                 className="input"
                 placeholder={t('passwordPlaceholder')}
                 disabled={updateProfileMutation.isPending}
@@ -327,13 +346,13 @@ function ProfileSettingsModal({ onClose }) {
                 id="newPassword"
                 name="newPassword"
                 value={formData.newPassword}
-                onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
                 className="input"
                 placeholder={t('passwordPlaceholder')}
                 disabled={updateProfileMutation.isPending}
               />
             </div>
-            
+
 
 
             {/* Error message */}
@@ -343,7 +362,7 @@ function ProfileSettingsModal({ onClose }) {
               </div>
             )}
             {updateProfileMutation.isError && (
-               <div className="error-banner">
+              <div className="error-banner">
                 {updateProfileMutation.error.response?.data?.message || 'Error al actualizar'}
               </div>
             )}
@@ -367,6 +386,62 @@ function ProfileSettingsModal({ onClose }) {
               </button>
             </div>
           </form>
+        )}
+
+        {!isCropping && (
+          <div className="danger-zone">
+            <h3 className="danger-zone-title">{t('dangerZoneTitle', 'Zona de Peligro')}</h3>
+            <div className="danger-zone-content">
+              <p className="text-muted text-sm mb-4">
+                {t('deleteAccountWarning', 'Eliminar tu cuenta es irreversible. Se eliminarán todas tus agendas personales. Las agendas compartidas se transferirán a otros miembros si es posible.')}
+              </p>
+
+              {!showDeleteConfirm ? (
+                <button
+                  type="button"
+                  className="btn btn-danger btn-block"
+                  onClick={() => setShowDeleteConfirm(true)}
+                >
+                  {t('deleteAccountButton', 'Eliminar Cuenta')}
+                </button>
+              ) : (
+                <div className="delete-confirm-box">
+                  <p className="text-sm font-bold mb-2">{t('confirmDeleteTitle', '¿Estás seguro?')}</p>
+                  {currentUser?.password && (
+                    <input
+                      type="password"
+                      placeholder={t('passwordPlaceholder', 'Contraseña')}
+                      className="input mb-2"
+                      value={deletePassword}
+                      onChange={(e) => setDeletePassword(e.target.value)}
+                    />
+                  )}
+                  {errors.delete && <p className="text-danger text-xs mb-2">{errors.delete}</p>}
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-secondary flex-1"
+                      onClick={() => {
+                        setShowDeleteConfirm(false);
+                        setDeletePassword('');
+                        setErrors(prev => ({ ...prev, delete: null }));
+                      }}
+                    >
+                      {t('cancelButton')}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-danger flex-1"
+                      onClick={handleDeleteAccount}
+                      disabled={deleteAccountMutation.isPending}
+                    >
+                      {deleteAccountMutation.isPending ? t('deleting', 'Eliminando...') : t('confirmDeleteButton', 'Sí, eliminar')}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </div>

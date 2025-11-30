@@ -1,12 +1,12 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { 
-  X, 
-  Monitor, 
-  Bell, 
-  Link as LinkIcon, 
-  HelpCircle, 
-  ChevronRight, 
+import {
+  X,
+  Monitor,
+  Bell,
+  Link as LinkIcon,
+  HelpCircle,
+  ChevronRight,
   Check,
   Calendar,
   Mail,
@@ -14,14 +14,15 @@ import {
   User,
   Trash2
 } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Cropper from 'react-easy-crop';
 import api from '../../utils/api';
-import { getUser, setUser } from '../../utils/auth';
+import { getUser, setUser, clearAuth } from '../../utils/auth';
 import './WebSettingsModal.css';
 import CustomSelect from '../ui/CustomSelect';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useSettings } from '../../contexts/SettingsContext';
+import ConfirmDeleteModal from '../ui/ConfirmDeleteModal';
 
 // ... (inside component)
 // Helper to create the cropped image
@@ -71,8 +72,17 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
   const { theme, setTheme, accentId, setAccentId, availableColors } = useTheme();
   const queryClient = useQueryClient();
   const currentUser = getUser();
-  const isGoogleConnected = !!currentUser?.googleId;
-  
+
+  // Fetch fresh user profile to get hasPassword flag
+  const { data: profileData } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: async () => (await api.get('/auth/profile')).data,
+    staleTime: 0, // Always fetch fresh
+  });
+
+  const userProfile = profileData?.user || currentUser;
+  const isGoogleConnected = !!userProfile?.googleId;
+
   const [activeTab, setActiveTab] = useState(initialTab);
 
   // Profile State
@@ -87,7 +97,7 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
     newPassword: '',
   });
   const [errors, setErrors] = useState({});
-  
+
   // Cropper state
   const [imageSrc, setImageSrc] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -143,10 +153,10 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
     try {
       const croppedImageBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
       const file = new File([croppedImageBlob], "avatar.jpg", { type: "image/jpeg" });
-      
+
       const uploadResponse = await uploadAvatarMutation.mutateAsync(file);
       const newAvatarUrl = uploadResponse.data.filePath;
-      
+
       setFormData(prev => ({ ...prev, avatar: newAvatarUrl }));
       setIsCropping(false);
       setImageSrc(null);
@@ -170,7 +180,7 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
-    
+
     const payload = {};
     if (formData.name !== currentUser.name) payload.name = formData.name;
     if (formData.avatar !== currentUser.avatar) payload.avatar = formData.avatar;
@@ -185,7 +195,7 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
     }
 
     if (Object.keys(payload).length === 0) return;
-    
+
     updateProfileMutation.mutate(payload);
   };
 
@@ -201,6 +211,25 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
       alert(t('syncError'));
     }
   });
+
+  // Delete Account Logic
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+
+  const deleteAccountMutation = useMutation({
+    mutationFn: (data) => api.delete('/auth/profile', { data }),
+    onSuccess: () => {
+      clearAuth();
+      window.location.href = '/login';
+    },
+    onError: (error) => {
+      setErrors(prev => ({ ...prev, delete: error.response?.data?.message || 'Error al eliminar la cuenta' }));
+    }
+  });
+
+  const handleDeleteAccount = () => {
+    deleteAccountMutation.mutate({ password: deletePassword });
+  };
 
   const renderDisplaySettings = () => (
     <div className="settings-group">
@@ -370,8 +399,8 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
         </div>
         <div className="setting-control">
           <label className="toggle-switch">
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               checked={settings.notifications.browserNotifications}
               onChange={(e) => updateSetting('notifications', 'browserNotifications', e.target.checked)}
             />
@@ -386,8 +415,8 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
         </div>
         <div className="setting-control">
           <label className="toggle-switch">
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               checked={settings.notifications.emailNotifications}
               onChange={(e) => updateSetting('notifications', 'emailNotifications', e.target.checked)}
             />
@@ -402,8 +431,8 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
         </div>
         <div className="setting-control">
           <label className="toggle-switch">
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               checked={settings.notifications.soundEnabled}
               onChange={(e) => updateSetting('notifications', 'soundEnabled', e.target.checked)}
             />
@@ -431,7 +460,7 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
         </div>
         <div className="integration-actions">
           {isGoogleConnected ? (
-            <button 
+            <button
               className="btn btn-secondary btn-sm"
               onClick={() => syncGoogleMutation.mutate()}
               disabled={syncGoogleMutation.isPending}
@@ -439,7 +468,7 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
               {syncGoogleMutation.isPending ? t('syncing', 'Sincronizando...') : t('resync', 'Resincronizar')}
             </button>
           ) : (
-            <button 
+            <button
               className="btn btn-primary btn-sm"
               onClick={() => {
                 const loginHint = currentUser?.email ? `&login_hint=${encodeURIComponent(currentUser.email)}` : '';
@@ -452,7 +481,7 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
         </div>
       </div>
 
-      <div className="integration-card" style={{opacity: 0.7}}>
+      <div className="integration-card" style={{ opacity: 0.7 }}>
         <div className="integration-header">
           <div className="integration-icon-box">
             <Mail size={20} />
@@ -505,7 +534,7 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
           <ChevronRight size={16} />
         </a>
       </div>
-      
+
       <div className="version-info">
         <p>Synapse v1.0.0</p>
         <p>&copy; 2025 Synapse Inc.</p>
@@ -515,7 +544,7 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
 
   const renderProfileSettings = () => {
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-    
+
     if (isCropping) {
       return (
         <div className="cropper-container">
@@ -577,235 +606,289 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
     };
 
     return (
-      <form onSubmit={handleProfileSubmit} className="profile-form">
-        {/* Identity Section */}
-        <div className="form-section">
-          <h4 className="form-section-subtitle">{t('identity', 'Identidad Básica')}</h4>
-          
-          <div className="form-group">
-            <label>{t('avatarUrlLabel', 'Foto de Perfil')}</label>
-            <div className="avatar-upload-area">
-              {formData.avatar ? (
-                <img 
-                  src={formData.avatar.startsWith('http') ? formData.avatar : `${API_URL}${formData.avatar}`}
-                  alt="Avatar Preview" 
-                  className="avatar-preview" 
-                />
-              ) : (
-                <div className="avatar-preview avatar-preview-default">
-                  {currentUser?.name?.charAt(0).toUpperCase()}
+      <>
+        <form onSubmit={handleProfileSubmit} className="profile-form">
+          {/* Identity Section */}
+          <div className="form-section">
+            <h4 className="form-section-subtitle">{t('identity', 'Identidad Básica')}</h4>
+
+            <div className="form-group">
+              <label>{t('avatarUrlLabel', 'Foto de Perfil')}</label>
+              <div className="avatar-upload-area">
+                {formData.avatar ? (
+                  <img
+                    src={formData.avatar.startsWith('http') ? formData.avatar : `${API_URL}${formData.avatar}`}
+                    alt="Avatar Preview"
+                    className="avatar-preview"
+                  />
+                ) : (
+                  <div className="avatar-preview avatar-preview-default">
+                    {currentUser?.name?.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="avatar-actions">
+                  <input
+                    type="file"
+                    id="avatar-upload"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    style={{ display: 'none' }}
+                  />
+                  <label htmlFor="avatar-upload" className="btn btn-secondary btn-sm">
+                    {t('changeImageButton', 'Cambiar')}
+                  </label>
+                  {formData.avatar && (
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-sm"
+                      onClick={handleDeleteAvatar}
+                      title={t('deleteImageButton', 'Eliminar')}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </div>
-              )}
-              <div className="avatar-actions">
-                <input
-                  type="file"
-                  id="avatar-upload"
-                  accept="image/*"
-                  onChange={handleAvatarChange}
-                  style={{ display: 'none' }}
-                />
-                <label htmlFor="avatar-upload" className="btn btn-secondary btn-sm">
-                  {t('changeImageButton', 'Cambiar')}
-                </label>
-                {formData.avatar && (
-                  <button 
-                    type="button" 
-                    className="btn btn-danger btn-sm"
-                    onClick={handleDeleteAvatar}
-                    title={t('deleteImageButton', 'Eliminar')}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="name">{t('nameLabel', 'Nombre Visible')}</label>
+              <input
+                type="text"
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="input"
+                disabled={updateProfileMutation.isPending}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="bio">{t('bioLabel', 'Biografía')}</label>
+              <textarea
+                id="bio"
+                value={formData.bio || ''}
+                onChange={(e) => setFormData({ ...formData, bio: e.target.value.slice(0, 200) })}
+                className="input textarea"
+                placeholder={t('bioPlaceholder', 'Cuéntanos un poco sobre ti...')}
+                rows={3}
+                maxLength={200}
+                disabled={updateProfileMutation.isPending}
+              />
+              <span className="char-count">{(formData.bio || '').length}/200</span>
+            </div>
+          </div>
+
+          {/* Contact & Connections */}
+          <div className="form-section">
+            <h4 className="form-section-subtitle">{t('contactAndConnections', 'Contacto y Conexiones')}</h4>
+
+            <div className="form-group">
+              <label htmlFor="email">{t('emailLabel', 'Email Principal')}</label>
+              <input
+                type="email"
+                id="email"
+                value={currentUser?.email || ''}
+                className="input"
+                disabled
+                readOnly
+              />
+            </div>
+
+            <div className="form-group">
+              <label>{t('linksLabel', 'Enlaces Personalizados')}</label>
+              {(formData.links || []).map((link, index) => (
+                <div key={index} className="link-row">
+                  <input
+                    type="text"
+                    placeholder={t('linkTitlePlaceholder', 'Título')}
+                    value={link.title}
+                    onChange={(e) => handleLinkChange(index, 'title', e.target.value)}
+                    className="input link-title-input"
+                  />
+                  <input
+                    type="url"
+                    placeholder={t('linkUrlPlaceholder', 'URL')}
+                    value={link.url}
+                    onChange={(e) => handleLinkChange(index, 'url', e.target.value)}
+                    className="input link-url-input"
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-icon btn-danger"
+                    onClick={() => handleRemoveLink(index)}
                   >
                     <Trash2 size={16} />
                   </button>
-                )}
+                </div>
+              ))}
+              {(formData.links || []).length < 5 && (
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm mt-2"
+                  onClick={handleAddLink}
+                >
+                  + {t('addLinkButton', 'Añadir Enlace')}
+                </button>
+              )}
+              {(formData.links || []).length >= 5 && (
+                <p className="text-sm text-muted mt-1">{t('maxLinksReached', 'Máximo 5 enlaces')}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Availability */}
+          <div className="form-section">
+            <h4 className="form-section-subtitle">{t('availability', 'Disponibilidad')}</h4>
+
+            <div className="form-group">
+              <label>{t('statusLabel', 'Estado de Disponibilidad')}</label>
+              <div className="status-selector">
+                {['AVAILABLE', 'AWAY', 'BUSY'].map(status => (
+                  <label key={status} className={`status-option ${formData.status === status ? 'active' : ''} status-${status.toLowerCase()}`}>
+                    <input
+                      type="radio"
+                      name="status"
+                      value={status}
+                      checked={formData.status === status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    />
+                    <span className="status-dot"></span>
+                    {t(`status_${status}`, status)}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>{t('workingHoursLabel', 'Horario de Trabajo')}</label>
+              <div className="working-hours-inputs">
+                <div className="time-input-group">
+                  <label className="text-xs text-muted">{t('startTime', 'Inicio')}</label>
+                  <input
+                    type="time"
+                    value={formData.workingHours?.start || '09:00'}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      workingHours: { ...formData.workingHours, start: e.target.value }
+                    })}
+                    className="input"
+                  />
+                </div>
+                <span className="time-separator">-</span>
+                <div className="time-input-group">
+                  <label className="text-xs text-muted">{t('endTime', 'Fin')}</label>
+                  <input
+                    type="time"
+                    value={formData.workingHours?.end || '17:00'}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      workingHours: { ...formData.workingHours, end: e.target.value }
+                    })}
+                    className="input"
+                  />
+                </div>
               </div>
             </div>
           </div>
 
+          <hr className="divider" />
+
+          <h3 className="form-section-title">{t('changePasswordTitle', 'Cambiar Contraseña')}</h3>
           <div className="form-group">
-            <label htmlFor="name">{t('nameLabel', 'Nombre Visible')}</label>
+            <label htmlFor="currentPassword">{t('currentPasswordLabel', 'Contraseña Actual')}</label>
             <input
-              type="text"
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              type="password"
+              id="currentPassword"
+              value={formData.currentPassword}
+              onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
               className="input"
+              placeholder="********"
+              disabled={updateProfileMutation.isPending}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="newPassword">{t('newPasswordLabel', 'Nueva Contraseña')}</label>
+            <input
+              type="password"
+              id="newPassword"
+              value={formData.newPassword}
+              onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+              className="input"
+              placeholder="********"
               disabled={updateProfileMutation.isPending}
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="bio">{t('bioLabel', 'Biografía')}</label>
-            <textarea
-              id="bio"
-              value={formData.bio || ''}
-              onChange={(e) => setFormData({...formData, bio: e.target.value.slice(0, 200)})}
-              className="input textarea"
-              placeholder={t('bioPlaceholder', 'Cuéntanos un poco sobre ti...')}
-              rows={3}
-              maxLength={200}
+          {errors.submit && (
+            <div className="error-banner">
+              {errors.submit}
+            </div>
+          )}
+
+          <div className="modal-actions" style={{ justifyContent: 'flex-start', padding: 0, border: 'none', background: 'transparent' }}>
+            <button
+              type="submit"
+              className="btn btn-primary"
               disabled={updateProfileMutation.isPending}
-            />
-            <span className="char-count">{(formData.bio || '').length}/200</span>
+            >
+              {updateProfileMutation.isPending ? t('savingButton', 'Guardando...') : t('saveChangesButton', 'Guardar Cambios')}
+            </button>
           </div>
-        </div>
+        </form>
 
-        {/* Contact & Connections */}
-        <div className="form-section">
-          <h4 className="form-section-subtitle">{t('contactAndConnections', 'Contacto y Conexiones')}</h4>
-          
-          <div className="form-group">
-            <label htmlFor="email">{t('emailLabel', 'Email Principal')}</label>
-            <input
-              type="email"
-              id="email"
-              value={currentUser?.email || ''}
-              className="input"
-              disabled
-              readOnly
-            />
-          </div>
-
-          <div className="form-group">
-            <label>{t('linksLabel', 'Enlaces Personalizados')}</label>
-            {(formData.links || []).map((link, index) => (
-              <div key={index} className="link-row">
-                <input
-                  type="text"
-                  placeholder={t('linkTitlePlaceholder', 'Título')}
-                  value={link.title}
-                  onChange={(e) => handleLinkChange(index, 'title', e.target.value)}
-                  className="input link-title-input"
-                />
-                <input
-                  type="url"
-                  placeholder={t('linkUrlPlaceholder', 'URL')}
-                  value={link.url}
-                  onChange={(e) => handleLinkChange(index, 'url', e.target.value)}
-                  className="input link-url-input"
-                />
-                <button 
-                  type="button" 
-                  className="btn btn-icon btn-danger"
-                  onClick={() => handleRemoveLink(index)}
+        {
+          !isCropping && (
+            <div className="danger-zone">
+              <h4>{t('dangerZoneTitle', 'Zona de Peligro')}</h4>
+              <div className="danger-item">
+                <div>
+                  <strong>{t('deleteAccountButton', 'Eliminar Cuenta')}</strong>
+                  <p>{t('deleteAccountWarning', 'Eliminar tu cuenta es irreversible. Se eliminarán todas tus agendas personales.')}</p>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={() => setShowDeleteConfirm(true)}
                 >
-                  <Trash2 size={16} />
+                  {t('deleteButton', 'Eliminar')}
                 </button>
               </div>
-            ))}
-            {(formData.links || []).length < 5 && (
-              <button 
-                type="button" 
-                className="btn btn-secondary btn-sm mt-2"
-                onClick={handleAddLink}
-              >
-                + {t('addLinkButton', 'Añadir Enlace')}
-              </button>
-            )}
-            {(formData.links || []).length >= 5 && (
-              <p className="text-sm text-muted mt-1">{t('maxLinksReached', 'Máximo 5 enlaces')}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Availability */}
-        <div className="form-section">
-          <h4 className="form-section-subtitle">{t('availability', 'Disponibilidad')}</h4>
-          
-          <div className="form-group">
-            <label>{t('statusLabel', 'Estado de Disponibilidad')}</label>
-            <div className="status-selector">
-              {['AVAILABLE', 'AWAY', 'BUSY'].map(status => (
-                <label key={status} className={`status-option ${formData.status === status ? 'active' : ''} status-${status.toLowerCase()}`}>
-                  <input
-                    type="radio"
-                    name="status"
-                    value={status}
-                    checked={formData.status === status}
-                    onChange={(e) => setFormData({...formData, status: e.target.value})}
-                  />
-                  <span className="status-dot"></span>
-                  {t(`status_${status}`, status)}
-                </label>
-              ))}
             </div>
-          </div>
+          )}
 
-          <div className="form-group">
-            <label>{t('workingHoursLabel', 'Horario de Trabajo')}</label>
-            <div className="working-hours-inputs">
-              <div className="time-input-group">
-                <label className="text-xs text-muted">{t('startTime', 'Inicio')}</label>
-                <input
-                  type="time"
-                  value={formData.workingHours?.start || '09:00'}
-                  onChange={(e) => setFormData({
-                    ...formData, 
-                    workingHours: { ...formData.workingHours, start: e.target.value }
-                  })}
-                  className="input"
-                />
-              </div>
-              <span className="time-separator">-</span>
-              <div className="time-input-group">
-                <label className="text-xs text-muted">{t('endTime', 'Fin')}</label>
-                <input
-                  type="time"
-                  value={formData.workingHours?.end || '17:00'}
-                  onChange={(e) => setFormData({
-                    ...formData, 
-                    workingHours: { ...formData.workingHours, end: e.target.value }
-                  })}
-                  className="input"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <hr className="divider" />
-
-        <h3 className="form-section-title">{t('changePasswordTitle', 'Cambiar Contraseña')}</h3>
-        <div className="form-group">
-          <label htmlFor="currentPassword">{t('currentPasswordLabel', 'Contraseña Actual')}</label>
-          <input
-            type="password"
-            id="currentPassword"
-            value={formData.currentPassword}
-            onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
-            className="input"
-            placeholder="********"
-            disabled={updateProfileMutation.isPending}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="newPassword">{t('newPasswordLabel', 'Nueva Contraseña')}</label>
-          <input
-            type="password"
-            id="newPassword"
-            value={formData.newPassword}
-            onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
-            className="input"
-            placeholder="********"
-            disabled={updateProfileMutation.isPending}
-          />
-        </div>
-
-        {errors.submit && (
-          <div className="error-banner">
-            {errors.submit}
-          </div>
-        )}
-
-        <div className="modal-actions" style={{justifyContent: 'flex-start', padding: 0, border: 'none', background: 'transparent'}}>
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={updateProfileMutation.isPending}
+        {showDeleteConfirm && (
+          <ConfirmDeleteModal
+            message={t('confirmDeleteAccountMessage', '¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer.')}
+            onConfirm={handleDeleteAccount}
+            onCancel={() => {
+              setShowDeleteConfirm(false);
+              setDeletePassword('');
+              setErrors(prev => ({ ...prev, delete: null }));
+            }}
+            isDeleting={deleteAccountMutation.isPending}
+            confirmText={t('confirmDeleteButton', 'Sí, eliminar')}
+            deletingText={t('deleting', 'Eliminando...')}
           >
-            {updateProfileMutation.isPending ? t('savingButton', 'Guardando...') : t('saveChangesButton', 'Guardar Cambios')}
-          </button>
-        </div>
-      </form>
+            <div className="mt-4">
+              {userProfile?.hasPassword ? (
+                <input
+                  type="password"
+                  placeholder={t('passwordPlaceholder', 'Contraseña')}
+                  className="input mb-2"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                />
+              ) : (
+                <p className="text-sm text-muted mb-2">
+                  {t('socialLoginDeleteMessage', 'Has iniciado sesión con Google. No se requiere contraseña para eliminar la cuenta.')}
+                </p>
+              )}
+              {errors.delete && <p className="text-danger text-xs mb-2">{errors.delete}</p>}
+            </div>
+          </ConfirmDeleteModal>
+        )}
+      </>
     );
   };
 
@@ -819,35 +902,35 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
 
         <div className="web-settings-body">
           <aside className="settings-sidebar">
-            <button 
+            <button
               className={`settings-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
               onClick={() => setActiveTab('profile')}
             >
               <User size={18} className="settings-nav-icon" />
               {t('profile', 'Perfil')}
             </button>
-            <button 
+            <button
               className={`settings-nav-item ${activeTab === 'display' ? 'active' : ''}`}
               onClick={() => setActiveTab('display')}
             >
               <Monitor size={18} className="settings-nav-icon" />
               {t('displayPreferences', 'Visualización')}
             </button>
-            <button 
+            <button
               className={`settings-nav-item ${activeTab === 'notifications' ? 'active' : ''}`}
               onClick={() => setActiveTab('notifications')}
             >
               <Bell size={18} className="settings-nav-icon" />
               {t('notifications', 'Notificaciones')}
             </button>
-            <button 
+            <button
               className={`settings-nav-item ${activeTab === 'integrations' ? 'active' : ''}`}
               onClick={() => setActiveTab('integrations')}
             >
               <LinkIcon size={18} className="settings-nav-icon" />
               {t('integrations', 'Integraciones')}
             </button>
-            <button 
+            <button
               className={`settings-nav-item ${activeTab === 'help' ? 'active' : ''}`}
               onClick={() => setActiveTab('help')}
             >
@@ -864,9 +947,9 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
               {activeTab === 'integrations' && t('integrations', 'Integraciones y Conexiones')}
               {activeTab === 'help' && t('helpAndLegal', 'Ayuda y Legal')}
             </h3>
-            
 
-            
+
+
             {activeTab === 'profile' && renderProfileSettings()}
             {activeTab === 'display' && renderDisplaySettings()}
             {activeTab === 'notifications' && renderNotificationSettings()}

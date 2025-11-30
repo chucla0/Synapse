@@ -316,5 +316,12 @@
   "workingHoursLabel": "Working Hours",
   "startTime": "Start Time",
   "endTime": "End Time",
-  "maxLinksReached": "Max 5 links allowed"
+  "maxLinksReached": "Max 5 links allowed",
+  "deleteAccountButton": "Delete Account",
+  "deleteAccountWarning": "Deleting your account is irreversible. All your personal agendas will be deleted.",
+  "confirmDeleteAccountMessage": "Are you sure you want to delete your account? This action cannot be undone.",
+  "passwordPlaceholder": "Password",
+  "confirmDeleteButton": "Yes, delete",
+  "deleting": "Deleting...",
+  "cancelButton": "Cancel"
 }

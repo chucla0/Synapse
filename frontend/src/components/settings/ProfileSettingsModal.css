@@ -133,3 +133,53 @@
 .integration-status.disconnected {
   color: var(--text-secondary);
 }
+
+/* Danger Zone */
+.danger-zone {
+  margin-top: var(--spacing-xl);
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.danger-zone-title {
+  background-color: #fee2e2;
+  color: #ef4444;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-bottom: 1px solid #fecaca;
+  margin: 0;
+}
+
+.danger-zone-content {
+  padding: var(--spacing-md);
+  background-color: #fff5f5;
+}
+
+.delete-confirm-box {
+  background-color: white;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-sm);
+  border: 1px solid #fecaca;
+  margin-top: var(--spacing-sm);
+}
+
+body[data-theme='dark'] .danger-zone {
+  border-color: #7f1d1d;
+}
+
+body[data-theme='dark'] .danger-zone-title {
+  background-color: #450a0a;
+  color: #fca5a5;
+  border-color: #7f1d1d;
+}
+
+body[data-theme='dark'] .danger-zone-content {
+  background-color: #2a0a0a;
+}
+
+body[data-theme='dark'] .delete-confirm-box {
+  background-color: #1a1a1a;
+  border-color: #7f1d1d;
+}

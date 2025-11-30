@@ -329,5 +329,12 @@
   "workingHoursLabel": "Horario de Trabajo",
   "startTime": "Hora de Inicio",
   "endTime": "Hora de Fin",
-  "maxLinksReached": "Máximo 5 enlaces permitidos"
+  "maxLinksReached": "Máximo 5 enlaces permitidos",
+  "deleteAccountButton": "Eliminar Cuenta",
+  "deleteAccountWarning": "Eliminar tu cuenta es irreversible. Se eliminarán todas tus agendas personales.",
+  "confirmDeleteAccountMessage": "¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer.",
+  "passwordPlaceholder": "Contraseña",
+  "confirmDeleteButton": "Sí, eliminar",
+  "deleting": "Eliminando...",
+  "cancelButton": "Cancelar"
 }

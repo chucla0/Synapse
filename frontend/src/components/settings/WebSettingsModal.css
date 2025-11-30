@@ -7,7 +7,8 @@
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  padding: 0; /* Override default card padding */
+  padding: 0;
+  /* Override default card padding */
   overflow: hidden;
 }
 
@@ -69,7 +70,7 @@
   background-color: var(--bg-main);
   color: var(--text-main);
   font-weight: 700;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .settings-nav-icon {
@@ -78,7 +79,8 @@
 
 .settings-nav-item.active .settings-nav-icon {
   opacity: 1;
-  color: var(--accent); /* Optional: tint icon with accent */
+  color: var(--accent);
+  /* Optional: tint icon with accent */
 }
 
 /* Content Area */
@@ -195,15 +197,15 @@
   border-radius: 50%;
 }
 
-input:checked + .slider {
+input:checked+.slider {
   background-color: var(--accent);
 }
 
-input:focus + .slider {
+input:focus+.slider {
   box-shadow: 0 0 1px var(--accent);
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
   transform: translateX(20px);
 }
 
@@ -252,7 +254,8 @@ input:checked + .slider:before {
 }
 
 .integration-status-badge.connected {
-  background-color: rgba(159, 230, 182, 0.2); /* Light Green */
+  background-color: rgba(159, 230, 182, 0.2);
+  /* Light Green */
   color: #2e7d32;
 }
 
@@ -293,7 +296,8 @@ input:checked + .slider:before {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
-  max-width: 600px; /* Limit width for readability */
+  max-width: 600px;
+  /* Limit width for readability */
 }
 
 .avatar-upload-area {
@@ -391,6 +395,57 @@ input:checked + .slider:before {
   margin-top: var(--spacing-sm);
 }
 
+/* Danger Zone */
+.danger-zone {
+  margin-top: var(--spacing-xl);
+  border: 1px solid var(--error);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+}
+
+.danger-zone h4 {
+  color: var(--error);
+  margin-bottom: var(--spacing-md);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.danger-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.danger-item div {
+  flex: 1;
+}
+
+.danger-item strong {
+  display: block;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.danger-item p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.delete-confirm-box {
+  background-color: var(--bg-main);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--error);
+  margin-top: var(--spacing-md);
+}
+
+body[data-theme='dark'] .delete-confirm-box {
+  background-color: #1a1a1a;
+  border-color: #7f1d1d;
+}
+
 /* --- Enhanced Profile Styles (Dark Mode Optimized) --- */
 
 /* Section Layout */
@@ -399,7 +454,7 @@ input:checked + .slider:before {
 }
 
 .form-section-subtitle {
-  color: #FFFFFF;
+  color: var(--text-main);
   font-size: 1.1rem;
   font-weight: 700;
   margin-bottom: var(--spacing-md);
@@ -410,42 +465,38 @@ input:checked + .slider:before {
 /* Labels */
 .form-group label {
   display: block;
-  color: #FFFFFF; /* White labels */
+  color: var(--text-main);
   font-weight: 600;
   margin-bottom: 6px;
   font-size: 0.95rem;
 }
 
-/* Inputs & Textareas */
-.input,
-.textarea {
-  width: 100%;
-  background-color: var(--bg-main); /* Dark gray background */
-  border: 1px solid #4B5563; /* Thin light gray border */
-  color: #FFFFFF; /* White text */
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  font-size: 0.95rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
+/* Inputs & Textareas - Scoped to avoid global pollution if possible, or just rely on index.css */
+/* We will remove the global .input and .textarea overrides here because index.css already defines them correctly for both themes. */
+/* If specific overrides are needed for this modal, they should be scoped. */
 
-.input:focus,
-.textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2); /* Assuming accent-rgb exists or fallback */
+/* Read-only Email */
+.input[readonly],
+.input:disabled {
+  background-color: var(--bg-hover);
+  color: var(--text-muted);
+  border-color: var(--border);
+  cursor: not-allowed;
 }
 
 .input::placeholder,
 .textarea::placeholder {
-  color: #9CA3AF; /* Medium gray placeholder */
+  color: var(--text-muted);
+  opacity: 0.7;
 }
 
 /* Read-only Email */
 .input[readonly],
 .input:disabled {
-  background-color: rgba(255, 255, 255, 0.05); /* Slightly lighter/different */
-  color: #9CA3AF; /* Dark gray text */
+  background-color: rgba(255, 255, 255, 0.05);
+  /* Slightly lighter/different */
+  color: #9CA3AF;
+  /* Dark gray text */
   border-color: #374151;
   cursor: not-allowed;
 }
@@ -486,7 +537,8 @@ input:checked + .slider:before {
 }
 
 /* Add Link Button */
-.btn-secondary.mt-2 { /* Targeting the Add Link button specifically if possible, or use inline style in JSX to add a class */
+.btn-secondary.mt-2 {
+  /* Targeting the Add Link button specifically if possible, or use inline style in JSX to add a class */
   background: transparent;
   border: 1px solid var(--accent);
   color: var(--accent);
@@ -494,7 +546,8 @@ input:checked + .slider:before {
 }
 
 .btn-secondary.mt-2:hover {
-  background-color: rgba(var(--accent-rgb), 0.1); /* Fallback if var not exists, usually opacity on accent color */
+  background-color: rgba(var(--accent-rgb), 0.1);
+  /* Fallback if var not exists, usually opacity on accent color */
   background-color: color-mix(in srgb, var(--accent), transparent 90%);
 }
 
@@ -511,7 +564,8 @@ input:checked + .slider:before {
   gap: 8px;
   padding: 8px 16px;
   border: 1px solid var(--border);
-  border-radius: 20px; /* Pill shape */
+  border-radius: 20px;
+  /* Pill shape */
   cursor: pointer;
   background-color: var(--bg-main);
   color: var(--text-secondary);
@@ -525,12 +579,14 @@ input:checked + .slider:before {
 
 .status-option.active {
   background-color: var(--bg-hover);
-  border-color: var(--accent); /* Or specific status color */
+  border-color: var(--accent);
+  /* Or specific status color */
   color: #FFFFFF;
 }
 
 .status-option input {
-  display: none; /* Hide radio button */
+  display: none;
+  /* Hide radio button */
 }
 
 .status-dot {
@@ -540,13 +596,35 @@ input:checked + .slider:before {
   display: inline-block;
 }
 
-.status-available .status-dot { background-color: #10B981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
-.status-away .status-dot { background-color: #F59E0B; box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
-.status-busy .status-dot { background-color: #EF4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+.status-available .status-dot {
+  background-color: #10B981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
 
-.status-option.active.status-available { border-color: #10B981; background-color: rgba(16, 185, 129, 0.1); }
-.status-option.active.status-away { border-color: #F59E0B; background-color: rgba(245, 158, 11, 0.1); }
-.status-option.active.status-busy { border-color: #EF4444; background-color: rgba(239, 68, 68, 0.1); }
+.status-away .status-dot {
+  background-color: #F59E0B;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+.status-busy .status-dot {
+  background-color: #EF4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+
+.status-option.active.status-available {
+  border-color: #10B981;
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+.status-option.active.status-away {
+  border-color: #F59E0B;
+  background-color: rgba(245, 158, 11, 0.1);
+}
+
+.status-option.active.status-busy {
+  border-color: #EF4444;
+  background-color: rgba(239, 68, 68, 0.1);
+}
 
 /* Working Hours */
 .working-hours-inputs {
@@ -564,7 +642,8 @@ input:checked + .slider:before {
 .time-separator {
   color: var(--text-muted);
   font-weight: bold;
-  margin-top: 18px; /* Align with input */
+  margin-top: 18px;
+  /* Align with input */
 }
 
 .text-xs {

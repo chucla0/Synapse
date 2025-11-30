@@ -41,10 +41,16 @@ router.get('/profile', authenticateToken, authController.getProfile);
 router.put('/profile', authenticateToken, authController.updateProfile);
 
 /**
+ * DELETE /api/auth/profile
+ * Delete user account (protected route)
+ */
+router.delete('/profile', authenticateToken, authController.deleteAccount);
+
+/**
  * GET /api/auth/google
  * Initiate Google OAuth login
  */
-router.get('/google', passport.authenticate('google', { 
+router.get('/google', passport.authenticate('google', {
   scope: ['profile', 'email'],
   prompt: 'select_account'
 }));
@@ -54,7 +60,7 @@ router.get('/google', passport.authenticate('google', {
  * Connect Google Calendar
  */
 router.get('/google/connect', (req, res, next) => {
-  const options = { 
+  const options = {
     scope: ['profile', 'email', 'https://www.googleapis.com/auth/calendar'],
     accessType: 'offline',
     prompt: 'consent',

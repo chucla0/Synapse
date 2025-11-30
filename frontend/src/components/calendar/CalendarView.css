@@ -8,7 +8,8 @@
 
 .calendar-header {
   padding: var(--spacing-lg);
-  background: var(--bg-card); /* Changed */
+  background: var(--bg-card);
+  /* Changed */
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -37,16 +38,19 @@
   font-weight: 500;
   text-transform: capitalize;
   min-width: 200px;
-  color: var(--text-main); /* Changed */
+  color: var(--text-main);
+  /* Changed */
 }
 
 .view-selector {
   display: flex;
-  background: var(--bg-main); /* Changed */
+  background: var(--bg-main);
+  /* Changed */
   border-radius: var(--radius-md);
   padding: 4px;
   gap: 4px;
-  border: 1px solid var(--border); /* Added */
+  border: 1px solid var(--border);
+  /* Added */
 }
 
 .view-btn {
@@ -63,14 +67,16 @@
 }
 
 .view-btn:hover {
-  background: var(--bg-hover); /* Changed */
+  background: var(--bg-hover);
+  /* Changed */
   color: var(--text-main);
 }
 
 .view-btn.active {
-  background: #8B5CF6; /* Violet-500 */
-  color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+  background: var(--accent);
+  color: #333333;
+  /* Dark text for contrast on pastel accent */
+  box-shadow: 0 2px 8px var(--accent-light);
 }
 
 .calendar-content {

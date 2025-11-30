@@ -25,7 +25,8 @@ function AgendaSettingsModal({ agenda, onClose }) {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showConfirmLeave, setShowConfirmLeave] = useState(false);
   const [userToRemove, setUserToRemove] = useState(null);
-  
+  const [deleteConfirmationName, setDeleteConfirmationName] = useState('');
+
   const availableRoles = useMemo(() => ROLES_BY_TYPE[agenda.type] || [], [agenda.type]);
   const [inviteRole, setInviteRole] = useState(availableRoles[1] || availableRoles[0]);
 
@@ -129,8 +130,8 @@ function AgendaSettingsModal({ agenda, onClose }) {
   const handleInvite = async (e) => {
     e.preventDefault();
     if (inviteEmails.length === 0) return;
-    
-    const promises = inviteEmails.map(email => 
+
+    const promises = inviteEmails.map(email =>
       addUserMutation.mutateAsync({ email, role: inviteRole })
     );
 
@@ -143,12 +144,12 @@ function AgendaSettingsModal({ agenda, onClose }) {
       console.error("Error sending invites", error);
     }
   };
-  
+
   const sortedMembers = useMemo(() => {
     if (!fullAgenda) return [];
-    
+
     const members = [];
-    
+
     // Helper to add member
     const addMember = (user, role) => {
       members.push({ user, role, isCurrentUser: user.id === currentUser.id });
@@ -178,12 +179,12 @@ function AgendaSettingsModal({ agenda, onClose }) {
         if (['CHIEF', 'PROFESSOR', 'EDITOR'].includes(role)) return 1;
         return 2;
       };
-      
+
       const rankA = getRoleRank(a.role);
       const rankB = getRoleRank(b.role);
-      
+
       if (rankA !== rankB) return rankA - rankB;
-      
+
       // 3. Name alphabetical fallback
       return a.user.name.localeCompare(b.user.name);
     });
@@ -192,7 +193,7 @@ function AgendaSettingsModal({ agenda, onClose }) {
   // Permission checks
   const canEditGeneral = userRole === 'OWNER';
   const canInvite = userRole === 'OWNER' && agenda.type !== 'PERSONAL';
-  
+
   const canChangeRole = (targetUserRole) => {
     if (userRole === 'OWNER' && agenda.type !== 'EDUCATIVA') return true;
     if (userRole === 'CHIEF' && agenda.type === 'LABORAL' && targetUserRole === 'EMPLOYEE') return true;
@@ -216,9 +217,9 @@ function AgendaSettingsModal({ agenda, onClose }) {
         <div className="user-info-container">
           <div className="user-avatar-wrapper">
             {user.avatar ? (
-              <img 
-                src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${user.avatar}`} 
-                alt={user.name} 
+              <img
+                src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${user.avatar}`}
+                alt={user.name}
                 className="user-avatar-circle"
               />
             ) : (
@@ -234,14 +235,14 @@ function AgendaSettingsModal({ agenda, onClose }) {
             <span className="user-email-text">{user.email}</span>
           </div>
         </div>
-        
+
         <div className="user-action-container">
           {canEditThisUser ? (
             <div className="role-actions">
-              <select 
-                className="role-select" 
-                value={role} 
-                onChange={(e) => updateUserRoleMutation.mutate({ userId: user.id, role: e.target.value })} 
+              <select
+                className="role-select"
+                value={role}
+                onChange={(e) => updateUserRoleMutation.mutate({ userId: user.id, role: e.target.value })}
               >
                 {availableRoles.map(r => <option key={r} value={r}>{t(`roles.${r}`, r)}</option>)}
               </select>
@@ -288,11 +289,11 @@ function AgendaSettingsModal({ agenda, onClose }) {
                   </div>
                   <div className="form-group">
                     <label htmlFor="agenda-name">{t('agendaNameLabel_settings')}</label>
-                    <input type="text" id="agenda-name" className="input" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} disabled={!canEditGeneral} />
+                    <input type="text" id="agenda-name" className="input" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} disabled={!canEditGeneral} />
                   </div>
                   <div className="form-group">
                     <label htmlFor="agenda-desc">{t('descriptionLabel')}</label>
-                    <textarea id="agenda-desc" className="input" rows="3" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} disabled={!canEditGeneral} />
+                    <textarea id="agenda-desc" className="input" rows="3" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} disabled={!canEditGeneral} />
                   </div>
                   {canEditGeneral && (
                     <div className="modal-actions">
@@ -344,21 +345,21 @@ function AgendaSettingsModal({ agenda, onClose }) {
                               disabled={addUserMutation.isPending}
                             />
                           </div>
-                          
+
                           <div className="invite-actions-wrapper">
                             {agenda.type !== 'COLABORATIVA' && (
-                              <select 
-                                className="role-select-compact" 
-                                value={inviteRole} 
+                              <select
+                                className="role-select-compact"
+                                value={inviteRole}
                                 onChange={(e) => setInviteRole(e.target.value)}
                                 disabled={addUserMutation.isPending}
                               >
                                 {availableRoles.map(role => <option key={role} value={role}>{t(`roles.${role}`, role)}</option>)}
                               </select>
                             )}
-                            <button 
-                              type="submit" 
-                              className="btn btn-primary btn-compact" 
+                            <button
+                              type="submit"
+                              className="btn btn-primary btn-compact"
                               disabled={inviteEmails.length === 0 || addUserMutation.isPending}
                             >
                               {addUserMutation.isPending ? t('invitingButton') : t('inviteButton')}
@@ -386,11 +387,28 @@ function AgendaSettingsModal({ agenda, onClose }) {
         <ConfirmDeleteModal
           message={t('confirmDeleteAgenda', { name: agenda.name })}
           onConfirm={executeDelete}
-          onCancel={() => setShowConfirmDelete(false)}
+          onCancel={() => {
+            setShowConfirmDelete(false);
+            setDeleteConfirmationName('');
+          }}
           isDeleting={deleteAgendaMutation.isPending}
           confirmText={t('deleteButton')}
           deletingText={t('deletingAgendaButton', 'Eliminando...')}
-        />
+          disabled={deleteConfirmationName !== agenda.name}
+        >
+          <div className="mt-4">
+            <p className="text-sm text-muted mb-2">
+              {t('typeAgendaNameConfirm', 'Escribe el nombre de la agenda para confirmar:')} <strong>{agenda.name}</strong>
+            </p>
+            <input
+              type="text"
+              className="input"
+              placeholder={agenda.name}
+              value={deleteConfirmationName}
+              onChange={(e) => setDeleteConfirmationName(e.target.value)}
+            />
+          </div>
+        </ConfirmDeleteModal>
       )}
 
       {showConfirmLeave && (

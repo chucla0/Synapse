@@ -302,5 +302,12 @@
   "workingHoursLabel": "Horari de Treball",
   "startTime": "Hora d'Inici",
   "endTime": "Hora de Fi",
-  "maxLinksReached": "Màxim 5 enllaços permesos"
+  "maxLinksReached": "Màxim 5 enllaços permesos",
+  "deleteAccountButton": "Eliminar Compte",
+  "deleteAccountWarning": "Eliminar el teu compte és irreversible. S'eliminaran totes les teves agendes personals.",
+  "confirmDeleteAccountMessage": "Estàs segur que vols eliminar el teu compte? Aquesta acció no es pot desfer.",
+  "passwordPlaceholder": "Contrasenya",
+  "confirmDeleteButton": "Sí, eliminar",
+  "deleting": "Eliminant...",
+  "cancelButton": "Cancel·lar"
 }

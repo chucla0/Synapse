@@ -36,7 +36,7 @@ async function getAllEvents(req, res) {
           // Event ends within range
           { endTime: { gte: new Date(startDate), lte: new Date(endDate) } },
           // Event spans the range
-          { 
+          {
             AND: [
               { startTime: { lte: new Date(startDate) } },
               { endTime: { gte: new Date(endDate) } }
@@ -79,7 +79,7 @@ async function getAllEvents(req, res) {
 
       // 3. Check agenda type specific rules
       const agenda = event.agenda;
-      
+
       // Get user role in this agenda
       let userRole = null;
       if (agenda.ownerId === userId) {
@@ -103,7 +103,7 @@ async function getAllEvents(req, res) {
 
       if (agenda.type === 'PERSONAL') {
         // Should be owner only, covered above
-        return event; 
+        return event;
       }
 
       if (agenda.type === 'COLABORATIVA') {
@@ -122,7 +122,7 @@ async function getAllEvents(req, res) {
       if (agenda.type === 'LABORAL') {
         // Chief sees all
         if (userRole === 'CHIEF') return event;
-        
+
         // Employee: only if added (sharedWith) or created (covered above)
         if (userRole === 'EMPLOYEE') {
           const isShared = event.sharedWithUsers.some(u => u.id === userId);
@@ -136,7 +136,7 @@ async function getAllEvents(req, res) {
         if (userRole === 'PROFESSOR' || userRole === 'TEACHER') return event; // 'TEACHER' is the enum value usually? Check schema/other files. 
         // In other files I saw 'TEACHER' used in removeUserFromAgenda logic: `requesterRole === 'TEACHER'`.
         // Let's assume 'TEACHER' is the role name for professor.
-        
+
         // Student: only if visibleToStudents is true
         if (userRole === 'STUDENT') {
           if (event.visibleToStudents) return event;
@@ -156,14 +156,8 @@ async function getAllEvents(req, res) {
     }));
 
     const finalEvents = visibleEvents.filter(e => e !== null);
-    
+
     console.log(`API returning ${finalEvents.length} events for user ${userId}`);
-    const homework = finalEvents.find(e => e.title === 'Homework Assignment');
-    if (homework) {
-      console.log('✅ Homework Assignment IS in the response');
-    } else {
-      console.log('❌ Homework Assignment is NOT in the response');
-    }
 
     res.json({
       events: finalEvents
@@ -171,9 +165,9 @@ async function getAllEvents(req, res) {
 
   } catch (error) {
     console.error('Get events error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to fetch events',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
@@ -205,13 +199,13 @@ async function getEventById(req, res) {
     });
 
     if (!event) {
-      return res.status(404).json({ 
-        error: 'Event not found' 
+      return res.status(404).json({
+        error: 'Event not found'
       });
     }
 
     // Check access permission
-    const hasAccess = event.agenda.ownerId === userId || 
+    const hasAccess = event.agenda.ownerId === userId ||
       await prisma.agendaUser.findUnique({
         where: {
           agendaId_userId: {
@@ -222,9 +216,9 @@ async function getEventById(req, res) {
       });
 
     if (!hasAccess) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'Access denied',
-        message: 'You do not have access to this event' 
+        message: 'You do not have access to this event'
       });
     }
 
@@ -232,9 +226,9 @@ async function getEventById(req, res) {
 
   } catch (error) {
     console.error('Get event error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to fetch event',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
@@ -264,9 +258,9 @@ async function createEvent(req, res) {
 
     // Validate required fields
     if (!title || !agendaId || !startTime || !endTime) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Validation error',
-        message: 'Title, agenda, start time, and end time are required' 
+        message: 'Title, agenda, start time, and end time are required'
       });
     }
 
@@ -281,8 +275,8 @@ async function createEvent(req, res) {
     });
 
     if (!agenda) {
-      return res.status(404).json({ 
-        error: 'Agenda not found' 
+      return res.status(404).json({
+        error: 'Agenda not found'
       });
     }
 
@@ -291,9 +285,9 @@ async function createEvent(req, res) {
     const userRole = isOwner ? 'OWNER' : agenda.agendaUsers[0]?.role;
 
     if (!isOwner && !userRole) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'Access denied',
-        message: 'You do not have access to this agenda' 
+        message: 'You do not have access to this agenda'
       });
     }
 
@@ -303,9 +297,9 @@ async function createEvent(req, res) {
     if (agenda.type === 'LABORAL' && userRole === 'EMPLOYEE') {
       eventStatus = 'PENDING_APPROVAL';
     } else if (agenda.type === 'EDUCATIVA' && userRole === 'STUDENT') {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'Permission denied',
-        message: 'Students cannot create events in educational agendas' 
+        message: 'Students cannot create events in educational agendas'
       });
     }
 
@@ -339,7 +333,7 @@ async function createEvent(req, res) {
     });
 
     if (conflicts.length > 0) {
-      return res.status(409).json({ 
+      return res.status(409).json({
         error: 'Time conflict',
         message: 'You have another event scheduled at this time',
         conflicts: conflicts.map(e => ({
@@ -400,7 +394,7 @@ async function createEvent(req, res) {
           },
           select: { userId: true }
         });
-        
+
         // Always include owner
         const recipientIds = [agenda.ownerId, ...recipients.map(r => r.userId)];
         // Filter out sender (if sender is somehow owner/chief creating pending event, unlikely but safe)
@@ -452,9 +446,9 @@ async function createEvent(req, res) {
 
   } catch (error) {
     console.error('Create event error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to create event',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
@@ -475,19 +469,19 @@ async function updateEvent(req, res) {
     });
 
     if (!event) {
-      return res.status(404).json({ 
-        error: 'Event not found' 
+      return res.status(404).json({
+        error: 'Event not found'
       });
     }
 
     // Check permission
     const isCreator = event.creatorId === userId;
     const isAgendaOwner = event.agenda.ownerId === userId;
-    
+
     console.log(`[UpdateEvent] User: ${userId}, Event: ${eventId}`);
     console.log(`[UpdateEvent] AgendaOwner: ${event.agenda.ownerId}, IsOwner: ${isAgendaOwner}`);
     console.log(`[UpdateEvent] Creator: ${event.creatorId}, IsCreator: ${isCreator}`);
-    
+
     if (isAgendaOwner) {
       // Owner can always update
       console.log('[UpdateEvent] Allowed: User is agenda owner');
@@ -509,8 +503,8 @@ async function updateEvent(req, res) {
       if (agendaType === 'PERSONAL') {
         // Should be owner only (handled above), but if shared? Personal usually not shared.
         if (!isCreator) {
-             console.log('[UpdateEvent] Denied: Personal agenda, not creator');
-             return res.status(403).json({ error: 'Permission denied', message: 'Only the creator can update events in this personal agenda', debug: 'Personal agenda, not creator' });
+          console.log('[UpdateEvent] Denied: Personal agenda, not creator');
+          return res.status(403).json({ error: 'Permission denied', message: 'Only the creator can update events in this personal agenda', debug: 'Personal agenda, not creator' });
         }
       } else if (agendaType === 'COLABORATIVA') {
         // Editors can only update their own events
@@ -534,12 +528,12 @@ async function updateEvent(req, res) {
             return res.status(403).json({ error: 'Permission denied', message: 'Employees can only update their own events', debug: 'Employee, not creator' });
           }
           if (event.status !== 'PENDING_APPROVAL') {
-             console.log('[UpdateEvent] Denied: Employee, event not pending');
-             return res.status(403).json({ error: 'Permission denied', message: 'Cannot update approved events', debug: 'Employee, event not pending' });
+            console.log('[UpdateEvent] Denied: Employee, event not pending');
+            return res.status(403).json({ error: 'Permission denied', message: 'Cannot update approved events', debug: 'Employee, event not pending' });
           }
         } else {
-           console.log('[UpdateEvent] Denied: Laboral unknown role');
-           return res.status(403).json({ error: 'Permission denied', debug: `Laboral unknown role: ${userRole}` });
+          console.log('[UpdateEvent] Denied: Laboral unknown role');
+          return res.status(403).json({ error: 'Permission denied', debug: `Laboral unknown role: ${userRole}` });
         }
       } else if (agendaType === 'EDUCATIVA') {
         // Professors can update ANY event (from other professors too)
@@ -565,7 +559,7 @@ async function updateEvent(req, res) {
         ...(updateData.color && { color: updateData.color }),
         ...(updateData.isPrivate !== undefined && { isPrivate: updateData.isPrivate }),
         ...(updateData.visibleToStudents !== undefined && { visibleToStudents: updateData.visibleToStudents }),
-        ...(updateData.sharedWithUserIds && { 
+        ...(updateData.sharedWithUserIds && {
           sharedWithUsers: {
             set: updateData.sharedWithUserIds.map(id => ({ id }))
           }
@@ -588,7 +582,7 @@ async function updateEvent(req, res) {
       // But since attachments are just references to files, this updates the references.
       // Ideally frontend sends "newAttachments" and we keep old ones, or sends full list.
       // Let's assume frontend sends the FULL list of desired attachments.
-      
+
       // Actually, for simplicity and safety, let's just ADD new ones if provided separate from existing?
       // No, let's go with: if attachments is provided, we replace the list (delete all for this event, create new).
       // WARN: This deletes DB records. Files remain in storage.
@@ -608,7 +602,7 @@ async function updateEvent(req, res) {
         });
       }
     }
-    
+
     // Refetch to get everything
     const finalEvent = await prisma.event.findUnique({
       where: { id: eventId },
@@ -648,9 +642,9 @@ async function updateEvent(req, res) {
 
   } catch (error) {
     console.error('Update event error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to update event',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
@@ -665,7 +659,7 @@ async function deleteEvent(req, res) {
     // Get event with agenda
     const event = await prisma.event.findUnique({
       where: { id: eventId },
-      include: { 
+      include: {
         agenda: {
           include: {
             agendaUsers: true,
@@ -676,8 +670,8 @@ async function deleteEvent(req, res) {
     });
 
     if (!event) {
-      return res.status(404).json({ 
-        error: 'Event not found' 
+      return res.status(404).json({
+        error: 'Event not found'
       });
     }
 
@@ -717,10 +711,10 @@ async function deleteEvent(req, res) {
             return res.status(403).json({ error: 'Permission denied', message: 'Employees can only delete their own events' });
           }
           if (event.status !== 'PENDING_APPROVAL') {
-             return res.status(403).json({ error: 'Permission denied', message: 'Cannot delete approved events' });
+            return res.status(403).json({ error: 'Permission denied', message: 'Cannot delete approved events' });
           }
         } else {
-           return res.status(403).json({ error: 'Permission denied' });
+          return res.status(403).json({ error: 'Permission denied' });
         }
       } else if (agendaType === 'EDUCATIVA') {
         // Professors can delete ANY event
@@ -765,9 +759,9 @@ async function deleteEvent(req, res) {
 
   } catch (error) {
     console.error('Delete event error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to delete event',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
@@ -782,7 +776,7 @@ async function approveEvent(req, res) {
 
     const event = await prisma.event.findUnique({
       where: { id: eventId },
-      include: { 
+      include: {
         agenda: true,
         creator: {
           select: { id: true, name: true }
@@ -791,8 +785,8 @@ async function approveEvent(req, res) {
     });
 
     if (!event) {
-      return res.status(404).json({ 
-        error: 'Event not found' 
+      return res.status(404).json({
+        error: 'Event not found'
       });
     }
 
@@ -808,9 +802,9 @@ async function approveEvent(req, res) {
       });
 
       if (!agendaUser || agendaUser.role !== 'CHIEF') {
-        return res.status(403).json({ 
+        return res.status(403).json({
           error: 'Permission denied',
-          message: 'Only chiefs can approve events' 
+          message: 'Only chiefs can approve events'
         });
       }
     }
@@ -852,9 +846,9 @@ async function approveEvent(req, res) {
 
   } catch (error) {
     console.error('Approve event error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to approve event',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
@@ -870,7 +864,7 @@ async function rejectEvent(req, res) {
 
     const event = await prisma.event.findUnique({
       where: { id: eventId },
-      include: { 
+      include: {
         agenda: true,
         creator: {
           select: { id: true, name: true }
@@ -879,8 +873,8 @@ async function rejectEvent(req, res) {
     });
 
     if (!event) {
-      return res.status(404).json({ 
-        error: 'Event not found' 
+      return res.status(404).json({
+        error: 'Event not found'
       });
     }
 
@@ -896,9 +890,9 @@ async function rejectEvent(req, res) {
       });
 
       if (!agendaUser || agendaUser.role !== 'CHIEF') {
-        return res.status(403).json({ 
+        return res.status(403).json({
           error: 'Permission denied',
-          message: 'Only chiefs can reject events' 
+          message: 'Only chiefs can reject events'
         });
       }
     }
@@ -931,9 +925,9 @@ async function rejectEvent(req, res) {
 
   } catch (error) {
     console.error('Reject event error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to reject event',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
