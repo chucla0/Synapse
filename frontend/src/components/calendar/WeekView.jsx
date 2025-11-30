@@ -5,7 +5,9 @@ import { hexToRgba } from '../../utils/colors';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import './WeekView.css';
 
-const DraggableWeekEvent = ({ event, agendaColor, onEventClick, locale }) => {
+import { useSettings } from '../../contexts/SettingsContext';
+
+const DraggableWeekEvent = ({ event, agendaColor, onEventClick, locale, timeFormatStr }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: event.id,
     data: event,
@@ -29,7 +31,7 @@ const DraggableWeekEvent = ({ event, agendaColor, onEventClick, locale }) => {
       ref={setNodeRef}
       className={`week-event ${event.status === 'PENDING_APPROVAL' ? 'pending-approval' : ''}`}
       style={style}
-      title={`${event.title}\n${format(new Date(event.startTime), 'p', { locale })} - ${format(new Date(event.endTime), 'p', { locale })}`}
+      title={`${event.title}\n${format(new Date(event.startTime), timeFormatStr, { locale })} - ${format(new Date(event.endTime), timeFormatStr, { locale })}`}
       {...listeners}
       {...attributes}
       onClick={(e) => {
@@ -39,7 +41,7 @@ const DraggableWeekEvent = ({ event, agendaColor, onEventClick, locale }) => {
     >
       <div className="event-title">{event.title}</div>
       <div className="event-time">
-        {format(new Date(event.startTime), 'p', { locale })}
+        {format(new Date(event.startTime), timeFormatStr, { locale })}
       </div>
     </div>
   );
@@ -63,9 +65,12 @@ const DroppableWeekSlot = ({ day, hour, children }) => {
 };
 
 function WeekView({ date, events, agendaColor, onEventClick, weekStartsOn = 1 }) {
+  const { settings } = useSettings();
   const locale = useDateFnsLocale();
   const weekDays = getWeekDays(date, { weekStartsOn });
   const groupedEvents = groupEventsByDay(events);
+  
+  const timeFormatStr = settings.display.timeFormat === '24h' ? 'HH:mm' : 'h:mm a';
 
   return (
     <div className="week-view">
@@ -91,7 +96,7 @@ function WeekView({ date, events, agendaColor, onEventClick, weekStartsOn = 1 })
           <div className="week-timeline">
             {Array.from({ length: 24 }, (_, hour) => (
               <div key={hour} className="timeline-hour">
-                {format(new Date().setHours(hour, 0), 'p', { locale })}
+                {format(new Date().setHours(hour, 0), timeFormatStr, { locale })}
               </div>
             ))}
           </div>
@@ -116,6 +121,7 @@ function WeekView({ date, events, agendaColor, onEventClick, weekStartsOn = 1 })
                       agendaColor={agendaColor}
                       onEventClick={onEventClick}
                       locale={locale}
+                      timeFormatStr={timeFormatStr}
                     />
                   ))}
                 </div>

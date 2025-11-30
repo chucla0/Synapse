@@ -11,7 +11,6 @@ import CreateAgendaModal from '../../components/agenda/CreateAgendaModal';
 import ProfileSettingsModal from '../../components/settings/ProfileSettingsModal';
 import AgendaSettingsModal from '../../components/agenda/AgendaSettingsModal';
 import WebSettingsModal from '../../components/settings/WebSettingsModal';
-import WebThemeModal from '../../components/settings/WebThemeModal';
 import Home from '../Home/Home';
 import './Dashboard.css';
 
@@ -27,6 +26,8 @@ const typeOrder = {
   'EDUCATIVA': 3,
   'SOCIAL': 4,
   'COLABORATIVA': 5,
+  'SOCIAL': 4,
+  'COLABORATIVA': 5,
 };
 
 function Dashboard({ onLogout, sessionKey }) {
@@ -35,7 +36,6 @@ function Dashboard({ onLogout, sessionKey }) {
   const [showCreateAgenda, setShowCreateAgenda] = useState(false);
   const [showProfileSettings, setShowProfileSettings] = useState(false);
   const [showWebSettings, setShowWebSettings] = useState(false);
-  const [showWebTheme, setShowWebTheme] = useState(false);
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [editingAgenda, setEditingAgenda] = useState(null);
@@ -441,13 +441,6 @@ function Dashboard({ onLogout, sessionKey }) {
           </button>
           <button 
             className="btn btn-secondary btn-block"
-            onClick={() => setShowWebTheme(true)}
-            title={t('webThemeTitle')}
-          >
-            <Palette size={18} style={{ marginRight: '8px' }} /> {t('webThemeButton')}
-          </button>
-          <button 
-            className="btn btn-secondary btn-block"
             onClick={handleLogout}
           >
             {t('logout')}
@@ -494,13 +487,16 @@ function Dashboard({ onLogout, sessionKey }) {
         />
       )}
       {showProfileSettings && (
-        <ProfileSettingsModal onClose={() => setShowProfileSettings(false)} />
+        <WebSettingsModal 
+          onClose={() => setShowProfileSettings(false)} 
+          initialTab="profile"
+        />
       )}
       {showWebSettings && (
-        <WebSettingsModal onClose={() => setShowWebSettings(false)} />
-      )}
-      {showWebTheme && (
-        <WebThemeModal onClose={() => setShowWebTheme(false)} />
+        <WebSettingsModal 
+          onClose={() => setShowWebSettings(false)} 
+          initialTab="display"
+        />
       )}
       {editingAgenda && (
         <AgendaSettingsModal 

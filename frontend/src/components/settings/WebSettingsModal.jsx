@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   X, 
@@ -10,23 +10,175 @@ import {
   Check,
   Calendar,
   Mail,
-  Video
+  Video,
+  User,
+  Trash2
 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import Cropper from 'react-easy-crop';
 import api from '../../utils/api';
-import { getUser } from '../../utils/auth';
+import { getUser, setUser } from '../../utils/auth';
 import './WebSettingsModal.css';
 import CustomSelect from '../ui/CustomSelect';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useSettings } from '../../contexts/SettingsContext';
 
-function WebSettingsModal({ onClose }) {
+// ... (inside component)
+// Helper to create the cropped image
+const createImage = (url) =>
+  new Promise((resolve, reject) => {
+    const image = new Image();
+    image.addEventListener('load', () => resolve(image));
+    image.addEventListener('error', (error) => reject(error));
+    image.setAttribute('crossOrigin', 'anonymous');
+    image.src = url;
+  });
+
+async function getCroppedImg(imageSrc, pixelCrop) {
+  const image = await createImage(imageSrc);
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = pixelCrop.width;
+  canvas.height = pixelCrop.height;
+
+  ctx.drawImage(
+    image,
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height,
+    0,
+    0,
+    pixelCrop.width,
+    pixelCrop.height
+  );
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((file) => {
+      if (file) {
+        resolve(file);
+      } else {
+        reject(new Error('Canvas is empty'));
+      }
+    }, 'image/jpeg', 0.95);
+  });
+}
+
+function WebSettingsModal({ onClose, initialTab = 'display' }) {
   const { t } = useTranslation();
   const { settings, updateSetting } = useSettings();
+  const { theme, setTheme, accentId, setAccentId, availableColors } = useTheme();
   const queryClient = useQueryClient();
   const currentUser = getUser();
   const isGoogleConnected = !!currentUser?.googleId;
   
-  const [activeTab, setActiveTab] = useState('display');
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Profile State
+  const [formData, setFormData] = useState({
+    name: currentUser?.name || '',
+    avatar: currentUser?.avatar || '',
+    currentPassword: '',
+    newPassword: '',
+  });
+  const [errors, setErrors] = useState({});
+  
+  // Cropper state
+  const [imageSrc, setImageSrc] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [isCropping, setIsCropping] = useState(false);
+
+  const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const handleAvatarChange = async (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const imageDataUrl = await readFile(file);
+      setImageSrc(imageDataUrl);
+      setIsCropping(true);
+    }
+  };
+
+  const readFile = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.addEventListener('load', () => resolve(reader.result), false);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const uploadAvatarMutation = useMutation({
+    mutationFn: (file) => {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      return api.post('/uploads/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    },
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: (data) => api.put('/auth/profile', data),
+    onSuccess: (data) => {
+      setUser(data.data.user);
+      queryClient.invalidateQueries({ queryKey: ['agendas'] });
+      alert(t('profileUpdated'));
+    },
+    onError: (error) => {
+      const message = error.response?.data?.message || t('profileUpdateError');
+      setErrors({ submit: message });
+    }
+  });
+
+  const handleCropSave = async () => {
+    try {
+      const croppedImageBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
+      const file = new File([croppedImageBlob], "avatar.jpg", { type: "image/jpeg" });
+      
+      const uploadResponse = await uploadAvatarMutation.mutateAsync(file);
+      const newAvatarUrl = uploadResponse.data.filePath;
+      
+      setFormData(prev => ({ ...prev, avatar: newAvatarUrl }));
+      setIsCropping(false);
+      setImageSrc(null);
+    } catch (e) {
+      console.error(e);
+      setErrors({ submit: t('imageProcessError') });
+    }
+  };
+
+  const handleCancelCrop = () => {
+    setIsCropping(false);
+    setImageSrc(null);
+  };
+
+  const handleDeleteAvatar = () => {
+    if (window.confirm(t('confirmDeleteAvatar'))) {
+      setFormData(prev => ({ ...prev, avatar: null }));
+    }
+  };
+
+  const handleProfileSubmit = async (e) => {
+    e.preventDefault();
+    setErrors({});
+    
+    const payload = {};
+    if (formData.name !== currentUser.name) payload.name = formData.name;
+    if (formData.avatar !== currentUser.avatar) payload.avatar = formData.avatar;
+    if (formData.newPassword) {
+      payload.newPassword = formData.newPassword;
+      payload.currentPassword = formData.currentPassword;
+    }
+
+    if (Object.keys(payload).length === 0) return;
+    
+    updateProfileMutation.mutate(payload);
+  };
 
   const syncGoogleMutation = useMutation({
     mutationFn: () => api.post('/integrations/google/import'),
@@ -37,18 +189,49 @@ function WebSettingsModal({ onClose }) {
     },
     onError: (error) => {
       console.error(error);
-      alert('Error al sincronizar');
+      alert(t('syncError'));
     }
   });
 
-
-
-// ... (imports remain the same)
-
-// ... (inside component)
-
   const renderDisplaySettings = () => (
     <div className="settings-group">
+      <div className="setting-row">
+        <div className="setting-info">
+          <label className="setting-label">{t('theme', 'Tema')}</label>
+        </div>
+        <div className="setting-control">
+          <CustomSelect
+            value={theme}
+            onChange={setTheme}
+            options={[
+              { value: 'light', label: t('light', 'Claro') },
+              { value: 'dark', label: t('dark', 'Oscuro') }
+            ]}
+          />
+        </div>
+      </div>
+
+      <div className="setting-row">
+        <div className="setting-info">
+          <label className="setting-label">{t('accentColor', 'Color de Acento')}</label>
+        </div>
+        <div className="setting-control">
+          <div className="accent-color-selector">
+            {availableColors.map(color => (
+              <button
+                key={color.id}
+                className={`color-swatch-btn ${accentId === color.id ? 'active' : ''}`}
+                style={{ backgroundColor: theme === 'dark' ? color.dark : color.light }}
+                onClick={() => setAccentId(color.id)}
+                title={color.label}
+              >
+                {accentId === color.id && <Check size={14} color={theme === 'dark' ? '#fff' : '#000'} />}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div className="setting-row">
         <div className="setting-info">
           <label className="setting-label">{t('timezone', 'Zona Horaria')}</label>
@@ -321,6 +504,160 @@ function WebSettingsModal({ onClose }) {
     </div>
   );
 
+  const renderProfileSettings = () => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    
+    if (isCropping) {
+      return (
+        <div className="cropper-container">
+          <div className="cropper-wrapper">
+            <Cropper
+              image={imageSrc}
+              crop={crop}
+              zoom={zoom}
+              aspect={1}
+              onCropChange={setCrop}
+              onCropComplete={onCropComplete}
+              onZoomChange={setZoom}
+              cropShape="round"
+              showGrid={false}
+            />
+          </div>
+          <div className="cropper-controls">
+            <input
+              type="range"
+              value={zoom}
+              min={1}
+              max={3}
+              step={0.1}
+              onChange={(e) => setZoom(e.target.value)}
+              className="zoom-range"
+            />
+            <div className="cropper-actions">
+              <button type="button" className="btn btn-secondary" onClick={handleCancelCrop}>
+                {t('cancelButton', 'Cancelar')}
+              </button>
+              <button type="button" className="btn btn-primary" onClick={handleCropSave}>
+                {t('saveImageButton', 'Guardar Imagen')}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <form onSubmit={handleProfileSubmit} className="profile-form">
+        <div className="form-group">
+          <label htmlFor="email">{t('emailLabel', 'Email')}</label>
+          <input
+            type="email"
+            id="email"
+            value={currentUser?.email || ''}
+            className="input"
+            disabled
+            readOnly
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="name">{t('nameLabel', 'Nombre')}</label>
+          <input
+            type="text"
+            id="name"
+            value={formData.name}
+            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            className="input"
+            disabled={updateProfileMutation.isPending}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>{t('avatarUrlLabel', 'Foto de Perfil')}</label>
+          <div className="avatar-upload-area">
+            {formData.avatar ? (
+              <img 
+                src={formData.avatar.startsWith('http') ? formData.avatar : `${API_URL}${formData.avatar}`}
+                alt="Avatar Preview" 
+                className="avatar-preview" 
+              />
+            ) : (
+              <div className="avatar-preview avatar-preview-default">
+                {currentUser?.name?.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="avatar-actions">
+              <input
+                type="file"
+                id="avatar-upload"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                style={{ display: 'none' }}
+              />
+              <label htmlFor="avatar-upload" className="btn btn-secondary btn-sm">
+                {t('changeImageButton', 'Cambiar')}
+              </label>
+              {formData.avatar && (
+                <button 
+                  type="button" 
+                  className="btn btn-danger btn-sm"
+                  onClick={handleDeleteAvatar}
+                  title={t('deleteImageButton', 'Eliminar')}
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <hr className="divider" />
+
+        <h3 className="form-section-title">{t('changePasswordTitle', 'Cambiar Contraseña')}</h3>
+        <div className="form-group">
+          <label htmlFor="currentPassword">{t('currentPasswordLabel', 'Contraseña Actual')}</label>
+          <input
+            type="password"
+            id="currentPassword"
+            value={formData.currentPassword}
+            onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
+            className="input"
+            placeholder="********"
+            disabled={updateProfileMutation.isPending}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="newPassword">{t('newPasswordLabel', 'Nueva Contraseña')}</label>
+          <input
+            type="password"
+            id="newPassword"
+            value={formData.newPassword}
+            onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
+            className="input"
+            placeholder="********"
+            disabled={updateProfileMutation.isPending}
+          />
+        </div>
+
+        {errors.submit && (
+          <div className="error-banner">
+            {errors.submit}
+          </div>
+        )}
+
+        <div className="modal-actions" style={{justifyContent: 'flex-start', padding: 0, border: 'none', background: 'transparent'}}>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={updateProfileMutation.isPending}
+          >
+            {updateProfileMutation.isPending ? t('savingButton', 'Guardando...') : t('saveChangesButton', 'Guardar Cambios')}
+          </button>
+        </div>
+      </form>
+    );
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content web-settings-modal" onClick={(e) => e.stopPropagation()}>
@@ -331,6 +668,13 @@ function WebSettingsModal({ onClose }) {
 
         <div className="web-settings-body">
           <aside className="settings-sidebar">
+            <button 
+              className={`settings-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
+              onClick={() => setActiveTab('profile')}
+            >
+              <User size={18} className="settings-nav-icon" />
+              {t('profile', 'Perfil')}
+            </button>
             <button 
               className={`settings-nav-item ${activeTab === 'display' ? 'active' : ''}`}
               onClick={() => setActiveTab('display')}
@@ -363,12 +707,16 @@ function WebSettingsModal({ onClose }) {
 
           <main className="settings-content">
             <h3 className="settings-section-title">
+              {activeTab === 'profile' && t('profileSettings', 'Configuración de Perfil')}
               {activeTab === 'display' && t('displayPreferences', 'Preferencias de Visualización')}
               {activeTab === 'notifications' && t('notifications', 'Notificaciones y Alertas')}
               {activeTab === 'integrations' && t('integrations', 'Integraciones y Conexiones')}
               {activeTab === 'help' && t('helpAndLegal', 'Ayuda y Legal')}
             </h3>
             
+
+            
+            {activeTab === 'profile' && renderProfileSettings()}
             {activeTab === 'display' && renderDisplaySettings()}
             {activeTab === 'notifications' && renderNotificationSettings()}
             {activeTab === 'integrations' && renderIntegrationSettings()}
