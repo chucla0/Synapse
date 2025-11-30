@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { setAuthData } from '../utils/auth';
-import api from '../utils/api';
+import { setAuthData } from '../../utils/auth';
+import api from '../../utils/api';
 
 export default function GoogleCallback({ onLogin }) {
   const [searchParams] = useSearchParams();

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import api from '../utils/api';
-import { clearAuth, setAuthData } from '../utils/auth';
-import AuthLayout from '../layouts/AuthLayout';
-import './Auth/Auth.css';
+import api from '../../utils/api';
+import { clearAuth, setAuthData } from '../../utils/auth';
+import AuthLayout from '../../layouts/AuthLayout';
+import './Auth.css';
 
 export default function SetPassword({ onLogin }) {
   const [password, setPassword] = useState('');
