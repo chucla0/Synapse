@@ -2,17 +2,23 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ArrowDown, User, Briefcase, PartyPopper, GraduationCap, Sun, Moon, Layers, Shield, Zap, Users, MessageCircle, Lock, Bell, Move } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useSettings } from '../contexts/SettingsContext';
 import '../pages/Auth/Auth.css';
 
 const AuthLayout = ({ children, title, subtitle }) => {
   const { t, i18n } = useTranslation();
   const { theme, setTheme } = useTheme();
+  const { updateSetting } = useSettings();
+
+  const handleLanguageChange = (lang) => {
+    updateSetting('display', 'language', lang);
+  };
 
   return (
     <div className="auth-layout">
       {/* Floating Language Switcher */}
       <div className="auth-language-switcher">
-        <button 
+        <button
           className="theme-toggle-btn"
           onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
           title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
@@ -20,21 +26,21 @@ const AuthLayout = ({ children, title, subtitle }) => {
           {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
         </button>
         <div className="divider-vertical"></div>
-        <button 
-          className={`lang-btn lang-btn-es ${i18n.language === 'es' ? 'active' : ''}`} 
-          onClick={() => i18n.changeLanguage('es')}
+        <button
+          className={`lang-btn lang-btn-es ${i18n.language === 'es' ? 'active' : ''}`}
+          onClick={() => handleLanguageChange('es')}
         >
           ES
         </button>
-        <button 
-          className={`lang-btn lang-btn-en ${i18n.language === 'en' ? 'active' : ''}`} 
-          onClick={() => i18n.changeLanguage('en')}
+        <button
+          className={`lang-btn lang-btn-en ${i18n.language === 'en' ? 'active' : ''}`}
+          onClick={() => handleLanguageChange('en')}
         >
           EN
         </button>
-        <button 
-          className={`lang-btn lang-btn-ca ${i18n.language === 'ca' ? 'active' : ''}`} 
-          onClick={() => i18n.changeLanguage('ca')}
+        <button
+          className={`lang-btn lang-btn-ca ${i18n.language === 'ca' ? 'active' : ''}`}
+          onClick={() => handleLanguageChange('ca')}
         >
           CA
         </button>
@@ -54,7 +60,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
       {/* Right Side - Presentation */}
       <div className="auth-right">
         <div className="presentation-scroll-container">
-          
+
           {/* Hero Section */}
           <section className="scroll-section hero-section">
             <h1 className="big-title">{t('auth_hero_title')}</h1>
@@ -76,7 +82,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
           {/* Bento Grid Features Section */}
           <section className="scroll-section bento-section">
             <div className="bento-grid">
-              
+
               {/* Main Feature - Large */}
               <div className="bento-item bento-main">
                 <div className="bento-icon"><Layers size={40} /></div>
@@ -112,7 +118,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
           <section className="scroll-section agendas-bento-section">
             <h2>{t('auth_agenda_section_title')}</h2>
             <div className="bento-grid-agendas">
-              
+
               <div className="bento-card personal">
                 <div className="card-icon"><User size={40} /></div>
                 <div className="card-content">
@@ -201,7 +207,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
           </footer>
 
         </div>
-        
+
         {/* Decorative Background Elements */}
         <div className="bg-shape shape-1"></div>
         <div className="bg-shape shape-2"></div>

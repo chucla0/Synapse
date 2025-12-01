@@ -2,7 +2,8 @@
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  max-width: 600px; /* Match CreateEventModal */
+  max-width: 600px;
+  /* Match CreateEventModal */
 }
 
 .event-details-body {
@@ -84,19 +85,21 @@
 
 .modal-actions {
   display: flex;
-  justify-content: space-between; /* Allow left and right buttons */
+  justify-content: space-between;
+  /* Allow left and right buttons */
   align-items: center;
   gap: var(--spacing-md);
   padding: var(--spacing-md) var(--spacing-lg);
   border-top: 1px solid var(--border);
-  background: var(--bg-main);
+  background: transparent;
   flex-shrink: 0;
 }
 
 .actions-right {
   display: flex;
   gap: var(--spacing-md);
-  margin-left: auto; /* Push to right if no left button */
+  margin-left: auto;
+  /* Push to right if no left button */
 }
 
 .btn-left {

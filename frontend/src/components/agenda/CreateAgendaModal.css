@@ -88,15 +88,22 @@
 }
 
 .modal-actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
+  display: grid;
+  place-items: center;
+  width: 100%;
   margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--border);
+  background: transparent;
 }
 
-/* Button styles are now global */
+/* Button styles are now global, but ensuring width auto here just in case */
+.modal-actions button,
+.modal-actions .btn {
+  width: auto !important;
+  min-width: 120px;
+  margin: 0 auto;
+}
 
 .google-connect-separator {
   display: flex;

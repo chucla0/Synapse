@@ -17,7 +17,8 @@
 }
 
 .event-form {
-  overflow: hidden; /* Container handles layout */
+  overflow: hidden;
+  /* Container handles layout */
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -37,13 +38,22 @@
 }
 
 .modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md) var(--spacing-lg); /* Match horizontal padding of body */
+  display: grid;
+  place-items: center;
+  width: 100%;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  /* Match horizontal padding of body */
   border-top: 1px solid var(--border);
-  background: var(--bg-main);
+  background: transparent;
   flex-shrink: 0;
+}
+
+.modal-actions button,
+.modal-actions .btn {
+  width: auto !important;
+  min-width: 120px;
+  margin: 0 auto;
 }
 
 /* Attachments */
@@ -141,7 +151,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  background: rgba(255,255,255,0.8);
+  background: rgba(255, 255, 255, 0.8);
   border-radius: 0 0 0 0.5rem;
 }
 
@@ -207,7 +217,8 @@
 }
 
 .color-swatch-btn {
-  width: 30px; /* Reduced size */
+  width: 30px;
+  /* Reduced size */
   aspect-ratio: 1 / 1;
   border-radius: 50%;
   border: 2px solid transparent;
@@ -216,7 +227,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem; /* Smaller checkmark */
+  font-size: 0.8rem;
+  /* Smaller checkmark */
   color: white;
 }
 

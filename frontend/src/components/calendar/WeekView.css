@@ -162,20 +162,17 @@
   position: absolute;
   left: 2px;
   right: 2px;
-  border-radius: 0 4px 4px 0;
-  /* Rounded right only */
-  padding: 4px 8px;
-  color: var(--text-main);
-  /* Text color depends on theme, usually dark in light mode */
-  /* background-color and border-left-color handled inline */
-  border-left-width: 4px;
-  border-left-style: solid;
+  border-radius: 4px;
+  padding: 2px 4px;
   font-size: 0.75rem;
   overflow: hidden;
   cursor: pointer;
+  border-left: 4px solid transparent;
+  /* Restored width */
   transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55),
     box-shadow 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55),
     filter 0.2s ease-out;
+  animation: gelatinousIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 10;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }

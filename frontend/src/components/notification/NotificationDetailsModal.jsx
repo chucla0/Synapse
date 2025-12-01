@@ -65,7 +65,7 @@ function NotificationDetailsModal({ notification, onClose }) {
         <div className="notification-header-section">
           <div className="user-avatar-large">
             {sender.avatar ? (
-              <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${sender.avatar}`} alt={sender.name} />
+              <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${sender.avatar}`} alt={sender.name} referrerPolicy="no-referrer" />
             ) : (
               <div className="user-avatar-initials">{sender.name?.charAt(0).toUpperCase()}</div>
             )}
@@ -82,7 +82,7 @@ function NotificationDetailsModal({ notification, onClose }) {
           {agenda && (
             <div className="detail-section">
               <h3 className="section-title">{t('agendaDetails', 'Detalles de la Agenda')}</h3>
-              
+
               <div className="detail-group">
                 <label className="detail-label"><User size={14} /> {t('agenda_owner_label', 'Propietario')}</label>
                 <div className="detail-value">{agenda.owner.name}</div>
@@ -111,7 +111,7 @@ function NotificationDetailsModal({ notification, onClose }) {
           {event && (
             <div className="detail-section">
               <h3 className="section-title">{t('event_details', 'Detalles del Evento')}</h3>
-              
+
               <div className="detail-group">
                 <label className="detail-label"><Clock size={14} /> {t('event_time_label', 'Hora')}</label>
                 <div className="detail-value">
@@ -171,21 +171,21 @@ function NotificationDetailsModal({ notification, onClose }) {
           <h2>{t('notificationDetailsTitle', 'Detalles de la Notificación')}</h2>
           <button className="modal-close" onClick={onClose}><X size={24} /></button>
         </div>
-        
+
         {renderContent()}
 
         <div className="modal-actions">
           {details?.type === 'AGENDA_INVITE' ? (
             <>
-              <button 
-                className="btn btn-danger" 
+              <button
+                className="btn btn-danger"
                 onClick={() => declineMutation.mutate()}
                 disabled={acceptMutation.isPending || declineMutation.isPending}
               >
                 {declineMutation.isPending ? t('declining', 'Rechazando...') : t('decline', 'Rechazar')}
               </button>
-              <button 
-                className="btn btn-primary" 
+              <button
+                className="btn btn-primary"
                 onClick={() => acceptMutation.mutate()}
                 disabled={acceptMutation.isPending || declineMutation.isPending}
               >

@@ -16,8 +16,8 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
   if (!event) return null;
 
   // If we are in 'all_events' view, find the real agenda for this event to check permissions
-  const realAgenda = agenda?.id === 'all_events' 
-    ? agendas.find(a => a.id === event.agendaId) 
+  const realAgenda = agenda?.id === 'all_events'
+    ? agendas.find(a => a.id === event.agendaId)
     : agenda;
 
   const formatDate = (date) => {
@@ -48,7 +48,7 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
 
   const handleApprove = () => approveMutation.mutate();
   const handleReject = () => {
-    const reason = "Rechazado por el jefe (Razón no especificada)"; 
+    const reason = "Rechazado por el jefe (Razón no especificada)";
     rejectMutation.mutate(reason);
   };
 
@@ -56,33 +56,33 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
     if (!realAgenda) return false;
     const { userRole, type } = realAgenda;
     const isCreator = event.creator?.id === currentUser?.id;
-    
+
     if (userRole === 'OWNER') return true;
-    
+
     if (type === 'COLABORATIVA') {
       if (userRole === 'EDITOR' && isCreator) return true;
       return false;
     }
-    
+
     if (type === 'LABORAL') {
       if (userRole === 'CHIEF') return true;
       if (userRole === 'EMPLOYEE' && isCreator && event.status === 'PENDING_APPROVAL') return true;
       return false;
     }
-    
+
     if (type === 'EDUCATIVA') {
       if (userRole === 'PROFESSOR' || userRole === 'TEACHER') return true;
       return false;
     }
-    
+
     return false;
   };
 
   const canApprove = () => {
-     if (!realAgenda || event.status !== 'PENDING_APPROVAL') return false;
-     const { userRole, type } = realAgenda;
-     if (type === 'LABORAL' && (userRole === 'OWNER' || userRole === 'CHIEF')) return true;
-     return false;
+    if (!realAgenda || event.status !== 'PENDING_APPROVAL') return false;
+    const { userRole, type } = realAgenda;
+    if (type === 'LABORAL' && (userRole === 'OWNER' || userRole === 'CHIEF')) return true;
+    return false;
   };
 
   const canDelete = () => {
@@ -119,10 +119,10 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
           <div className="header-title-container">
             <h1>{event.title}</h1>
             {event.status === 'PENDING_APPROVAL' && (
-               <span className="status-badge status-pending_approval">{t('pendingApproval', 'Pendiente')}</span>
+              <span className="status-badge status-pending_approval">{t('pendingApproval', 'Pendiente')}</span>
             )}
             {event.status === 'CONFIRMED' && realAgenda?.type === 'LABORAL' && (
-               <span className="status-badge status-confirmed">{t('confirmed', 'Confirmado')}</span>
+              <span className="status-badge status-confirmed">{t('confirmed', 'Confirmado')}</span>
             )}
           </div>
           <button className="modal-close" onClick={onClose}><X size={24} /></button>
@@ -154,10 +154,11 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
             <label className="detail-label"><User size={14} /> {t('createdBy', 'Creado por')}</label>
             <div className="detail-value user-info-clean">
               {event.creator?.avatar ? (
-                <img 
-                  src={event.creator.avatar.startsWith('http') ? event.creator.avatar : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${event.creator.avatar}`} 
-                  alt={event.creator.name} 
-                  className="user-avatar-small" 
+                <img
+                  src={event.creator.avatar.startsWith('http') ? event.creator.avatar : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${event.creator.avatar}`}
+                  alt={event.creator.name}
+                  className="user-avatar-small"
+                  referrerPolicy="no-referrer"
                 />
               ) : (
                 <div className="user-avatar-placeholder-small">
@@ -182,18 +183,19 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
                     <div className="shared-users-clean-list">
                       {event.sharedWithUsers.map(user => (
                         <div key={user.id} className="user-info-clean">
-                           {user.avatar ? (
-                              <img 
-                                src={user.avatar.startsWith('http') ? user.avatar : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${user.avatar}`} 
-                                alt={user.name} 
-                                className="user-avatar-small" 
-                              />
-                            ) : (
-                              <div className="user-avatar-placeholder-small">
-                                {user.name.charAt(0).toUpperCase()}
-                              </div>
-                            )}
-                            <span className="user-name">{user.name}</span>
+                          {user.avatar ? (
+                            <img
+                              src={user.avatar.startsWith('http') ? user.avatar : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${user.avatar}`}
+                              alt={user.name}
+                              className="user-avatar-small"
+                              referrerPolicy="no-referrer"
+                            />
+                          ) : (
+                            <div className="user-avatar-placeholder-small">
+                              {user.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <span className="user-name">{user.name}</span>
                         </div>
                       ))}
                     </div>
@@ -247,19 +249,19 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
               {t('deleteButton')}
             </button>
           )}
-          
+
           <div className="actions-right">
             {canApprove() ? (
               <>
-                <button 
-                  className="btn btn-danger" 
+                <button
+                  className="btn btn-danger"
                   onClick={handleReject}
                   disabled={rejectMutation.isPending}
                 >
                   {rejectMutation.isPending ? t('rejecting', 'Rechazando...') : t('reject', 'Rechazar')}
                 </button>
-                <button 
-                  className="btn btn-success" 
+                <button
+                  className="btn btn-success"
                   onClick={handleApprove}
                   disabled={approveMutation.isPending}
                 >

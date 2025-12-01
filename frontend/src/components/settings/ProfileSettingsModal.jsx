@@ -291,6 +291,7 @@ function ProfileSettingsModal({ onClose }) {
                     src={formData.avatar.startsWith('http') ? formData.avatar : `${API_URL}${formData.avatar}`}
                     alt="Avatar Preview"
                     className="avatar-preview"
+                    referrerPolicy="no-referrer"
                   />
                 ) : (
                   <div className="avatar-preview avatar-preview-default">

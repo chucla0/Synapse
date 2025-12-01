@@ -6,28 +6,40 @@
   */
 
   /* Palette */
-  --bg-main: #ffffff; /* Base/Fondo: Blanco Puro */
+  --bg-main: #ffffff;
+  /* Base/Fondo: Blanco Puro */
   --bg-card: #ffffff;
   --bg-hover: #f9f9f9;
 
-  --text-main: #111827; /* Gray-900 - High Contrast */
-  --text-black: #000000; /* Pure Black */
-  --text-secondary: #374151; /* Gray-700 - Readable Secondary */
-  --text-muted: #6b7280; /* Gray-500 - Readable Muted */
+  --text-main: #111827;
+  /* Gray-900 - High Contrast */
+  --text-black: #000000;
+  /* Pure Black */
+  --text-secondary: #374151;
+  /* Gray-700 - Readable Secondary */
+  --text-muted: #6b7280;
+  /* Gray-500 - Readable Muted */
 
-  --accent: #9fe6b6; /* Primario/Acción: Verde Menta Pastel */
+  --accent: #9fe6b6;
+  /* Primario/Acción: Verde Menta Pastel */
   --accent-hover: #88d8a0;
   --accent-light: rgba(159, 230, 182, 0.2);
 
-  --focus-today: #e6f7ff; /* Foco/Hoy: Azul Niebla Pastel */
+  --focus-today: #e6f7ff;
+  /* Foco/Hoy: Azul Niebla Pastel */
 
-  --border: #eeeeee; /* Gris Extremadamente Claro */
+  --border: #eeeeee;
+  /* Gris Extremadamente Claro */
 
   /* Agenda Colors (Pastel) */
-  --agenda-1: #ffc3a0; /* Melocotón Suave */
-  --agenda-2: #a0cfff; /* Azul Cielo Pastel */
-  --agenda-3: #ffeaa7; /* Amarillo Crema Pastel */
-  --agenda-4: #f5a9b8; /* Rosa Algodón Suave */
+  --agenda-1: #ffc3a0;
+  /* Melocotón Suave */
+  --agenda-2: #a0cfff;
+  /* Azul Cielo Pastel */
+  --agenda-3: #ffeaa7;
+  /* Amarillo Crema Pastel */
+  --agenda-4: #f5a9b8;
+  /* Rosa Algodón Suave */
 
   /* Status Colors */
   --success: #9fe6b6;
@@ -46,30 +58,42 @@
   --radius-lg: 1rem;
 
   /* Shadows & Transitions */
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.03); /* Mínima elevación */
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.03);
+  /* Mínima elevación */
   --shadow-card-hover: 0 8px 30px rgba(0, 0, 0, 0.06);
   --transition-fast: 150ms ease-out;
   --transition-base: 300ms ease-out;
 
-  --bg-sidebar: #f9fafb; /* Sidebar Light */
+  --bg-sidebar: #f9fafb;
+  /* Sidebar Light */
 
   --event-bg-opacity: 0.25;
 }
 
 .dark-theme {
   /* Dark Mode */
-  --bg-main: #111827; /* Gray 900 - Main Content (Lighter than sidebar) */
-  --bg-sidebar: #030712; /* Gray 950 - Sidebar (Darker/Matte) */
-  --bg-card: #1f2937; /* Gray 800 - Cards/Modals */
-  --bg-hover: #374151; /* Gray 700 - Hover states */
+  --bg-main: #111827;
+  /* Gray 900 - Main Content (Lighter than sidebar) */
+  --bg-sidebar: #030712;
+  /* Gray 950 - Sidebar (Darker/Matte) */
+  --bg-card: #1f2937;
+  /* Gray 800 - Cards/Modals */
+  --bg-hover: #374151;
+  /* Gray 700 - Hover states */
 
-  --text-main: #f9fafb; /* Gray 50 */
-  --text-black: #f3f4f6; /* Gray 100 - Better readability than pure white */
-  --text-secondary: #d1d5db; /* Gray 300 */
-  --text-muted: #9ca3af; /* Gray 400 */
-  --text-bright: #f9fafb; /* Gray 50 - High Contrast for Numbers */
+  --text-main: #f9fafb;
+  /* Gray 50 */
+  --text-black: #f3f4f6;
+  /* Gray 100 - Better readability than pure white */
+  --text-secondary: #d1d5db;
+  /* Gray 300 */
+  --text-muted: #9ca3af;
+  /* Gray 400 */
+  --text-bright: #f9fafb;
+  /* Gray 50 - High Contrast for Numbers */
 
-  --border: #374151; /* Gray 700 - Subtle but visible divider */
+  --border: #374151;
+  /* Gray 700 - Subtle but visible divider */
 
   --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.5),
     0 2px 4px -1px rgba(0, 0, 0, 0.3);
@@ -89,7 +113,8 @@
 }
 
 body {
-  font-family: "Nunito", sans-serif; /* Fuente Principal */
+  font-family: "Nunito", sans-serif;
+  /* Fuente Principal */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--bg-main);
@@ -158,16 +183,24 @@ label {
 
 .btn-primary {
   background-color: var(--accent);
-  color: #333333; /* Texto oscuro para contraste en pastel */
+  color: #333333;
+  /* Texto oscuro para contraste en pastel */
   border-color: transparent;
+}
+
+.modal-actions .btn {
+  width: auto;
+  min-width: 120px;
 }
 
 .btn-primary:hover:not(:disabled) {
   /* background-color: var(--accent-hover);  Removed fixed hover color */
-  filter: brightness(0.95); /* Dynamically darken the current accent color */
+  filter: brightness(0.95);
+  /* Dynamically darken the current accent color */
   transform: translateY(-1px);
   /* box-shadow: 0 4px 12px rgba(159, 230, 182, 0.4); Removed fixed shadow color */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Neutral shadow */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  /* Neutral shadow */
 }
 
 .btn-secondary {
@@ -186,7 +219,8 @@ label {
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
   box-shadow: var(--shadow-card);
-  border: 1px solid var(--border); /* Borde muy sutil */
+  border: 1px solid var(--border);
+  /* Borde muy sutil */
   transition: box-shadow var(--transition-fast);
 }
 
@@ -209,7 +243,8 @@ label {
 }
 
 .input::placeholder {
-  color: #cccccc; /* Gris clarito */
+  color: #cccccc;
+  /* Gris clarito */
   opacity: 1;
 }
 
@@ -217,11 +252,13 @@ input:disabled,
 textarea:disabled,
 select:disabled,
 .input:disabled {
-  background-color: var(--bg-hover); /* Lighter background for disabled */
+  background-color: var(--bg-hover);
+  /* Lighter background for disabled */
   color: var(--text-muted);
   cursor: not-allowed;
   border-color: var(--border);
-  opacity: 1; /* Override default browser opacity */
+  opacity: 1;
+  /* Override default browser opacity */
 }
 
 /* Date & Time Input Styling */
@@ -333,12 +370,15 @@ input[type="datetime-local"] {
 .mt-1 {
   margin-top: var(--spacing-sm);
 }
+
 .mt-2 {
   margin-top: var(--spacing-md);
 }
+
 .mt-3 {
   margin-top: var(--spacing-lg);
 }
+
 .mt-4 {
   margin-top: var(--spacing-xl);
 }
@@ -346,12 +386,15 @@ input[type="datetime-local"] {
 .mb-1 {
   margin-bottom: var(--spacing-sm);
 }
+
 .mb-2 {
   margin-bottom: var(--spacing-md);
 }
+
 .mb-3 {
   margin-bottom: var(--spacing-lg);
 }
+
 .mb-4 {
   margin-bottom: var(--spacing-xl);
 }
@@ -359,12 +402,15 @@ input[type="datetime-local"] {
 .p-1 {
   padding: var(--spacing-sm);
 }
+
 .p-2 {
   padding: var(--spacing-md);
 }
+
 .p-3 {
   padding: var(--spacing-lg);
 }
+
 .p-4 {
   padding: var(--spacing-xl);
 }
@@ -414,7 +460,8 @@ body[data-density="compact"] .input {
 }
 
 body[data-density="compact"] .week-hour-slot {
-  height: 40px; /* Compact hour slots */
+  height: 40px;
+  /* Compact hour slots */
 }
 
 body[data-density="compact"] .week-event {
@@ -423,5 +470,6 @@ body[data-density="compact"] .week-event {
 }
 
 body[data-density="compact"] .month-day {
-  min-height: 80px; /* Compact month cells */
+  min-height: 80px;
+  /* Compact month cells */
 }

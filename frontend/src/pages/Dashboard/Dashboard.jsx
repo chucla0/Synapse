@@ -238,6 +238,7 @@ function Dashboard({ onLogout, sessionKey }) {
               <img
                 src={user.avatar.startsWith('http') ? user.avatar : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${user.avatar}`}
                 alt={user.name}
+                referrerPolicy="no-referrer"
               />
             ) : (
               <div className="user-avatar-initials">

@@ -193,7 +193,6 @@ function Home({ notifications, agendas = [], isLoading, refetch }) {
               <button
                 className="btn-link"
                 onClick={() => { setFilterType('all'); setSelectedAgendaId('all'); }}
-                style={{ color: accentColor }}
               >
                 {t('clearFilters')}
               </button>
@@ -211,7 +210,7 @@ function Home({ notifications, agendas = [], isLoading, refetch }) {
                 <div className="notification-content">
                   <div className="notification-avatar">
                     {notification.sender?.avatar ? (
-                      <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${notification.sender.avatar}`} alt={notification.sender.name} />
+                      <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${notification.sender.avatar}`} alt={notification.sender.name} referrerPolicy="no-referrer" />
                     ) : (
                       <div className="avatar-initials" style={{ backgroundColor: accentColor }}>
                         {notification.sender?.name?.charAt(0).toUpperCase()}

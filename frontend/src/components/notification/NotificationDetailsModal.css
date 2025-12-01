@@ -117,7 +117,7 @@
   gap: var(--spacing-md);
   padding: var(--spacing-md) var(--spacing-lg);
   border-top: 1px solid var(--border);
-  background: var(--bg-main);
+  background: transparent;
   flex-shrink: 0;
 }
 

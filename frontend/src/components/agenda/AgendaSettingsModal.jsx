@@ -221,6 +221,7 @@ function AgendaSettingsModal({ agenda, onClose }) {
                 src={user.avatar.startsWith('http') ? user.avatar : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${user.avatar}`}
                 alt={user.name}
                 className="user-avatar-circle"
+                referrerPolicy="no-referrer"
               />
             ) : (
               <div className="user-avatar-placeholder">

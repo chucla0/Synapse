@@ -75,7 +75,7 @@
   color: #1F2937;
   /* Light Mode Active */
   font-weight: 600;
-  border-bottom-color: #F59E0B;
+  border-bottom-color: var(--accent);
   /* Accent Underline */
 }
 
@@ -162,6 +162,7 @@
   cursor: pointer;
   margin-top: 1rem;
   font-size: 0.9rem;
+  color: var(--accent);
 }
 
 .home-header h1 {
@@ -277,7 +278,7 @@
   height: 12px;
   border-radius: 50%;
   display: block;
-  background-color: #F59E0B;
+  background-color: var(--accent);
   /* Accent Orange */
 }
 

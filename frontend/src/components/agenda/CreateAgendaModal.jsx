@@ -59,10 +59,10 @@ function CreateAgendaModal({ onClose, existingAgendas = [] }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name === 'type') {
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         [name]: value,
         color: AGENDA_COLORS[value] || AGENDA_COLORS.PERSONAL
       }));
@@ -78,13 +78,13 @@ function CreateAgendaModal({ onClose, existingAgendas = [] }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validate
     const newErrors = {};
     if (!formData.name.trim()) {
       newErrors.name = t('nameIsRequired');
     }
-    
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -138,7 +138,7 @@ function CreateAgendaModal({ onClose, existingAgendas = [] }) {
             <label htmlFor="type">{t('agendaTypeLabel')}</label>
             <div className="type-selector-container" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <div className="custom-dropdown" onClick={(e) => e.stopPropagation()}>
-                <button 
+                <button
                   type="button"
                   className="dropdown-toggle"
                   onClick={() => setShowTypeDropdown(!showTypeDropdown)}
@@ -149,8 +149,8 @@ function CreateAgendaModal({ onClose, existingAgendas = [] }) {
                 {showTypeDropdown && (
                   <ul className="dropdown-menu">
                     {AGENDA_TYPES.map(type => (
-                      <li 
-                        key={type.value} 
+                      <li
+                        key={type.value}
                         className={`dropdown-item ${formData.type === type.value ? 'active' : ''}`}
                         onClick={() => {
                           handleChange({ target: { name: 'type', value: type.value } });
@@ -163,12 +163,12 @@ function CreateAgendaModal({ onClose, existingAgendas = [] }) {
                   </ul>
                 )}
               </div>
-              <div 
-                className="color-preview" 
-                style={{ 
-                  width: '40px', 
-                  height: '40px', 
-                  backgroundColor: formData.color, 
+              <div
+                className="color-preview"
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  backgroundColor: formData.color,
                   borderRadius: '8px',
                   border: '1px solid var(--border)',
                   flexShrink: 0
@@ -196,11 +196,11 @@ function CreateAgendaModal({ onClose, existingAgendas = [] }) {
                 window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/auth/google/connect?${loginHint}`;
               }}
             >
-              <img 
-                src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" 
-                alt="Google Calendar" 
-                width="24" 
-                height="24" 
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg"
+                alt="Google Calendar"
+                width="24"
+                height="24"
               />
               <span>{t('connectGoogleCalendar', 'Conectar con Google Calendar')}</span>
             </button>
@@ -218,14 +218,7 @@ function CreateAgendaModal({ onClose, existingAgendas = [] }) {
 
           {/* Actions */}
           <div className="modal-actions">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={onClose}
-              disabled={createMutation.isPending}
-            >
-              {t('cancelButton')}
-            </button>
+
             <button
               type="submit"
               className="btn btn-primary"

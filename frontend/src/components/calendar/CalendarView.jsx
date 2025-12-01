@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { format, startOfWeek, addMinutes, setHours, setMinutes } from 'date-fns';
-import { DndContext, useSensor, useSensors, PointerSensor, DragOverlay } from '@dnd-kit/core';
+import { DndContext, useSensor, useSensors, PointerSensor, DragOverlay, defaultDropAnimationSideEffects } from '@dnd-kit/core';
 import api from '../../utils/api';
 import { hexToRgba } from '../../utils/colors';
 import DayView from './DayView';
@@ -475,8 +475,6 @@ function CalendarView({ agenda, agendas = [] }) {
             boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)', // Sombra más pronunciada al levantar
             opacity: 1,
             cursor: 'grabbing',
-            overflow: 'hidden',
-            transform: 'scale(1.02)', // Ligero efecto de "levantar"
           }}>
             <div style={{
               whiteSpace: 'nowrap',
