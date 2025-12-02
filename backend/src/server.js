@@ -4,9 +4,14 @@ const prisma = require('./lib/prisma');
 const passport = require('./config/passport');
 
 // Initialize Express app
+const path = require('path');
+
 const app = express();
 
-// Trust proxy (required for Nginx/Load Balancer)
+// Serve static files
+app.use('/api/public', express.static(path.join(__dirname, '../public')));
+
+// Middlewareust proxy (required for Nginx/Load Balancer)
 app.set('trust proxy', 1);
 
 // ============================================

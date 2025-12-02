@@ -1,5 +1,5 @@
-const getVerificationEmailTemplate = (verificationLink, name, frontendUrl) => {
-    const logoUrl = `${frontendUrl}/synapse_logo.jpg`;
+const getVerificationEmailTemplate = (verificationLink, name, apiUrl) => {
+    const logoUrl = `${apiUrl}/api/public/synapse_logo.jpg`;
     return `
 <!DOCTYPE html>
 <html>

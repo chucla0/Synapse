@@ -130,10 +130,13 @@ async function register(req, res) {
     const frontendUrl = process.env.FRONTEND_URL || 'https://synapse.daw.inspedralbes.cat';
     const verificationLink = `${frontendUrl}/verify?token=${verificationToken}`;
 
+    // Use API_URL for the logo since it's served from the backend
+    const apiUrl = process.env.VITE_API_URL || 'https://synapse.daw.inspedralbes.cat';
+
     await sendEmail(
       email,
       'Verify your Synapse account',
-      getVerificationEmailTemplate(verificationLink, name, frontendUrl)
+      getVerificationEmailTemplate(verificationLink, name, apiUrl)
     );
 
     res.status(201).json({
