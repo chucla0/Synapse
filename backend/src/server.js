@@ -6,6 +6,9 @@ const passport = require('./config/passport');
 // Initialize Express app
 const app = express();
 
+// Trust proxy (required for Nginx/Load Balancer)
+app.set('trust proxy', 1);
+
 // ============================================
 // MIDDLEWARE
 // ============================================
@@ -36,8 +39,8 @@ app.use((req, res, next) => {
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
     service: 'Synapse Backend API'
   });
@@ -77,8 +80,8 @@ app.get('/api/test-email-config', async (req, res) => {
     );
     res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       error: error.message,
       details: error
     });
@@ -91,7 +94,7 @@ app.get('/api/test-email-config', async (req, res) => {
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ 
+  res.status(404).json({
     error: 'Not Found',
     message: `Route ${req.method} ${req.path} not found`
   });
@@ -100,7 +103,7 @@ app.use((req, res) => {
 // Global error handler
 app.use((err, req, res, next) => {
   console.error('Error:', err);
-  
+
   res.status(err.status || 500).json({
     error: err.message || 'Internal Server Error',
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
@@ -127,10 +130,10 @@ async function testDatabaseConnection() {
 }
 
 // Start server
-app.listen(PORT, () =>{
+app.listen(PORT, () => {
   console.log(`🚀 Synapse Backend API running on port ${PORT}`);
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
-  
+
   // Try to connect to database (non-blocking)
   testDatabaseConnection().then((connected) => {
     if (!connected) {
