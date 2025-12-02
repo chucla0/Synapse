@@ -16,7 +16,7 @@ jobs:
 
       - name: Build Images (Dry Run)
         # We build to verify syntax and compilation, but we don't push yet.
-        # We use the prod config to ensure it matches what will be deployed.
+        # We use the prod config to ensure it matches what will be deployed
         env:
           VITE_API_URL: "http://localhost:3000" # Mock value for build
         run: docker compose -f docker-compose.prod.yml build
