@@ -132,6 +132,7 @@ async function register(req, res) {
 
     // Use API_URL for the logo since it's served from the backend
     const apiUrl = process.env.VITE_API_URL || 'https://synapse.daw.inspedralbes.cat';
+    console.log('Debug Email Logo:', { apiUrl, logoUrl: `${apiUrl}/api/public/synapse_logo.jpg` });
 
     await sendEmail(
       email,
