@@ -36,7 +36,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       const refreshToken = getRefreshToken();
-      
+
       if (refreshToken) {
         try {
           const response = await axios.post(`${API_URL}/api/auth/refresh`, {
@@ -72,6 +72,14 @@ export const acceptInvitation = (notificationId) => {
 
 export const declineInvitation = (notificationId) => {
   return api.post('/agendas/invitations/decline', { notificationId });
+};
+
+export const approveEvent = (eventId) => {
+  return api.post(`/events/${eventId}/approve`);
+};
+
+export const rejectEvent = (eventId) => {
+  return api.post(`/events/${eventId}/reject`);
 };
 
 export default api;

@@ -51,6 +51,7 @@
   "generalTab": "General",
   "membersTab": "Members",
   "agendaNameLabel_settings": "Agenda Name",
+  "agendaDescriptionLabel_settings": "Description",
   "saveChangesButton_agenda": "Save Changes",
   "dangerZoneTitle": "Danger Zone",
   "deleteAgendaTitle": "Delete this agenda",
@@ -305,11 +306,9 @@
   "profileUpdateError": "Error updating profile",
   "bioLabel": "Bio",
   "bioPlaceholder": "Tell us a little about yourself (max 200 chars)",
-  "linksLabel": "Custom Links",
   "addLinkButton": "Add Link",
   "linkUrlPlaceholder": "https://...",
   "linkTitlePlaceholder": "Title (e.g. LinkedIn)",
-  "statusLabel": "Status",
   "status_AVAILABLE": "Available",
   "status_AWAY": "Away",
   "status_BUSY": "Busy",
@@ -320,8 +319,19 @@
   "deleteAccountButton": "Delete Account",
   "deleteAccountWarning": "Deleting your account is irreversible. All your personal agendas will be deleted.",
   "confirmDeleteAccountMessage": "Are you sure you want to delete your account? This action cannot be undone.",
-  "passwordPlaceholder": "Password",
   "confirmDeleteButton": "Yes, delete",
   "deleting": "Deleting...",
-  "cancelButton": "Cancel"
+  "userProfile": {
+    "title": "User Profile",
+    "bio": "Biography",
+    "noBio": "No biography provided.",
+    "email": "Email",
+    "close": "Close"
+  },
+  "status": {
+    "available": "Available",
+    "away": "Away",
+    "busy": "Busy",
+    "offline": "Offline"
+  }
 }

@@ -586,8 +586,46 @@ module.exports = {
   googleCallback,
   completeGoogleLogin,
   setPassword,
+  getUserById,
   deleteAccount
 };
+
+/**
+ * Get user by ID (public profile)
+ */
+async function getUserById(req, res) {
+  try {
+    const { userId } = req.params;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatar: true,
+        bio: true,
+        status: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        error: 'User not found',
+        message: 'User does not exist'
+      });
+    }
+
+    res.json({ user });
+
+  } catch (error) {
+    console.error('Get user by ID error:', error);
+    res.status(500).json({
+      error: 'Failed to get user',
+      message: 'Internal server error'
+    });
+  }
+}
 
 /**
  * Delete account

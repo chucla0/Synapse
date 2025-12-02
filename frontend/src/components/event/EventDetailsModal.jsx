@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { useDateFnsLocale } from '../../contexts/LocaleContext';
@@ -5,6 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Edit2, X, Calendar, MapPin, AlignLeft, User, Lock, Paperclip, Link as LinkIcon } from 'lucide-react';
 import api from '../../utils/api';
 import { getUser } from '../../utils/auth';
+import UserProfileModal from '../user/UserProfileModal';
 import './EventDetailsModal.css';
 
 function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDelete }) {
@@ -12,6 +14,7 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
   const locale = useDateFnsLocale();
   const queryClient = useQueryClient();
   const currentUser = getUser();
+  const [selectedUserProfile, setSelectedUserProfile] = useState(null);
 
   if (!event) return null;
 
@@ -152,7 +155,11 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
           {/* Creator */}
           <div className="detail-group">
             <label className="detail-label"><User size={14} /> {t('createdBy', 'Creado por')}</label>
-            <div className="detail-value user-info-clean">
+            <div
+              className="detail-value user-info-clean clickable"
+              onClick={() => setSelectedUserProfile(event.creator)}
+              style={{ cursor: 'pointer' }}
+            >
               {event.creator?.avatar ? (
                 <img
                   src={event.creator.avatar.startsWith('http') ? event.creator.avatar : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${event.creator.avatar}`}
@@ -182,7 +189,12 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
                     <p className="text-xs text-muted mb-1">{t('sharedWith', 'Compartido con')}:</p>
                     <div className="shared-users-clean-list">
                       {event.sharedWithUsers.map(user => (
-                        <div key={user.id} className="user-info-clean">
+                        <div
+                          key={user.id}
+                          className="user-info-clean clickable"
+                          onClick={() => setSelectedUserProfile(user)}
+                          style={{ cursor: 'pointer' }}
+                        >
                           {user.avatar ? (
                             <img
                               src={user.avatar.startsWith('http') ? user.avatar : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${user.avatar}`}
@@ -283,6 +295,14 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
           </div>
         </div>
       </div>
+
+      {selectedUserProfile && (
+        <UserProfileModal
+          isOpen={!!selectedUserProfile}
+          onClose={() => setSelectedUserProfile(null)}
+          user={selectedUserProfile}
+        />
+      )}
     </div>
   );
 }

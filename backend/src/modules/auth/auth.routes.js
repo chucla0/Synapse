@@ -96,4 +96,10 @@ router.post('/google/complete', authController.completeGoogleLogin);
  */
 router.post('/set-password', authenticateToken, authController.setPassword);
 
+/**
+ * GET /api/auth/users/:userId
+ * Get user profile by ID
+ */
+router.get('/users/:userId', authenticateToken, authController.getUserById);
+
 module.exports = router;

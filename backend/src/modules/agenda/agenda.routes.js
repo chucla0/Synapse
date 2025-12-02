@@ -28,8 +28,8 @@ router.get('/:agendaId', agendaController.getAgendaById);
  * PUT /api/agendas/:agendaId
  * Update agenda (owner or editor only)
  */
-router.put('/:agendaId', 
-  requireAgendaRole(['OWNER', 'EDITOR']), 
+router.put('/:agendaId',
+  requireAgendaRole(['OWNER', 'EDITOR']),
   agendaController.updateAgenda
 );
 
@@ -37,17 +37,17 @@ router.put('/:agendaId',
  * DELETE /api/agendas/:agendaId
  * Delete agenda (owner only)
  */
-router.delete('/:agendaId', 
-  requireAgendaRole(['OWNER']), 
+router.delete('/:agendaId',
+  requireAgendaRole(['OWNER']),
   agendaController.deleteAgenda
 );
 
 /**
- * POST /api/agendas/:agendaId/users
+ * POST /api/agendas/:agendaId/invite
  * Add user to agenda (owner only)
  */
-router.post('/:agendaId/users', 
-  requireAgendaRole(['OWNER']), 
+router.post('/:agendaId/invite',
+  requireAgendaRole(['OWNER']),
   agendaController.addUserToAgenda
 );
 
@@ -55,7 +55,7 @@ router.post('/:agendaId/users',
  * DELETE /api/agendas/:agendaId/users/:userId
  * Remove user from agenda (permissions handled in controller)
  */
-router.delete('/:agendaId/users/:userId', 
+router.delete('/:agendaId/users/:userId',
   agendaController.removeUserFromAgenda
 );
 
@@ -69,7 +69,7 @@ router.post('/:agendaId/leave', agendaController.leaveAgenda);
  * PUT /api/agendas/:agendaId/users/:userId/role
  * Update user role in agenda (special permissions apply)
  */
-router.put('/:agendaId/users/:userId/role', 
+router.put('/:agendaId/users/:userId/role',
   agendaController.updateUserRole
 );
 

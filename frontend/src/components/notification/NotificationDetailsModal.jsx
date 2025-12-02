@@ -1,28 +1,32 @@
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { X, User, AlignLeft, Users, Clock, MapPin, Calendar, Paperclip, Link as LinkIcon } from 'lucide-react';
-import api, { acceptInvitation, declineInvitation } from '../../utils/api';
+import api, { acceptInvitation, declineInvitation, approveEvent, rejectEvent } from '../../utils/api';
+import UserProfileModal from '../user/UserProfileModal';
 import './NotificationDetailsModal.css';
 
 function NotificationDetailsModal({ notification, onClose }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const [selectedUserProfile, setSelectedUserProfile] = useState(null);
 
   const { data: details, isLoading } = useQuery({
-    queryKey: ['notificationDetails', notification.id],
+    queryKey: ['notification', notification?.id],
     queryFn: async () => {
+      if (!notification?.id) return null;
       const response = await api.get(`/notifications/${notification.id}`);
       return response.data.notification;
     },
-    enabled: !!notification,
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
-    retry: false,
+    enabled: !!notification?.id,
   });
 
   const markAsReadMutation = useMutation({
-    mutationFn: () => api.post(`/notifications/${notification.id}/read`),
+    mutationFn: async () => {
+      if (notification?.id) {
+        await api.post(`/notifications/${notification.id}/read`);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
@@ -32,13 +36,28 @@ function NotificationDetailsModal({ notification, onClose }) {
     mutationFn: () => acceptInvitation(notification.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['agendas'] });
       onClose();
     },
   });
 
   const declineMutation = useMutation({
     mutationFn: () => declineInvitation(notification.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      onClose();
+    },
+  });
+
+  const approveEventMutation = useMutation({
+    mutationFn: () => approveEvent(details?.event?.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      onClose();
+    },
+  });
+
+  const rejectEventMutation = useMutation({
+    mutationFn: () => rejectEvent(details?.event?.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       onClose();
@@ -63,16 +82,25 @@ function NotificationDetailsModal({ notification, onClose }) {
       <div className="notification-details-body">
         {/* Header Section: Avatar + Message */}
         <div className="notification-header-section">
-          <div className="user-avatar-large">
+          <div
+            className="user-avatar-large clickable"
+            onClick={() => setSelectedUserProfile(sender)}
+            style={{ cursor: 'pointer' }}
+          >
             {sender.avatar ? (
-              <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${sender.avatar}`} alt={sender.name} referrerPolicy="no-referrer" />
+              <img src={sender.avatar.startsWith('http') ? sender.avatar : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${sender.avatar}`} alt={sender.name} referrerPolicy="no-referrer" />
             ) : (
               <div className="user-avatar-initials">{sender.name?.charAt(0).toUpperCase()}</div>
             )}
           </div>
           <div className="notification-message">
             <p>
-              <strong>{sender.name}</strong> {t(`notification_type_${type}`)} {event && <strong>{event.title}</strong>} {t('in_agenda', 'en la agenda')} <strong>{agenda?.name}</strong>.
+              <strong
+                onClick={() => setSelectedUserProfile(sender)}
+                style={{ cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                {sender.name}
+              </strong> {t(`notification_type_${type}`)} {event && <strong>{event.title}</strong>} {t('in_agenda', 'en la agenda')} <strong>{agenda?.name}</strong>.
             </p>
           </div>
         </div>
@@ -85,21 +113,33 @@ function NotificationDetailsModal({ notification, onClose }) {
 
               <div className="detail-group">
                 <label className="detail-label"><User size={14} /> {t('agenda_owner_label', 'Propietario')}</label>
-                <div className="detail-value">{agenda.owner.name}</div>
-              </div>
-
-              <div className="detail-group">
-                <label className="detail-label"><AlignLeft size={14} /> {t('agenda_description_label', 'Descripción')}</label>
-                <div className="detail-value description-text">{agenda.description || t('noDescription', 'Sin descripción')}</div>
+                <div
+                  className="detail-value clickable"
+                  onClick={() => setSelectedUserProfile(agenda.owner)}
+                  style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  {agenda.owner.name}
+                </div>
               </div>
 
               {type === 'AGENDA_INVITE' && (
                 <div className="detail-group">
                   <label className="detail-label"><Users size={14} /> {t('members', 'Miembros')}</label>
                   <ul className="simple-list">
-                    <li>{agenda.owner.name} <span className="text-muted">({t('owner', 'Propietario')})</span></li>
+                    <li
+                      onClick={() => setSelectedUserProfile(agenda.owner)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {agenda.owner.name} <span className="text-muted">({t('owner', 'Propietario')})</span>
+                    </li>
                     {agenda.agendaUsers?.map(member => (
-                      <li key={member.user.id}>{member.user.name}</li>
+                      <li
+                        key={member.user.id}
+                        onClick={() => setSelectedUserProfile(member.user)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        {member.user.name}
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -110,53 +150,52 @@ function NotificationDetailsModal({ notification, onClose }) {
           {/* Event Details */}
           {event && (
             <div className="detail-section">
-              <h3 className="section-title">{t('event_details', 'Detalles del Evento')}</h3>
-
+              <h3 className="section-title">{t('eventDetails', 'Detalles del Evento')}</h3>
               <div className="detail-group">
-                <label className="detail-label"><Clock size={14} /> {t('event_time_label', 'Hora')}</label>
+                <label className="detail-label"><Calendar size={14} /> {t('event_title', 'Título')}</label>
+                <div className="detail-value">{event.title}</div>
+              </div>
+              {event.description && (
+                <div className="detail-group">
+                  <label className="detail-label"><AlignLeft size={14} /> {t('description', 'Descripción')}</label>
+                  <div className="detail-value">{event.description}</div>
+                </div>
+              )}
+              <div className="detail-group">
+                <label className="detail-label"><Clock size={14} /> {t('date_time', 'Fecha y Hora')}</label>
                 <div className="detail-value">
                   {new Date(event.startTime).toLocaleString()} - {new Date(event.endTime).toLocaleString()}
                 </div>
               </div>
-
-              <div className="detail-group">
-                <label className="detail-label"><MapPin size={14} /> {t('event_location_label', 'Ubicación')}</label>
-                <div className="detail-value">{event.location || t('noLocation', 'Sin ubicación')}</div>
-              </div>
-
-              <div className="detail-group">
-                <label className="detail-label"><AlignLeft size={14} /> {t('event_description_label', 'Descripción')}</label>
-                <div className="detail-value description-text">{event.description || t('noDescription', 'Sin descripción')}</div>
-              </div>
-
-              {event.attachments?.length > 0 && (
+              {event.location && (
                 <div className="detail-group">
-                  <label className="detail-label"><Paperclip size={14} /> {t('attachments', 'Adjuntos')}</label>
+                  <label className="detail-label"><MapPin size={14} /> {t('location', 'Ubicación')}</label>
+                  <div className="detail-value">{event.location}</div>
+                </div>
+              )}
+
+              {/* Attachments & Links */}
+              {(event.attachments?.length > 0 || event.links?.length > 0) && (
+                <div className="detail-group">
+                  <label className="detail-label"><Paperclip size={14} /> {t('resources', 'Recursos')}</label>
                   <ul className="simple-list">
-                    {event.attachments.map(file => <li key={file.id}>{file.filename}</li>)}
+                    {event.attachments?.map(att => (
+                      <li key={att.id}>
+                        <a href={att.url} target="_blank" rel="noopener noreferrer" className="resource-link">
+                          <Paperclip size={12} /> {att.name}
+                        </a>
+                      </li>
+                    ))}
+                    {event.links?.map(link => (
+                      <li key={link.id}>
+                        <a href={link.url} target="_blank" rel="noopener noreferrer" className="resource-link">
+                          <LinkIcon size={12} /> {link.title || link.url}
+                        </a>
+                      </li>
+                    ))}
                   </ul>
                 </div>
               )}
-            </div>
-          )}
-
-          {/* Other Types */}
-          {type === 'EVENT_REJECTED' && data && data.reason && (
-            <div className="detail-group warning-bg">
-              <label className="detail-label">{t('reason', 'Razón')}</label>
-              <div className="detail-value">{data.reason}</div>
-            </div>
-          )}
-
-          {type === 'ROLE_CHANGED' && data && (
-            <div className="detail-group">
-              <label className="detail-label">{t('new_role', 'Nuevo Rol')}</label>
-              <div className="detail-value">
-                <strong>{data.newRole}</strong>
-                <p className="text-sm text-muted mt-1">
-                  {t(`role_${data.newRole}_description`, 'Descripción del rol no disponible.')}
-                </p>
-              </div>
             </div>
           )}
         </div>
@@ -192,6 +231,23 @@ function NotificationDetailsModal({ notification, onClose }) {
                 {acceptMutation.isPending ? t('accepting', 'Aceptando...') : t('accept', 'Aceptar')}
               </button>
             </>
+          ) : details?.type === 'EVENT_PENDING_APPROVAL' ? (
+            <>
+              <button
+                className="btn btn-danger"
+                onClick={() => rejectEventMutation.mutate()}
+                disabled={approveEventMutation.isPending || rejectEventMutation.isPending}
+              >
+                {rejectEventMutation.isPending ? t('rejecting', 'Rechazando...') : t('reject', 'Rechazar')}
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={() => approveEventMutation.mutate()}
+                disabled={approveEventMutation.isPending || rejectEventMutation.isPending}
+              >
+                {approveEventMutation.isPending ? t('approving', 'Aprobando...') : t('approve', 'Aprobar')}
+              </button>
+            </>
           ) : (
             <button className="btn btn-secondary" onClick={onClose}>
               {t('close', 'Cerrar')}
@@ -199,6 +255,14 @@ function NotificationDetailsModal({ notification, onClose }) {
           )}
         </div>
       </div>
+
+      {selectedUserProfile && (
+        <UserProfileModal
+          isOpen={!!selectedUserProfile}
+          onClose={() => setSelectedUserProfile(null)}
+          user={selectedUserProfile}
+        />
+      )}
     </div>
   );
 }

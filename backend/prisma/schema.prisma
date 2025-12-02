@@ -49,6 +49,7 @@ enum NotificationType {
   ROLE_CHANGED
   EVENT_APPROVED
   EVENT_REJECTED
+  EVENT_PENDING_APPROVAL
 }
 
 enum UserStatus {

@@ -25,6 +25,64 @@
 }
 
 /* General Tab Styles */
+.confirm-content {
+  max-width: 400px;
+  text-align: center;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-black);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+}
+
+.modal-body {
+  padding: 0 var(--spacing-lg) var(--spacing-lg);
+}
+
+.form-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  border-color: var(--accent);
+}
+
 .danger-zone {
   margin-top: var(--spacing-xl);
   border: 1px solid var(--error);
@@ -42,6 +100,7 @@
   align-items: center;
   justify-content: space-between;
 }
+
 .danger-item p {
   color: var(--text-secondary);
   font-size: 0.875rem;
@@ -58,7 +117,8 @@
   margin-bottom: var(--spacing-xl);
 }
 
-.invite-form h3, .user-list h3 {
+.invite-form h3,
+.user-list h3 {
   font-size: 1rem;
   font-weight: 600;
   margin-bottom: var(--spacing-md);
@@ -80,7 +140,8 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  height: 42px; /* Match input height */
+  height: 42px;
+  /* Match input height */
 }
 
 .role-select-compact {
@@ -115,7 +176,8 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-md) 0;
-  border-bottom: 1px solid var(--border); /* border-gray-100 equivalent */
+  border-bottom: 1px solid var(--border);
+  /* border-gray-100 equivalent */
 }
 
 .user-list-item:last-child {
@@ -133,8 +195,10 @@
 }
 
 .user-avatar-circle {
-  width: 40px; /* w-10 */
-  height: 40px; /* h-10 */
+  width: 40px;
+  /* w-10 */
+  height: 40px;
+  /* h-10 */
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid var(--border);
@@ -222,7 +286,8 @@
 
 .btn-remove-user:hover {
   color: var(--error);
-  background-color: #FEF2F2; /* red-50 */
+  background-color: #FEF2F2;
+  /* red-50 */
 }
 
 .role-badge-text {
@@ -232,6 +297,6 @@
   padding: 4px 8px;
   background-color: var(--bg-main);
   border-radius: var(--radius-sm);
-  border: 1px solid transparent; /* To match select height if needed, or just visual */
+  border: 1px solid transparent;
+  /* To match select height if needed, or just visual */
 }
-

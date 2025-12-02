@@ -51,6 +51,7 @@
   "generalTab": "General",
   "membersTab": "Miembros",
   "agendaNameLabel_settings": "Nombre de la Agenda",
+  "agendaDescriptionLabel_settings": "Descripción",
   "saveChangesButton_agenda": "Guardar Cambios",
   "dangerZoneTitle": "Zona de Peligro",
   "deleteAgendaTitle": "Eliminar esta agenda",
@@ -318,11 +319,9 @@
   "profileUpdateError": "Error al actualizar el perfil",
   "bioLabel": "Biografía",
   "bioPlaceholder": "Cuéntanos un poco sobre ti (máx. 200 caracteres)",
-  "linksLabel": "Enlaces Personalizados",
   "addLinkButton": "Añadir Enlace",
   "linkUrlPlaceholder": "https://...",
   "linkTitlePlaceholder": "Título (ej. LinkedIn)",
-  "statusLabel": "Estado",
   "status_AVAILABLE": "Disponible",
   "status_AWAY": "Ausente",
   "status_BUSY": "Ocupado",
@@ -333,8 +332,19 @@
   "deleteAccountButton": "Eliminar Cuenta",
   "deleteAccountWarning": "Eliminar tu cuenta es irreversible. Se eliminarán todas tus agendas personales.",
   "confirmDeleteAccountMessage": "¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer.",
-  "passwordPlaceholder": "Contraseña",
   "confirmDeleteButton": "Sí, eliminar",
   "deleting": "Eliminando...",
-  "cancelButton": "Cancelar"
+  "userProfile": {
+    "title": "Perfil de Usuario",
+    "bio": "Biografía",
+    "noBio": "No hay biografía.",
+    "email": "Email",
+    "close": "Cerrar"
+  },
+  "status": {
+    "available": "Disponible",
+    "away": "Ausente",
+    "busy": "Ocupado",
+    "offline": "Desconectado"
+  }
 }
