@@ -24,6 +24,12 @@ app.use(cors({
   credentials: true,
 }));
 
+// Allow cross-origin resource embedding (for Gmail image proxy)
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+});
+
 // Body parser
 app.use(express.json());
 app.use(passport.initialize());
