@@ -6,6 +6,7 @@ const path = require('path');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { sendEmail } = require('../../utils/mailer');
+const { getVerificationEmailTemplate } = require('../../emails/verificationTemplate');
 
 /**
  * Login controller
@@ -131,8 +132,8 @@ async function register(req, res) {
 
     await sendEmail(
       email,
-      'Verify your email',
-      `<p>Please click the following link to verify your email:</p><a href="${verificationLink}">${verificationLink}</a>`
+      'Verify your Synapse account',
+      getVerificationEmailTemplate(verificationLink, name, frontendUrl)
     );
 
     res.status(201).json({
