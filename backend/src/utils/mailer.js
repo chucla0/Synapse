@@ -2,17 +2,14 @@ const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'mail.synapse.daw.inspedralbes.cat',
-  port: 465, // Using port 465 (SMTPS)
-  secure: true, // Must be true for port 465
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: false, // true for 465, false for other ports
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
   tls: {
-    // We use rejectUnauthorized: false because the official host (mail.synapse.daw.inspedralbes.cat)
-    // has an invalid SSL certificate (Let's Encrypt validation failure due to DNS restrictions).
-    // This allows the connection to proceed despite the certificate error.
-    rejectUnauthorized: false, 
+    rejectUnauthorized: false,
   },
 });
 

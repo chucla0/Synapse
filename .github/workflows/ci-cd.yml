@@ -63,6 +63,7 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           SMTP_SECURE: ${{ secrets.SMTP_SECURE }}
+          JWT_SECRET_EMAIL: ${{ secrets.JWT_SECRET_EMAIL }}
           # Google Auth Secrets
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
@@ -110,6 +111,7 @@ jobs:
             SMTP_USER=$SMTP_USER
             SMTP_PASS=$SMTP_PASS
             SMTP_SECURE=$SMTP_SECURE
+            JWT_SECRET_EMAIL=$JWT_SECRET_EMAIL
             GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
             GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
             GOOGLE_CALLBACK_URL=$GOOGLE_CALLBACK_URL

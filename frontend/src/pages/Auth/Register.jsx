@@ -16,6 +16,7 @@ function Register({ onRegister }) {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -46,29 +47,36 @@ function Register({ onRegister }) {
     }
 
     try {
-      const response = await api.post('/auth/register', {
+      await api.post('/auth/register', {
         name: formData.name,
         email: formData.email,
         password: formData.password,
       });
 
-      const { tokens, user } = response.data;
-
-      // Save auth data
-      setAuthData({
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
-        user,
-      });
-
-      onRegister();
-      navigate('/dashboard');
+      setSuccess(true);
     } catch (err) {
       setError(err.response?.data?.message || 'Error al crear la cuenta');
     } finally {
       setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <AuthLayout>
+        <div className="auth-header">
+          <h1>¡Cuenta creada!</h1>
+        </div>
+        <div className="alert alert-success" style={{ textAlign: 'center' }}>
+          <p>Hemos enviado un correo de verificación a <strong>{formData.email}</strong>.</p>
+          <p>Por favor, revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.</p>
+          <Link to="/login" className="btn btn-primary" style={{ marginTop: '1rem', display: 'inline-block' }}>
+            Volver al Login
+          </Link>
+        </div>
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout>
@@ -144,8 +152,8 @@ function Register({ onRegister }) {
           />
         </div>
 
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           className="btn btn-primary btn-block"
           disabled={loading}
         >

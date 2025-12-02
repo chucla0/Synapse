@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
+import Verify from './pages/Auth/Verify';
 import Dashboard from './pages/Dashboard/Dashboard';
 import GoogleCallback from './pages/Auth/GoogleCallback';
 import SetPassword from './pages/Auth/SetPassword';
@@ -31,10 +32,10 @@ function App() {
 
   if (isLoading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         height: '100vh',
         fontFamily: 'system-ui, -apple-system, sans-serif'
       }}>
@@ -48,21 +49,22 @@ function App() {
     <SettingsProvider>
       <DateFnsLocaleProvider>
         <Routes>
-          <Route 
-            path="/login" 
-            element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />} 
+          <Route
+            path="/login"
+            element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />}
           />
-          <Route 
-            path="/register" 
-            element={!isAuthenticated ? <Register onRegister={handleLogin} /> : <Navigate to="/dashboard" />} 
+          <Route
+            path="/register"
+            element={!isAuthenticated ? <Register onRegister={handleLogin} /> : <Navigate to="/dashboard" />}
           />
-          <Route 
-            path="/dashboard/*" 
-            element={isAuthenticated ? <Dashboard key={sessionKey} sessionKey={sessionKey} onLogout={handleLogout} /> : <Navigate to="/login" />} 
+          <Route path="/verify" element={<Verify onLogin={handleLogin} />} />
+          <Route
+            path="/dashboard/*"
+            element={isAuthenticated ? <Dashboard key={sessionKey} sessionKey={sessionKey} onLogout={handleLogout} /> : <Navigate to="/login" />}
           />
-          <Route 
-            path="/" 
-            element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} 
+          <Route
+            path="/"
+            element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />}
           />
           <Route path="/google-callback" element={<GoogleCallback onLogin={handleLogin} />} />
           <Route path="/set-password" element={<SetPassword onLogin={handleLogin} />} />

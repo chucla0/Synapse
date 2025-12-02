@@ -80,20 +80,7 @@ router.get('/google/connect', (req, res, next) => {
  */
 router.get(
   '/google/callback',
-  (req, res, next) => {
-    passport.authenticate('google', { session: false }, (err, user, info) => {
-      if (err) {
-        console.error('Passport Google Error:', err);
-        return res.status(500).json({ error: 'Passport Error', details: err.message });
-      }
-      if (!user) {
-        console.error('Passport Google Failed (No User):', info);
-        return res.status(401).json({ error: 'Unauthorized', details: info });
-      }
-      req.user = user;
-      next();
-    })(req, res, next);
-  },
+  passport.authenticate('google', { session: false, failureRedirect: '/login' }),
   authController.googleCallback
 );
 

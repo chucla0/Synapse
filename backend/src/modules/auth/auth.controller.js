@@ -110,7 +110,12 @@ async function register(req, res) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
-    const verificationToken = crypto.randomUUID();
+    // Generate verification token signed with specific email secret
+    const verificationToken = jwt.sign(
+      { email },
+      process.env.JWT_SECRET_EMAIL,
+      { expiresIn: '24h' }
+    );
 
     const user = await authService.createUser(prisma, {
       email,
@@ -121,7 +126,8 @@ async function register(req, res) {
     });
 
     // Send verification email
-    const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify?token=${verificationToken}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'https://synapse.daw.inspedralbes.cat';
+    const verificationLink = `${frontendUrl}/verify?token=${verificationToken}`;
 
     await sendEmail(
       email,
@@ -328,6 +334,17 @@ async function verify(req, res) {
       });
     }
 
+    // Verify token signature
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET_EMAIL);
+    } catch (err) {
+      return res.status(400).json({
+        error: 'Verification failed',
+        message: 'Invalid or expired token'
+      });
+    }
+
     // Find user with this token
     const user = await prisma.user.findFirst({
       where: { verificationToken: token }
@@ -336,7 +353,7 @@ async function verify(req, res) {
     if (!user) {
       return res.status(400).json({
         error: 'Verification failed',
-        message: 'Invalid or expired token'
+        message: 'Token not found or already used'
       });
     }
 
