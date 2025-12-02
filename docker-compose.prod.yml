@@ -79,10 +79,10 @@ services:
       - "8081:80"
       
     # 2. Volumen de despliegue para GitHub Actions
-    volumes:
+    # volumes:
       # Host: donde GitHub Actions pone los archivos
       # Contenedor: donde el NGINX/servidor interno lee los archivos (asumimos /usr/share/nginx/html)
-      - /var/www/html/Synapse:/usr/share/nginx/html:ro
+      # - /var/www/html/Synapse:/usr/share/nginx/html:ro
       
     depends_on:
       - backend
