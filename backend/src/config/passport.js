@@ -11,7 +11,8 @@ passport.use(
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: process.env.GOOGLE_CALLBACK_URL || '/api/auth/google/callback',
       scope: ['profile', 'email'],
-      passReqToCallback: true
+      passReqToCallback: true,
+      proxy: true
     },
     async (req, accessToken, refreshToken, profile, done) => {
       try {
@@ -30,8 +31,8 @@ passport.use(
 
         if (user) {
           // Update existing user
-          const updateData = { 
-            googleId, 
+          const updateData = {
+            googleId,
             avatar: user.avatar || avatar,
           };
 
