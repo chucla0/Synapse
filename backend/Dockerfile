@@ -40,6 +40,7 @@ COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/clie
 # Copy source code and prisma schema (for migrations)
 COPY src ./src
 COPY prisma ./prisma
+COPY public ./public
 
 # Expose port
 EXPOSE 3000

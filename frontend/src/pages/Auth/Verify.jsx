@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '../../utils/api';
@@ -14,12 +14,17 @@ function Verify({ onLogin }) {
     const [status, setStatus] = useState('verifying'); // verifying, success, error
     const [message, setMessage] = useState('');
 
+    const hasFetched = useRef(false);
+
     useEffect(() => {
         if (!token) {
             setStatus('error');
             setMessage('Token no proporcionado');
             return;
         }
+
+        if (hasFetched.current) return;
+        hasFetched.current = true;
 
         const verifyEmail = async () => {
             try {
