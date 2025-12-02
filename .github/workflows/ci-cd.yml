@@ -74,10 +74,28 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           envs: DOCKER_USERNAME,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,JWT_SECRET,JWT_EXPIRES_IN,JWT_REFRESH_EXPIRES_IN,SMTP_HOST,SMTP_PORT,SMTP_USER,SMTP_PASS,SMTP_SECURE,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,GOOGLE_CALLBACK_URL,FRONTEND_URL
           script: |
-            # ➡️ AJUSTE CLAVE: Navegar al directorio de trabajo real de HestiaCP.
-            cd /web/synapse.daw.inspedralbes.cat || exit 1
+            PROJECT_DIR="/var/www/html/Synapse"
+            REPO_URL="https://github.com/chucla0/Synapse.git"
 
-            # Crear/Sobreescribir .env file con secrets
+            # 1. Asegurar que el directorio existe y entrar
+            mkdir -p $PROJECT_DIR
+            cd $PROJECT_DIR || exit 1
+
+            # 2. Lógica: Clonar si es nuevo, o Down+Pull si ya existe
+            if [ ! -d ".git" ]; then
+                echo "⚠️ Project not found. Cloning from $REPO_URL..."
+                # Clonar en el directorio actual (.)
+                git clone $REPO_URL .
+            else
+                echo "✅ Project found. Stopping services and updating..."
+                # Parar servicios antiguos para asegurar limpieza
+                docker compose -f docker-compose.prod.yml down || true
+                
+                # Descargar cambios
+                git pull origin main
+            fi
+
+            # 3. Generar archivo de entorno
             echo "Generating .env file from secrets..."
             cat <<EOF > .env
             NODE_ENV=production

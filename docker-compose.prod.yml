@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # PostgreSQL Database
   postgres:
@@ -49,9 +51,6 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
       FRONTEND_URL: ${FRONTEND_URL}
-    ports:
-      - "3000:3000"
-    # Production command: run migrations then start
     command: sh -c "npx prisma migrate deploy && npm run start"
     depends_on:
       postgres:
@@ -59,8 +58,8 @@ services:
     networks:
       - synapse-network
     extra_hosts:
-      - "synapse.daw.inspedralbes.cat:34.77.10.20"
-
+      - "synapse.daw.inspedralbes.cat:65.21.109.49" # Usando la IP pública confirmada
+      
   # Frontend (React + Vite)
   frontend:
     build:
@@ -74,13 +73,17 @@ services:
     restart: unless-stopped
     environment:
       VITE_API_URL: ${VITE_API_URL}
-    # Expose ports for HTTP (redirect) and HTTPS
+      
+    # 1. Mapeo de puertos para NGINX Maestro: Host 8081 -> Contenedor 80
     ports:
-      - "80:80"
-      - "443:443"
-    # Mount Let's Encrypt certificates
+      - "8081:80"
+      
+    # 2. Volumen de despliegue para GitHub Actions
     volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro
+      # Host: donde GitHub Actions pone los archivos
+      # Contenedor: donde el NGINX/servidor interno lee los archivos (asumimos /usr/share/nginx/html)
+      - /var/www/html/Synapse:/usr/share/nginx/html:ro
+      
     depends_on:
       - backend
     networks:
