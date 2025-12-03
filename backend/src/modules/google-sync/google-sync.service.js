@@ -426,7 +426,7 @@ async function syncByChannelId(channelId, io) {
 
   // Emit socket event
   if (io) {
-    io.to(`user:${agenda.ownerId} `).emit('agenda:updated', {
+    io.to(`user:${agenda.ownerId}`).emit('agenda:updated', {
       agendaId: result.agendaId,
       action: 'imported'
     });
