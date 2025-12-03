@@ -422,6 +422,23 @@ async function createEvent(req, res) {
           eventId: event.id,
         });
       }
+
+      // Emit socket event to all agenda members (trigger refetch)
+      if (req.io) {
+        const allMembers = await prisma.agendaUser.findMany({
+          where: { agendaId },
+          select: { userId: true }
+        });
+        const allRecipientIds = [...new Set([...allMembers.map(m => m.userId), agenda.ownerId])];
+
+        allRecipientIds.forEach(uid => {
+          req.io.to(`user:${uid}`).emit('event:created', {
+            eventId: event.id,
+            agendaId: agendaId,
+            action: 'created'
+          });
+        });
+      }
     }
 
 
@@ -622,6 +639,23 @@ async function updateEvent(req, res) {
         type: 'EVENT_UPDATED',
         eventId: event.id,
       });
+
+      // Emit socket event
+      if (req.io) {
+        const allMembers = await prisma.agendaUser.findMany({
+          where: { agendaId: event.agendaId },
+          select: { userId: true }
+        });
+        const allRecipientIds = [...new Set([...allMembers.map(m => m.userId), event.agenda.ownerId])];
+
+        allRecipientIds.forEach(uid => {
+          req.io.to(`user:${uid}`).emit('event:updated', {
+            eventId: event.id,
+            agendaId: event.agendaId,
+            action: 'updated'
+          });
+        });
+      }
     }
 
 
@@ -740,6 +774,23 @@ async function deleteEvent(req, res) {
         excludeSender: true,
         data: { eventTitle: event.title, agendaName: event.agenda.name },
       });
+
+      // Emit socket event
+      if (req.io) {
+        const allMembers = await prisma.agendaUser.findMany({
+          where: { agendaId: event.agenda.id },
+          select: { userId: true }
+        });
+        const allRecipientIds = [...new Set([...allMembers.map(m => m.userId), event.agenda.ownerId])];
+
+        allRecipientIds.forEach(uid => {
+          req.io.to(`user:${uid}`).emit('event:deleted', {
+            eventId: eventId,
+            agendaId: event.agenda.id,
+            action: 'deleted'
+          });
+        });
+      }
     }
 
 
@@ -772,6 +823,7 @@ async function deleteEvent(req, res) {
 async function approveEvent(req, res) {
   try {
     const { eventId } = req.params;
+    console.log(`[DEBUG] approveEvent called for ${eventId}`);
     const userId = req.user.id;
 
     const event = await prisma.event.findUnique({
@@ -839,6 +891,24 @@ async function approveEvent(req, res) {
       }
     });
 
+    // Emit socket event
+    if (req.io) {
+      const allMembers = await prisma.agendaUser.findMany({
+        where: { agendaId: event.agendaId },
+        select: { userId: true }
+      });
+      const allRecipientIds = [...new Set([...allMembers.map(m => m.userId), event.agenda.ownerId])];
+
+      allRecipientIds.forEach(uid => {
+        req.io.to(`user:${uid}`).emit('event:updated', {
+          eventId: event.id,
+          agendaId: event.agendaId,
+          action: 'updated',
+          status: 'CONFIRMED'
+        });
+      });
+    }
+
     res.json({
       message: 'Event approved successfully',
       event: updatedEvent
@@ -859,6 +929,7 @@ async function approveEvent(req, res) {
 async function rejectEvent(req, res) {
   try {
     const { eventId } = req.params;
+    console.log(`[DEBUG] rejectEvent called for ${eventId}`);
     const userId = req.user.id;
     const { reason } = req.body;
 
@@ -917,6 +988,24 @@ async function rejectEvent(req, res) {
         reason: reason
       }
     });
+
+    // Emit socket event
+    if (req.io) {
+      const allMembers = await prisma.agendaUser.findMany({
+        where: { agendaId: event.agendaId },
+        select: { userId: true }
+      });
+      const allRecipientIds = [...new Set([...allMembers.map(m => m.userId), event.agenda.ownerId])];
+
+      allRecipientIds.forEach(uid => {
+        req.io.to(`user:${uid}`).emit('event:updated', {
+          eventId: event.id,
+          agendaId: event.agendaId,
+          action: 'updated',
+          status: 'REJECTED'
+        });
+      });
+    }
 
     res.json({
       message: 'Event rejected successfully',

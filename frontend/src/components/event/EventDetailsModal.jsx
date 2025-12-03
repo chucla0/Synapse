@@ -91,6 +91,11 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
   const canDelete = () => {
     if (!onDelete) return false;
     if (!realAgenda) return false;
+
+    // If user can approve (is in approval flow), they should NOT see delete button
+    // They should use Reject instead.
+    if (canApprove()) return false;
+
     const { userRole, type } = realAgenda;
     const isCreator = event.creator?.id === currentUser?.id;
 
@@ -126,6 +131,9 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
             )}
             {event.status === 'CONFIRMED' && realAgenda?.type === 'LABORAL' && (
               <span className="status-badge status-confirmed">{t('confirmed', 'Confirmado')}</span>
+            )}
+            {event.status === 'REJECTED' && (
+              <span className="status-badge status-rejected">{t('rejected', 'Rechazado')}</span>
             )}
           </div>
           <button className="modal-close" onClick={onClose}><X size={24} /></button>
@@ -287,9 +295,6 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
                     {t('editButton')}
                   </button>
                 )}
-                <button className="btn btn-secondary" onClick={onClose}>
-                  {t('close', 'Cerrar')}
-                </button>
               </>
             )}
           </div>

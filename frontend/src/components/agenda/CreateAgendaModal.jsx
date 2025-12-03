@@ -12,10 +12,10 @@ const AGENDA_TYPES = [
 ];
 
 const AGENDA_COLORS = {
-  PERSONAL: '#FFC3A0',     // Melocotón Suave
-  LABORAL: '#A0CFFF',      // Azul Cielo Pastel
-  EDUCATIVA: '#FFEAA7',    // Amarillo Crema Pastel
-  COLABORATIVA: '#F5A9B8'  // Rosa Algodón Suave
+  PERSONAL: 'var(--agenda-1)',     // Melocotón Suave / Naranja Fuerte
+  LABORAL: 'var(--agenda-2)',      // Azul Cielo Pastel / Azul Fuerte
+  EDUCATIVA: 'var(--agenda-3)',    // Amarillo Crema Pastel / Amarillo Fuerte
+  COLABORATIVA: 'var(--agenda-4)'  // Rosa Algodón Suave / Rosa Fuerte
 };
 
 function CreateAgendaModal({ onClose, existingAgendas = [] }) {

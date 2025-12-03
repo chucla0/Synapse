@@ -49,7 +49,7 @@ const DraggableWeekEvent = ({ event, agendaColor, onEventClick, locale, timeForm
   );
 };
 
-const DroppableWeekSlot = ({ day, hour, children }) => {
+const DroppableWeekSlot = ({ day, hour, children, onClick }) => {
   const dateStr = format(day, 'yyyy-MM-dd');
   const timeStr = `${hour.toString().padStart(2, '0')}:00`;
   const { setNodeRef, isOver } = useDroppable({
@@ -60,13 +60,14 @@ const DroppableWeekSlot = ({ day, hour, children }) => {
     <div
       ref={setNodeRef}
       className={`week-hour-slot ${isOver ? 'drag-over' : ''}`}
+      onClick={onClick}
     >
       {children}
     </div>
   );
 };
 
-function WeekView({ date, events, agendaColor, onEventClick, weekStartsOn = 1 }) {
+function WeekView({ date, events, agendaColor, onEventClick, weekStartsOn = 1, onTimeSlotClick }) {
   const { settings } = useSettings();
   const locale = useDateFnsLocale();
   const weekDays = getWeekDays(date, { weekStartsOn });
@@ -112,7 +113,16 @@ function WeekView({ date, events, agendaColor, onEventClick, weekStartsOn = 1 })
               return (
                 <div key={day.toString()} className="week-day-column">
                   {Array.from({ length: 24 }, (_, hour) => (
-                    <DroppableWeekSlot key={hour} day={day} hour={hour} />
+                    <DroppableWeekSlot
+                      key={hour}
+                      day={day}
+                      hour={hour}
+                      onClick={() => {
+                        const slotDate = new Date(day);
+                        slotDate.setHours(hour, 0, 0, 0);
+                        onTimeSlotClick && onTimeSlotClick(slotDate);
+                      }}
+                    />
                   ))}
 
                   {/* Render events */}

@@ -28,7 +28,7 @@ export function formatDateTime(date) {
 export function getMonthDays(date, { weekStartsOn = 1 } = {}) {
   const start = startOfWeek(startOfMonth(date), { weekStartsOn });
   const end = endOfWeek(endOfMonth(date), { weekStartsOn });
-  
+
   return eachDayOfInterval({ start, end });
 }
 
@@ -38,7 +38,7 @@ export function getMonthDays(date, { weekStartsOn = 1 } = {}) {
 export function getWeekDays(date, { weekStartsOn = 1 } = {}) {
   const start = startOfWeek(date, { weekStartsOn });
   const end = endOfWeek(date, { weekStartsOn });
-  
+
   return eachDayOfInterval({ start, end });
 }
 
@@ -71,7 +71,7 @@ export function isEventInRange(event, startDate, endDate) {
   const eventEnd = new Date(event.endTime);
   const rangeStart = new Date(startDate);
   const rangeEnd = new Date(endDate);
-  
+
   return (
     (eventStart >= rangeStart && eventStart <= rangeEnd) ||
     (eventEnd >= rangeStart && eventEnd <= rangeEnd) ||
@@ -84,15 +84,57 @@ export function isEventInRange(event, startDate, endDate) {
  */
 export function groupEventsByDay(events) {
   const grouped = {};
-  
+
   events.forEach(event => {
-    const dateKey = format(new Date(event.startTime), 'yyyy-MM-dd');
-    if (!grouped[dateKey]) {
-      grouped[dateKey] = [];
+    const start = new Date(event.startTime);
+    const end = new Date(event.endTime);
+
+    if (isSameDay(start, end)) {
+      const dateKey = format(start, 'yyyy-MM-dd');
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = [];
+      }
+      grouped[dateKey].push(event);
+    } else {
+      // Split multi-day event
+      let current = new Date(start);
+      let part = 1;
+
+      while (current < end) {
+        const dateKey = format(current, 'yyyy-MM-dd');
+        if (!grouped[dateKey]) {
+          grouped[dateKey] = [];
+        }
+
+        // Determine segment start and end
+        const segmentStart = part === 1 ? start : new Date(current.setHours(0, 0, 0, 0));
+
+        // Determine segment end (either end of day or actual end)
+        const endOfDay = new Date(current);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const segmentEnd = end <= endOfDay ? end : endOfDay;
+
+        // Create segment
+        // We use a composite ID to ensure uniqueness for keys/dnd
+        // We store originalId to trace back to the source event
+        grouped[dateKey].push({
+          ...event,
+          id: `${event.id}_part${part}`,
+          originalId: event.id, // Reference to the ID of the event being split (could be recurrence instance)
+          startTime: segmentStart.toISOString(),
+          endTime: segmentEnd.toISOString(),
+          isMultiDayPart: true
+        });
+
+        // Move to next day
+        current = addDays(current, 1);
+        current.setHours(0, 0, 0, 0);
+        part++;
+      }
     }
-    grouped[dateKey].push(event);
   });
-  
+
   return grouped;
 }
 
@@ -119,7 +161,7 @@ export function calculateEventLayout(events) {
     // 20 minutes = 20 * 60 * 1000 ms
     const minDuration = 20 * 60 * 1000;
     const visualEnd = Math.max(end, start + minDuration);
-    
+
     return {
       ...event,
       _start: start,
@@ -172,7 +214,7 @@ export function calculateEventLayout(events) {
           break;
         }
       }
-      
+
       if (!placed) {
         columns.push([event]);
         event._col = columns.length - 1;
@@ -180,19 +222,19 @@ export function calculateEventLayout(events) {
     });
 
     const numCols = columns.length;
-    
+
     cluster.forEach(event => {
       // Calculate dimensions
       const startHour = new Date(event.startTime).getHours();
       const startMinute = new Date(event.startTime).getMinutes();
       const endHour = new Date(event.endTime).getHours();
       const endMinute = new Date(event.endTime).getMinutes();
-      
+
       const top = (startHour + startMinute / 60) * 60;
       // Calculate height based on actual duration, but enforce min-height in CSS/style
       // Here we just pass the raw height calculation, the component handles min-height
       let height = ((endHour + endMinute / 60) - (startHour + startMinute / 60)) * 60;
-      
+
       // Handle day crossing or 0 duration
       if (height <= 0) height = 20; // Default to 20px if 0 or negative
 

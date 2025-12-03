@@ -61,9 +61,9 @@ async function getAllAgendas(req, res) {
 
   } catch (error) {
     console.error('Get agendas error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to fetch agendas',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
@@ -78,9 +78,9 @@ async function createAgenda(req, res) {
 
     // Validate required fields
     if (!name) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Validation error',
-        message: 'Agenda name is required' 
+        message: 'Agenda name is required'
       });
     }
 
@@ -108,9 +108,9 @@ async function createAgenda(req, res) {
 
   } catch (error) {
     console.error('Create agenda error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to create agenda',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
@@ -143,8 +143,8 @@ async function getAgendaById(req, res) {
     });
 
     if (!agenda) {
-      return res.status(404).json({ 
-        error: 'Agenda not found' 
+      return res.status(404).json({
+        error: 'Agenda not found'
       });
     }
 
@@ -153,9 +153,9 @@ async function getAgendaById(req, res) {
     const isMember = agenda.agendaUsers.some(au => au.userId === userId);
 
     if (!isOwner && !isMember) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'Access denied',
-        message: 'You do not have access to this agenda' 
+        message: 'You do not have access to this agenda'
       });
     }
 
@@ -166,15 +166,15 @@ async function getAgendaById(req, res) {
       userRole = agendaUser.role;
     }
 
-    res.json({ 
-      agenda: { ...agenda, userRole } 
+    res.json({
+      agenda: { ...agenda, userRole }
     });
 
   } catch (error) {
     console.error('Get agenda error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to fetch agenda',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
@@ -211,6 +211,24 @@ async function updateAgenda(req, res) {
         type: 'AGENDA_UPDATED',
         excludeSender: true,
       });
+
+      // Emit socket event to all members
+      const memberIds = updatedAgenda.agendaUsers.map(au => au.userId);
+      // Also include owner if not in agendaUsers (though usually owner is not in agendaUsers table? Check schema. 
+      // Schema says agendaUsers is many-to-many. Owner is separate field.
+      // But usually owner is treated as member? 
+      // In `getAllAgendas`, we merge them.
+      // Let's emit to owner too.
+      const allRecipientIds = [...new Set([...memberIds, updatedAgenda.ownerId])];
+
+      allRecipientIds.forEach(userId => {
+        if (req.io) {
+          req.io.to(`user:${userId}`).emit('agenda:updated', {
+            agendaId: updatedAgenda.id,
+            action: 'updated'
+          });
+        }
+      });
     }
 
     res.json({
@@ -220,9 +238,9 @@ async function updateAgenda(req, res) {
 
   } catch (error) {
     console.error('Update agenda error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to update agenda',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
@@ -264,15 +282,30 @@ async function deleteAgenda(req, res) {
       where: { id: agendaId }
     });
 
+    // Emit socket event to all members (we fetched them before delete)
+    if (agenda.agendaUsers) {
+      const memberIds = agenda.agendaUsers.map(au => au.userId);
+      const allRecipientIds = [...new Set([...memberIds, agenda.ownerId])];
+
+      allRecipientIds.forEach(userId => {
+        if (req.io) {
+          req.io.to(`user:${userId}`).emit('agenda:deleted', {
+            agendaId: agenda.id,
+            action: 'deleted'
+          });
+        }
+      });
+    }
+
     res.json({
       message: 'Agenda deleted successfully'
     });
 
   } catch (error) {
     console.error('Delete agenda error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to delete agenda',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
@@ -292,9 +325,9 @@ async function addUserToAgenda(req, res) {
     });
 
     if (!user) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'User not found',
-        message: `No user found with email: ${email}` 
+        message: `No user found with email: ${email}`
       });
     }
 
@@ -309,9 +342,9 @@ async function addUserToAgenda(req, res) {
     });
 
     if (existingMember) {
-      return res.status(409).json({ 
+      return res.status(409).json({
         error: 'User already exists',
-        message: 'This user is already a member of the agenda' 
+        message: 'This user is already a member of the agenda'
       });
     }
 
@@ -325,10 +358,33 @@ async function addUserToAgenda(req, res) {
     });
 
     if (existingInvite) {
-      return res.status(409).json({ 
+      return res.status(409).json({
         error: 'Invitation already sent',
-        message: 'User has already been invited to this agenda' 
+        message: 'User has already been invited to this agenda'
       });
+    }
+
+    // Fetch agenda to check type and validate role
+    const agenda = await prisma.agenda.findUnique({ where: { id: agendaId } });
+    if (!agenda) {
+      return res.status(404).json({ error: 'Agenda not found' });
+    }
+
+    // Determine role
+    let assignedRole = role;
+    if (!assignedRole) {
+      if (agenda.type === 'EDUCATIVA') assignedRole = 'STUDENT';
+      else if (agenda.type === 'LABORAL') assignedRole = 'EMPLOYEE';
+      else assignedRole = 'VIEWER';
+    } else {
+      // Validate role against agenda type
+      if (agenda.type === 'EDUCATIVA' && !['PROFESSOR', 'STUDENT'].includes(role)) {
+        assignedRole = 'STUDENT'; // Fallback
+      } else if (agenda.type === 'LABORAL' && !['CHIEF', 'EMPLOYEE'].includes(role)) {
+        assignedRole = 'EMPLOYEE'; // Fallback
+      } else if (agenda.type === 'COLABORATIVA' && !['EDITOR', 'VIEWER'].includes(role)) {
+        assignedRole = 'VIEWER'; // Fallback
+      }
     }
 
     // Create notification (Invitation)
@@ -337,7 +393,7 @@ async function addUserToAgenda(req, res) {
       senderId: req.user.id,
       type: 'AGENDA_INVITE',
       agendaId: agendaId,
-      data: { role: role || 'VIEWER' },
+      data: { role: assignedRole },
     });
 
     res.status(201).json({
@@ -346,9 +402,9 @@ async function addUserToAgenda(req, res) {
 
   } catch (error) {
     console.error('Add user to agenda error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to invite user',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
@@ -368,9 +424,9 @@ async function removeUserFromAgenda(req, res) {
 
     // Prevent removing self via this endpoint (use leaveAgenda instead)
     if (targetUserId === requestingUserId) {
-      return res.status(400).json({ 
-        error: 'Invalid operation', 
-        message: 'You cannot remove yourself using this endpoint. Use leave agenda instead.' 
+      return res.status(400).json({
+        error: 'Invalid operation',
+        message: 'You cannot remove yourself using this endpoint. Use leave agenda instead.'
       });
     }
 
@@ -408,9 +464,9 @@ async function removeUserFromAgenda(req, res) {
     }
 
     if (!canRemove) {
-      return res.status(403).json({ 
-        error: 'Permission denied', 
-        message: 'You do not have permission to remove this user.' 
+      return res.status(403).json({
+        error: 'Permission denied',
+        message: 'You do not have permission to remove this user.'
       });
     }
 
@@ -432,15 +488,36 @@ async function removeUserFromAgenda(req, res) {
       data: { agendaName: agenda.name },
     });
 
+    // Emit socket event to removed user and remaining members?
+    // Mainly removed user needs to know to remove agenda from list.
+    if (req.io) {
+      req.io.to(`user:${targetUserId}`).emit('agenda:user_removed', {
+        agendaId,
+        userId: targetUserId
+      });
+
+      // Also notify others so they see member list update?
+      // Fetch current members to notify them
+      const remainingMembers = await prisma.agendaUser.findMany({
+        where: { agendaId },
+        select: { userId: true }
+      });
+      const allRecipientIds = [...new Set([...remainingMembers.map(m => m.userId), agenda.ownerId])];
+
+      allRecipientIds.forEach(uid => {
+        req.io.to(`user:${uid}`).emit('agenda:updated', { agendaId });
+      });
+    }
+
     res.json({
       message: 'User removed from agenda successfully'
     });
 
   } catch (error) {
     console.error('Remove user from agenda error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to remove user from agenda',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
@@ -455,9 +532,9 @@ async function updateUserRole(req, res) {
     const requestingUserId = req.user.id;
 
     if (!newRole) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Validation error',
-        message: 'Role is required' 
+        message: 'Role is required'
       });
     }
 
@@ -485,25 +562,15 @@ async function updateUserRole(req, res) {
     if (!requesterRole) {
       return res.status(403).json({ error: 'Access denied', message: 'You are not a member of this agenda.' });
     }
-    
-    // --- PERMISSION LOGIC ---
-    let canUpdate = false;
 
-    if (isOwner) {
-      // Owner can do almost anything
-      canUpdate = true;
-      if (agenda.type === 'EDUCATIVA') {
-        return res.status(403).json({ error: 'Permission denied', message: 'Roles cannot be changed in educational agendas.' });
-      }
-    } else if (agenda.type === 'LABORAL' && requesterRole === 'CHIEF') {
-      // A chief can only promote an employee to chief. They cannot manage other chiefs.
-      if (targetUserMembership?.role === 'EMPLOYEE') {
-        canUpdate = true;
-      }
-    }
-    
-    if (!canUpdate) {
-      return res.status(403).json({ error: 'Permission denied', message: 'You do not have permission to change this user\'s role.' });
+    // --- PERMISSION LOGIC ---
+    // Only the owner can change roles.
+    // This simplifies the logic and avoids complex hierarchy checks.
+    if (!isOwner) {
+      return res.status(403).json({
+        error: 'Permission denied',
+        message: 'Only the agenda owner can change user roles.'
+      });
     }
 
     // Update the role
@@ -531,6 +598,25 @@ async function updateUserRole(req, res) {
       data: { newRole: newRole },
     });
 
+    // Emit socket event
+    if (req.io) {
+      // Notify target user
+      req.io.to(`user:${targetUserId}`).emit('agenda:role_updated', {
+        agendaId,
+        newRole
+      });
+
+      // Notify others (member list update)
+      const members = await prisma.agendaUser.findMany({
+        where: { agendaId },
+        select: { userId: true }
+      });
+      const allRecipientIds = [...new Set([...members.map(m => m.userId), agenda.ownerId])];
+      allRecipientIds.forEach(uid => {
+        req.io.to(`user:${uid}`).emit('agenda:updated', { agendaId });
+      });
+    }
+
     res.json({
       message: 'User role updated successfully',
       agendaUser: updatedAgendaUser
@@ -539,9 +625,9 @@ async function updateUserRole(req, res) {
 
   } catch (error) {
     console.error('Update user role error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to update user role',
-      message: 'Internal server error' 
+      message: 'Internal server error'
     });
   }
 }
@@ -573,6 +659,30 @@ async function acceptInvitation(req, res) {
     await prisma.notification.delete({
       where: { id: notificationId },
     });
+
+    if (req.io) {
+      // Notify the user who accepted so the agenda appears in their list
+      req.io.to(`user:${userId}`).emit('agenda:joined', { agendaId: notification.agendaId });
+
+      // Notify existing members and owner so the member list updates
+      const agenda = await prisma.agenda.findUnique({
+        where: { id: notification.agendaId },
+        select: { ownerId: true }
+      });
+
+      const members = await prisma.agendaUser.findMany({
+        where: { agendaId: notification.agendaId },
+        select: { userId: true }
+      });
+
+      const allRecipientIds = [...new Set([...members.map(m => m.userId), agenda.ownerId])];
+
+      allRecipientIds.forEach(uid => {
+        if (uid !== userId) {
+          req.io.to(`user:${uid}`).emit('agenda:updated', { agendaId: notification.agendaId });
+        }
+      });
+    }
 
     res.json({ message: 'Invitation accepted successfully' });
   } catch (error) {
@@ -616,9 +726,9 @@ async function leaveAgenda(req, res) {
     }
 
     if (agenda.ownerId === userId) {
-      return res.status(400).json({ 
-        error: 'Owner cannot leave', 
-        message: 'As the owner, you cannot leave the agenda. You must delete it or transfer ownership.' 
+      return res.status(400).json({
+        error: 'Owner cannot leave',
+        message: 'As the owner, you cannot leave the agenda. You must delete it or transfer ownership.'
       });
     }
 
@@ -633,6 +743,23 @@ async function leaveAgenda(req, res) {
     await prisma.agendaUser.delete({
       where: { agendaId_userId: { agendaId, userId } }
     });
+
+    if (req.io) {
+      // Notify the user who left so the agenda disappears from their list
+      req.io.to(`user:${userId}`).emit('agenda:left', { agendaId });
+
+      // Notify remaining members and owner so the member list updates
+      const remainingMembers = await prisma.agendaUser.findMany({
+        where: { agendaId },
+        select: { userId: true }
+      });
+
+      const allRecipientIds = [...new Set([...remainingMembers.map(m => m.userId), agenda.ownerId])];
+
+      allRecipientIds.forEach(uid => {
+        req.io.to(`user:${uid}`).emit('agenda:updated', { agendaId });
+      });
+    }
 
     res.json({ message: 'Left agenda successfully' });
 

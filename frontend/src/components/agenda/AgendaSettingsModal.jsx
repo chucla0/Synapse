@@ -6,6 +6,7 @@ import api from '../../utils/api';
 import { getUser } from '../../utils/auth';
 import UserProfileModal from '../user/UserProfileModal';
 import MultiEmailInput from '../ui/MultiEmailInput';
+import { useToast } from '../../contexts/ToastContext';
 import './AgendaSettingsModal.css';
 
 function AgendaSettingsModal({ agenda, onClose }) {
@@ -23,6 +24,8 @@ function AgendaSettingsModal({ agenda, onClose }) {
   const [showRemoveUserConfirm, setShowRemoveUserConfirm] = useState(false);
   const [userToRemove, setUserToRemove] = useState(null);
 
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+
   // Update local state if agenda prop changes
   useEffect(() => {
     if (agenda) {
@@ -31,15 +34,17 @@ function AgendaSettingsModal({ agenda, onClose }) {
     }
   }, [agenda]);
 
+  const { addToast } = useToast();
+
   const updateAgendaMutation = useMutation({
     mutationFn: (data) => api.put(`/agendas/${agenda.id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agendas'] });
-      // Optional: show success toast
+      addToast(t('agendaUpdatedSuccess', 'Agenda actualizada correctamente'), 'success');
     },
     onError: (error) => {
       console.error("Failed to update agenda", error);
-      alert(t('error_updating_agenda', 'Error al actualizar la agenda'));
+      addToast(t('error_updating_agenda', 'Error al actualizar la agenda'), 'error');
     }
   });
 
@@ -48,10 +53,24 @@ function AgendaSettingsModal({ agenda, onClose }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agendas'] });
       onClose();
+      addToast(t('agendaDeletedSuccess', 'Agenda eliminada correctamente'), 'success');
     },
     onError: (error) => {
       console.error("Failed to delete agenda", error);
-      alert(t('error_deleting_agenda', 'Error al eliminar la agenda'));
+      addToast(t('error_deleting_agenda', 'Error al eliminar la agenda'), 'error');
+    }
+  });
+
+  const leaveAgendaMutation = useMutation({
+    mutationFn: () => api.post(`/agendas/${agenda.id}/leave`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agendas'] });
+      onClose();
+      addToast(t('leftAgendaSuccess', 'Has salido de la agenda correctamente'), 'success');
+    },
+    onError: (error) => {
+      console.error("Failed to leave agenda", error);
+      addToast(t('error_leaving_agenda', 'Error al salir de la agenda'), 'error');
     }
   });
 
@@ -60,13 +79,14 @@ function AgendaSettingsModal({ agenda, onClose }) {
   // Actually we will use api.post directly in handleInvite for bulk.
 
   const updateUserRoleMutation = useMutation({
-    mutationFn: ({ userId, role }) => api.put(`/agendas/${agenda.id}/users/${userId}`, { role }),
+    mutationFn: ({ userId, role }) => api.put(`/agendas/${agenda.id}/users/${userId}/role`, { role }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agendas'] });
+      addToast(t('roleUpdatedSuccess', 'Rol actualizado correctamente'), 'success');
     },
     onError: (error) => {
       console.error("Failed to update role", error);
-      alert(t('error_updating_role', 'Error al actualizar rol'));
+      addToast(t('error_updating_role', 'Error al actualizar rol'), 'error');
     }
   });
 
@@ -76,10 +96,11 @@ function AgendaSettingsModal({ agenda, onClose }) {
       queryClient.invalidateQueries({ queryKey: ['agendas'] });
       setShowRemoveUserConfirm(false);
       setUserToRemove(null);
+      addToast(t('userRemovedSuccess', 'Usuario eliminado correctamente'), 'success');
     },
     onError: (error) => {
       console.error("Failed to remove user", error);
-      alert(t('error_removing_user', 'Error al eliminar usuario'));
+      addToast(t('error_removing_user', 'Error al eliminar usuario'), 'error');
     }
   });
 
@@ -108,10 +129,28 @@ function AgendaSettingsModal({ agenda, onClose }) {
         await Promise.all(promises);
         queryClient.invalidateQueries({ queryKey: ['agendas'] });
         setInviteEmails([]);
-        alert(t('invitationsSent', 'Invitaciones enviadas correctamente'));
+        addToast(t('invitationsSent', 'Invitaciones enviadas correctamente'), 'success');
       } catch (error) {
         console.error("Failed to invite users", error);
-        alert(t('error_inviting_users', 'Error al enviar algunas invitaciones'));
+
+        // Check for specific error responses from the first failed promise
+        // Note: Promise.all fails fast, so we get the first error.
+        // Ideally we would use Promise.allSettled to handle partial successes, 
+        // but for now let's just show the error of the one that failed.
+        const status = error.response?.status;
+        const errorMessage = error.response?.data?.message;
+
+        if (status === 404) {
+          addToast(t('user_not_found', 'Usuario no encontrado'), 'error');
+        } else if (status === 409) {
+          if (errorMessage?.includes('already a member')) {
+            addToast(t('user_already_exists', 'El usuario ya es miembro'), 'warning');
+          } else {
+            addToast(t('invitation_already_sent', 'Invitación ya enviada'), 'warning');
+          }
+        } else {
+          addToast(t('error_inviting_users', 'Error al enviar algunas invitaciones'), 'error');
+        }
       }
     }
   };
@@ -131,10 +170,13 @@ function AgendaSettingsModal({ agenda, onClose }) {
     deleteAgendaMutation.mutate();
   };
 
+  const confirmLeaveAgenda = () => {
+    leaveAgendaMutation.mutate();
+  };
+
   // Helper to check permissions
   const canManageAgenda = () => {
-    const myRole = agenda.agendaUsers.find(u => u.userId === currentUser.id)?.role;
-    return myRole === 'OWNER';
+    return getMyRole() === 'OWNER';
   };
 
   const getMyRole = () => {
@@ -180,10 +222,31 @@ function AgendaSettingsModal({ agenda, onClose }) {
 
   const availableRoles = getAvailableRolesToInvite();
 
+  // Auto-select valid role if current one is invalid for this agenda type
+  useEffect(() => {
+    if (availableRoles.length > 0 && !availableRoles.includes(inviteRole)) {
+      setInviteRole(availableRoles.includes('STUDENT') ? 'STUDENT' : availableRoles[0]);
+    }
+  }, [agenda, inviteRole]);
+
   // Construct full member list including owner
   const ownerMember = agenda.owner ? { user: agenda.owner, role: 'OWNER' } : null;
   const otherMembers = agenda.agendaUsers?.filter(u => u.userId !== agenda.ownerId) || [];
   const allMembers = ownerMember ? [ownerMember, ...otherMembers] : otherMembers;
+
+  const [activeDropdownUserId, setActiveDropdownUserId] = useState(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (activeDropdownUserId) setActiveDropdownUserId(null);
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [activeDropdownUserId]);
 
   const renderUserItem = (member) => {
     const { user, role } = member;
@@ -225,14 +288,33 @@ function AgendaSettingsModal({ agenda, onClose }) {
         <div className="user-action-container">
           {canEditThisUser ? (
             <div className="role-actions">
-              <select
-                className="role-select"
-                value={role}
-                onChange={(e) => updateUserRoleMutation.mutate({ userId: user.id, role: e.target.value })}
-                onClick={(e) => e.stopPropagation()}
-              >
-                {availableRoles.map(r => <option key={r} value={r}>{t(`roles.${r}`, r)}</option>)}
-              </select>
+              <div className="custom-dropdown" onClick={(e) => e.stopPropagation()}>
+                <button
+                  type="button"
+                  className="dropdown-toggle"
+                  onClick={() => setActiveDropdownUserId(activeDropdownUserId === user.id ? null : user.id)}
+                >
+                  {t(`roles.${role}`, role)}
+                  <span className="dropdown-arrow">▼</span>
+                </button>
+                {activeDropdownUserId === user.id && (
+                  <ul className="dropdown-menu">
+                    {availableRoles.map(r => (
+                      <li
+                        key={r}
+                        className={`dropdown-item ${role === r ? 'active' : ''}`}
+                        onClick={() => {
+                          updateUserRoleMutation.mutate({ userId: user.id, role: r });
+                          setActiveDropdownUserId(null);
+                        }}
+                      >
+                        {t(`roles.${r}`, r)}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
               {canRemoveThisUser && (
                 <button
                   className="btn-remove-user"
@@ -292,6 +374,7 @@ function AgendaSettingsModal({ agenda, onClose }) {
                   value={agendaName}
                   onChange={(e) => setAgendaName(e.target.value)}
                   className="form-input"
+                  disabled={!canManageAgenda()}
                 />
               </div>
               <div className="form-group">
@@ -302,19 +385,24 @@ function AgendaSettingsModal({ agenda, onClose }) {
                   className="form-input"
                   rows={3}
                   style={{ resize: 'vertical' }}
+                  disabled={!canManageAgenda()}
                 />
               </div>
-              <button
-                className="btn btn-primary"
-                onClick={handleSaveGeneral}
-                disabled={updateAgendaMutation.isPending || (agendaName.trim() === agenda.name && agendaDescription.trim() === (agenda.description || ''))}
-              >
-                {updateAgendaMutation.isPending ? t('savingButton', 'Guardando...') : t('saveChangesButton_agenda', 'Guardar Cambios')}
-              </button>
 
               {canManageAgenda() && (
-                <div className="danger-zone">
-                  <h4>{t('dangerZoneTitle', 'Zona de Peligro')}</h4>
+                <button
+                  className="btn btn-primary"
+                  onClick={handleSaveGeneral}
+                  disabled={updateAgendaMutation.isPending || (agendaName.trim() === agenda.name && agendaDescription.trim() === (agenda.description || ''))}
+                >
+                  {updateAgendaMutation.isPending ? t('savingButton', 'Guardando...') : t('saveChangesButton_agenda', 'Guardar Cambios')}
+                </button>
+              )}
+
+              <div className="danger-zone">
+                <h4>{t('dangerZoneTitle', 'Zona de Peligro')}</h4>
+
+                {canManageAgenda() ? (
                   <div className="danger-item">
                     <div>
                       <strong>{t('deleteAgendaTitle', 'Eliminar esta agenda')}</strong>
@@ -327,8 +415,21 @@ function AgendaSettingsModal({ agenda, onClose }) {
                       {t('deleteButton', 'Eliminar')}
                     </button>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="danger-item">
+                    <div>
+                      <strong>{t('leaveAgendaTitle', 'Salir de esta agenda')}</strong>
+                      <p>{t('leaveAgendaDescription', 'Dejarás de tener acceso a esta agenda.')}</p>
+                    </div>
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => setShowLeaveConfirm(true)}
+                    >
+                      {t('leaveButton', 'Salir')}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -407,6 +508,27 @@ function AgendaSettingsModal({ agenda, onClose }) {
         </div>
       )}
 
+      {showLeaveConfirm && (
+        <div className="modal-overlay confirm-modal" style={{ zIndex: 1100 }}>
+          <div className="modal-content confirm-content">
+            <h3>{t('confirmLeaveTitle', 'Confirmar Salida')}</h3>
+            <p>{t('confirmLeaveAgenda', { name: agenda.name })}</p>
+            <div className="modal-actions">
+              <button className="btn btn-secondary" onClick={() => setShowLeaveConfirm(false)}>
+                {t('cancelButton', 'Cancelar')}
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={confirmLeaveAgenda}
+                disabled={leaveAgendaMutation.isPending}
+              >
+                {leaveAgendaMutation.isPending ? t('leavingAgendaButton', 'Saliendo...') : t('leaveButton', 'Salir')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showRemoveUserConfirm && (
         <div className="modal-overlay confirm-modal" style={{ zIndex: 1100 }}>
           <div className="modal-content confirm-content">
@@ -432,3 +554,4 @@ function AgendaSettingsModal({ agenda, onClose }) {
 }
 
 export default AgendaSettingsModal;
+// Force update

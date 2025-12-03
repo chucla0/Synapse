@@ -4,7 +4,7 @@ import { useDateFnsLocale } from '../../contexts/LocaleContext';
 import { hexToRgba } from '../../utils/colors';
 import './DayView.css';
 
-function DayView({ date, events, agendaColor, onEventClick }) {
+function DayView({ date, events, agendaColor, onEventClick, onTimeSlotClick }) {
   const locale = useDateFnsLocale();
   const hours = getDayHours();
   const dateKey = format(date, 'yyyy-MM-dd');
@@ -30,7 +30,15 @@ function DayView({ date, events, agendaColor, onEventClick }) {
 
         <div className="day-grid">
           {hours.map(hour => (
-            <div key={hour} className="day-hour-slot">
+            <div
+              key={hour}
+              className="day-hour-slot"
+              onClick={() => {
+                const slotDate = new Date(date);
+                slotDate.setHours(hour, 0, 0, 0);
+                onTimeSlotClick && onTimeSlotClick(slotDate);
+              }}
+            >
               {/* Events will be positioned absolutely here */}
             </div>
           ))}

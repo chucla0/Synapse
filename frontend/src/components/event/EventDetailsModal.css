@@ -53,7 +53,12 @@
 
 .status-badge.status-confirmed {
   background-color: #d1fae5;
-  color: #059669;
+  color: #065f46;
+}
+
+.status-rejected {
+  background-color: #fee2e2;
+  color: #991b1b;
 }
 
 .detail-group {

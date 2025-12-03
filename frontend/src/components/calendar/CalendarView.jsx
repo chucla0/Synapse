@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { format, startOfWeek, addMinutes, setHours, setMinutes } from 'date-fns';
+import { format, startOfWeek, endOfWeek, addMinutes, setHours, setMinutes } from 'date-fns';
 import { DndContext, useSensor, useSensors, PointerSensor, DragOverlay, defaultDropAnimationSideEffects } from '@dnd-kit/core';
+import { RefreshCw } from 'lucide-react';
 import api from '../../utils/api';
 import { hexToRgba } from '../../utils/colors';
 import DayView from './DayView';
@@ -15,6 +16,7 @@ import ConfirmDeleteModal from '../ui/ConfirmDeleteModal';
 import { addDays, addWeeks, addMonths } from '../../utils/date';
 import { useDateFnsLocale } from '../../contexts/LocaleContext';
 import { useSettings } from '../../contexts/SettingsContext';
+import { useSocket } from '../../contexts/SocketContext';
 
 import { rrulestr } from 'rrule';
 import './CalendarView.css';
@@ -51,6 +53,43 @@ function CalendarView({ agenda, agendas = [] }) {
   const [editingEvent, setEditingEvent] = useState(null);
   const [eventToDelete, setEventToDelete] = useState(null);
   const [activeDragEvent, setActiveDragEvent] = useState(null);
+
+  const { socket } = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleEventUpdate = (data) => {
+      console.log('Socket event received:', data);
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['agendas'] });
+    };
+
+    const handleAgendaUpdate = (data) => {
+      console.log('Socket agenda update:', data);
+      queryClient.invalidateQueries({ queryKey: ['agendas'] });
+      // Also invalidate events if agenda changed (e.g. permissions)
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+    };
+
+    socket.on('event:created', handleEventUpdate);
+    socket.on('event:updated', handleEventUpdate);
+    socket.on('event:deleted', handleEventUpdate);
+    socket.on('agenda:updated', handleAgendaUpdate);
+    socket.on('agenda:deleted', handleAgendaUpdate);
+    socket.on('agenda:user_removed', handleAgendaUpdate);
+    socket.on('agenda:role_updated', handleAgendaUpdate);
+
+    return () => {
+      socket.off('event:created', handleEventUpdate);
+      socket.off('event:updated', handleEventUpdate);
+      socket.off('event:deleted', handleEventUpdate);
+      socket.off('agenda:updated', handleAgendaUpdate);
+      socket.off('agenda:deleted', handleAgendaUpdate);
+      socket.off('agenda:user_removed', handleAgendaUpdate);
+      socket.off('agenda:role_updated', handleAgendaUpdate);
+    };
+  }, [socket, queryClient]);
 
   // ... (rest of state)
 
@@ -139,7 +178,12 @@ function CalendarView({ agenda, agendas = [] }) {
     const targetId = over.id;
 
     // Find original event
-    const originalEvent = expandedEvents.find(e => e.id === eventId);
+    // If it's a split part, use originalId. If not, use id.
+    // Also check active.data.current which contains the segment info
+    const draggedEventData = active.data.current;
+    const lookupId = draggedEventData?.originalId || eventId;
+
+    const originalEvent = expandedEvents.find(e => e.id === lookupId);
     if (!originalEvent) return;
 
     // Determine target date/time
@@ -296,8 +340,22 @@ function CalendarView({ agenda, agendas = [] }) {
     setSelectedDate(today);
   };
 
+  const [clickedDate, setClickedDate] = useState(null);
+
   const handleDayClick = (day) => {
     setSelectedDate(day);
+    // For month view, we want to open modal on that day
+    // We set clickedDate to preserve the specific day clicked
+    const dateWithCurrentTime = new Date(day);
+    const now = new Date();
+    dateWithCurrentTime.setHours(now.getHours(), now.getMinutes());
+    setClickedDate(dateWithCurrentTime);
+    setShowCreateEvent(true);
+  };
+
+  const handleTimeSlotClick = (date) => {
+    setClickedDate(date);
+    setShowCreateEvent(true);
   };
 
   const handleEventClick = async (event) => {
@@ -311,6 +369,8 @@ function CalendarView({ agenda, agendas = [] }) {
   };
 
   const getInitialDateForCreateEvent = () => {
+    if (clickedDate) return clickedDate;
+
     const now = new Date();
     let baseDate = now;
     if (viewType === VIEW_TYPES.MONTH) {
@@ -323,7 +383,10 @@ function CalendarView({ agenda, agendas = [] }) {
       const weekStartsOn = locale?.options?.weekStartsOn || 1;
       baseDate = startOfWeek(currentDate, { weekStartsOn });
     }
-    baseDate.setHours(now.getHours(), now.getMinutes(), 0, 0);
+    // If we didn't click a specific slot, use current time
+    if (!clickedDate) {
+      baseDate.setHours(now.getHours(), now.getMinutes(), 0, 0);
+    }
     return baseDate;
   };
 
@@ -338,19 +401,73 @@ function CalendarView({ agenda, agendas = [] }) {
               <button className="btn btn-secondary nav-btn" onClick={handlePrevious}>‹</button>
               <button className="btn btn-secondary nav-btn" onClick={handleNext}>›</button>
             </div>
-            <h2 className="calendar-title">{agenda.name}</h2>
+            <h2 className="calendar-title">
+              {(() => {
+                if (viewType === VIEW_TYPES.MONTH) {
+                  return format(currentDate, 'MMMM yyyy', { locale });
+                } else if (viewType === VIEW_TYPES.WEEK) {
+                  const start = startOfWeek(currentDate, { weekStartsOn });
+                  const end = endOfWeek(currentDate, { weekStartsOn });
+                  // If same month: "Dec 1 - 7, 2025"
+                  // If different month: "Nov 29 - Dec 5, 2025"
+                  // If different year: "Dec 29, 2025 - Jan 4, 2026"
+                  if (start.getMonth() === end.getMonth()) {
+                    return `${format(start, 'd', { locale })} - ${format(end, 'd', { locale })} ${format(currentDate, 'MMMM yyyy', { locale })}`;
+                  } else if (start.getFullYear() === end.getFullYear()) {
+                    return `${format(start, 'd MMM', { locale })} - ${format(end, 'd MMM', { locale })} ${format(currentDate, 'yyyy', { locale })}`;
+                  } else {
+                    return `${format(start, 'd MMM yyyy', { locale })} - ${format(end, 'd MMM yyyy', { locale })}`;
+                  }
+                } else if (viewType === VIEW_TYPES.DAY) {
+                  return format(currentDate, 'd MMMM yyyy', { locale });
+                } else if (viewType === VIEW_TYPES.YEAR) {
+                  return format(currentDate, 'yyyy', { locale });
+                }
+                return agenda.name;
+              })()}
+            </h2>
           </div>
 
           <div className="header-actions">
             {(() => {
               if (agenda.id === 'all_events') return null;
-              const { type, userRole } = agenda;
-              if (type === 'COLABORATIVA' && userRole === 'VIEWER') return null;
-              if (type === 'EDUCATIVA' && userRole === 'STUDENT') return null;
+
+              const { type, userRole, googleCalendarId } = agenda;
+              const isViewer = (type === 'COLABORATIVA' && userRole === 'VIEWER') || (type === 'EDUCATIVA' && userRole === 'STUDENT');
+
               return (
-                <button className="btn btn-primary" onClick={() => setShowCreateEvent(true)}>
-                  {t('newEvent')}
-                </button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {/* Show Sync button only in DEV or if explicitly enabled */}
+                  {googleCalendarId && (import.meta.env.DEV) && (
+                    <button
+                      className="btn btn-secondary"
+                      onClick={async () => {
+                        try {
+                          const btn = document.getElementById('sync-btn');
+                          if (btn) btn.classList.add('spinning');
+                          await api.post('/integrations/google/import');
+                          queryClient.invalidateQueries({ queryKey: ['events'] });
+                          // Optional: Show success toast
+                        } catch (error) {
+                          console.error('Sync error:', error);
+                          alert(t('errorSyncing', 'Error al sincronizar'));
+                        } finally {
+                          const btn = document.getElementById('sync-btn');
+                          if (btn) btn.classList.remove('spinning');
+                        }
+                      }}
+                      title={t('syncGoogle', 'Sincronizar con Google')}
+                    >
+                      <RefreshCw id="sync-btn" size={18} />
+                    </button>
+                  )}
+
+                  {!isViewer && (
+                    <button className="btn btn-primary" onClick={() => setShowCreateEvent(true)}>
+                      {t('newEvent')}
+                    </button>
+                  )}
+                </div>
               );
             })()}
           </div>
@@ -380,6 +497,7 @@ function CalendarView({ agenda, agendas = [] }) {
                   events={expandedEvents}
                   agendaColor={agenda.color}
                   onEventClick={handleEventClick}
+                  onTimeSlotClick={handleTimeSlotClick}
                 />
               )}
               {viewType === VIEW_TYPES.WEEK && (
@@ -389,6 +507,7 @@ function CalendarView({ agenda, agendas = [] }) {
                   agendaColor={agenda.color}
                   onEventClick={handleEventClick}
                   weekStartsOn={weekStartsOn}
+                  onTimeSlotClick={handleTimeSlotClick}
                 />
               )}
               {viewType === VIEW_TYPES.MONTH && (
@@ -424,6 +543,7 @@ function CalendarView({ agenda, agendas = [] }) {
             onClose={() => {
               setShowCreateEvent(false);
               setEditingEvent(null);
+              setClickedDate(null);
             }}
           />
         )}

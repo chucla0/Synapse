@@ -169,6 +169,8 @@
 .members-list-container {
   display: flex;
   flex-direction: column;
+  padding-bottom: 150px;
+  /* Space for dropdown */
 }
 
 .user-list-item {
@@ -252,22 +254,6 @@
   gap: var(--spacing-sm);
 }
 
-.role-select {
-  padding: 6px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background-color: var(--bg-main);
-  color: var(--text-main);
-  font-size: 0.875rem;
-  cursor: pointer;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.role-select:focus {
-  border-color: var(--accent);
-}
-
 .btn-remove-user {
   background: none;
   border: none;
@@ -299,4 +285,86 @@
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   /* To match select height if needed, or just visual */
+}
+
+/* Custom Dropdown Styles */
+.custom-dropdown {
+  position: relative;
+  min-width: 120px;
+}
+
+.dropdown-toggle {
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all var(--transition-fast);
+  gap: 8px;
+}
+
+.dropdown-toggle:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--accent);
+}
+
+.dropdown-arrow {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  /* Align to right for role dropdown */
+  min-width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card-hover);
+  list-style: none;
+  padding: 4px;
+  margin-top: 4px;
+  z-index: 100;
+  animation: slideDown 0.2s ease-out;
+}
+
+.dropdown-item {
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.dropdown-item:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.dropdown-item.active {
+  background-color: var(--accent);
+  color: #333333;
+  font-weight: 600;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

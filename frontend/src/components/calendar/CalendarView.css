@@ -6,6 +6,20 @@
   background: var(--bg-main);
 }
 
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
 .calendar-header {
   padding: var(--spacing-lg);
   background: var(--bg-card);

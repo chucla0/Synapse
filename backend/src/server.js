@@ -2,11 +2,63 @@ const express = require('express');
 const cors = require('cors');
 const prisma = require('./lib/prisma');
 const passport = require('./config/passport');
+const http = require('http');
+const { Server } = require('socket.io');
+const jwt = require('jsonwebtoken');
 
 // Initialize Express app
 const path = require('path');
 
 const app = express();
+const server = http.createServer(app);
+
+// Initialize Socket.io
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    credentials: true,
+  }
+});
+
+// Socket.io Middleware for Authentication
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+
+  if (!token) {
+    return next(new Error('Authentication error: No token provided'));
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.userId = decoded.userId;
+    next();
+  } catch (err) {
+    next(new Error('Authentication error: Invalid token'));
+  }
+});
+
+// Socket.io Connection Handler
+io.on('connection', (socket) => {
+  console.log(`Socket connected: ${socket.id} (User: ${socket.userId})`);
+
+  // Join user to their own room for personal notifications/updates
+  socket.join(`user:${socket.userId}`);
+
+  socket.on('disconnect', () => {
+    console.log(`Socket disconnected: ${socket.id}`);
+  });
+});
+
+// Initialize NotificationService with io
+const NotificationService = require('./modules/notification/notification.service');
+NotificationService.setIo(io);
+
+// Make io accessible in routes
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
 
 // Serve static files
 app.use('/api/public', express.static(path.join(__dirname, '../public')));
@@ -141,7 +193,7 @@ async function testDatabaseConnection() {
 }
 
 // Start server
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 Synapse Backend API running on port ${PORT}`);
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
 

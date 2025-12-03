@@ -68,6 +68,32 @@
   /* Sidebar Light */
 
   --event-bg-opacity: 0.25;
+
+  /* Event Colors (Light Mode - Pastel) */
+  --event-color-1: #FFADAD;
+  /* Light Red */
+  --event-color-2: #FFD6A5;
+  /* Light Orange */
+  --event-color-3: #FDFFB6;
+  /* Light Yellow */
+  --event-color-4: #CAFFBF;
+  /* Light Green */
+  --event-color-5: #9BF6FF;
+  /* Light Cyan */
+  --event-color-6: #A0C4FF;
+  /* Light Blue */
+  --event-color-7: #BDB2FF;
+  /* Light Purple */
+  --event-color-8: #FFC6FF;
+  /* Light Magenta */
+  --event-color-9: #FFFFFC;
+  /* Light White */
+  --event-color-10: #EAE4E9;
+  /* Light Grey */
+  --event-color-11: #FFF1E6;
+  /* Light Brown */
+  --event-color-12: #F0EFEB;
+  /* Light Silver */
 }
 
 .dark-theme {
@@ -100,7 +126,43 @@
   --shadow-card-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.5),
     0 4px 6px -2px rgba(0, 0, 0, 0.3);
 
-  --event-bg-opacity: 0.5;
+  --event-bg-opacity: 0.9;
+
+  /* Stronger Agenda Colors for Dark Mode */
+  --agenda-1: #ea580c;
+  /* Strong Orange */
+  --agenda-2: #2563eb;
+  /* Strong Blue */
+  --agenda-3: #ca8a04;
+  /* Strong Yellow */
+  --agenda-4: #db2777;
+  /* Strong Pink */
+
+  /* Event Colors (Dark Mode - Strong/Saturated) */
+  --event-color-1: #ef4444;
+  /* Strong Red */
+  --event-color-2: #f97316;
+  /* Strong Orange */
+  --event-color-3: #eab308;
+  /* Strong Yellow */
+  --event-color-4: #22c55e;
+  /* Strong Green */
+  --event-color-5: #06b6d4;
+  /* Strong Cyan */
+  --event-color-6: #3b82f6;
+  /* Strong Blue */
+  --event-color-7: #8b5cf6;
+  /* Strong Purple */
+  --event-color-8: #d946ef;
+  /* Strong Magenta */
+  --event-color-9: #9ca3af;
+  /* Medium Gray (instead of white) */
+  --event-color-10: #6b7280;
+  /* Darker Gray */
+  --event-color-11: #d97706;
+  /* Strong Brown/Amber */
+  --event-color-12: #4b5563;
+  /* Dark Silver */
 }
 
 /* Reset */

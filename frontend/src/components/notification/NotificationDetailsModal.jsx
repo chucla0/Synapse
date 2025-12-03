@@ -65,10 +65,11 @@ function NotificationDetailsModal({ notification, onClose }) {
   });
 
   useEffect(() => {
-    if (notification && !notification.isRead) {
+    if (notification?.id && !notification.isRead) {
       markAsReadMutation.mutate();
     }
-  }, [notification, markAsReadMutation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notification?.id, notification?.isRead]);
 
   const renderContent = () => {
     if (isLoading) return <p className="p-4">{t('loading', 'Cargando...')}</p>;
@@ -142,6 +143,15 @@ function NotificationDetailsModal({ notification, onClose }) {
                       </li>
                     ))}
                   </ul>
+                </div>
+              )}
+
+              {type === 'ROLE_CHANGED' && (
+                <div className="detail-group">
+                  <label className="detail-label"><Users size={14} /> {t('yourRole', 'Tu Rol')}</label>
+                  <div className="detail-value">
+                    {t(`roles.${data?.newRole}`, data?.newRole)}
+                  </div>
                 </div>
               )}
             </div>

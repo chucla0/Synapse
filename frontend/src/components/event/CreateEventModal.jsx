@@ -6,28 +6,44 @@ import api from '../../utils/api';
 import { RRule } from 'rrule';
 import AnimatedCheckbox from '../ui/AnimatedCheckbox';
 import CustomDatePicker from '../ui/CustomDatePicker';
+import { getUser } from '../../utils/auth';
 import './CreateEventModal.css';
 
 
 
 const EVENT_COLORS = [
-  '#FFADAD', // Light Red
-  '#FFD6A5', // Light Orange
-  '#FDFFB6', // Light Yellow
-  '#CAFFBF', // Light Green
-  '#9BF6FF', // Light Cyan
-  '#A0C4FF', // Light Blue
-  '#BDB2FF', // Light Purple
-  '#FFC6FF', // Light Magenta
-  '#FFFFFC', // Light White
-  '#EAE4E9', // Light Grey
-  '#FFF1E6', // Light Brown
-  '#F0EFEB', // Light Silver
+  'var(--event-color-1)',
+  'var(--event-color-2)',
+  'var(--event-color-3)',
+  'var(--event-color-4)',
+  'var(--event-color-5)',
+  'var(--event-color-6)',
+  'var(--event-color-7)',
+  'var(--event-color-8)',
+  'var(--event-color-9)',
+  'var(--event-color-10)',
+  'var(--event-color-11)',
+  'var(--event-color-12)',
+];
+
+const GOOGLE_EVENT_COLORS = [
+  '#7986cb', // Lavender
+  '#33b679', // Sage
+  '#8e24aa', // Grape
+  '#e67c73', // Flamingo
+  '#f6bf26', // Banana
+  '#f4511e', // Tangerine
+  '#039be5', // Peacock
+  '#616161', // Graphite
+  '#3f51b5', // Blueberry
+  '#0b8043', // Basil
+  '#d50000', // Tomato
 ];
 
 function CreateEventModal({ agenda, agendas = [], onClose, initialDate = null, event = null }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const user = getUser();
 
   // If agenda is 'all_events', default to the first real agenda, or the event's agenda if editing
   const [selectedAgendaId, setSelectedAgendaId] = useState(() => {
@@ -586,6 +602,8 @@ function CreateEventModal({ agenda, agendas = [], onClose, initialDate = null, e
                 return null;
               }
 
+              const canEditVisibility = !event || (event.creatorId === user?.id) || (currentAgenda?.ownerId === user?.id);
+
               return (
                 <>
                   {/* Private (Standard) */}
@@ -605,38 +623,74 @@ function CreateEventModal({ agenda, agendas = [], onClose, initialDate = null, e
                     <div className="visibility-options-container">
                       <div className="visibility-controls">
                         <div className="form-group">
-                          <label>{t('shareWithSpecificUsers', 'Compartir con usuarios específicos')}</label>
+                          <label>
+                            {t('shareWithSpecificUsers', 'Compartir con usuarios específicos')}
+                            {!canEditVisibility && <span className="text-xs text-muted ml-2">({t('onlyCreatorCanEdit', 'Solo el creador puede editar esto')})</span>}
+                          </label>
                           <div className="users-select-list">
-                            {currentAgenda?.agendaUsers?.map(au => (
-                              // Don't show self
-                              au.user.id !== (event?.creatorId || 'me') && (
-                                <div key={au.user.id} className="user-select-item">
+                            {currentAgenda?.agendaUsers?.filter(au => {
+                              // Always exclude self (creator)
+                              if (au.user.id === (event?.creatorId || user?.id)) return false;
+
+                              // Always exclude Owner (they always see everything)
+                              if (au.user.id === currentAgenda.ownerId) return false;
+
+                              // Laboral: Exclude CHIEF (they always see everything)
+                              if (isLaboral && au.role === 'CHIEF') return false;
+
+                              // Laboral: Only show EMPLOYEE
+                              if (isLaboral && au.role !== 'EMPLOYEE') return false;
+
+                              // Colaborativa: Show everyone (except owner/self handled above)
+
+                              return true;
+                            }).map(au => {
+                              const isSelected = formData.sharedWithUserIds.includes(au.user.id);
+                              return (
+                                <div
+                                  key={au.user.id}
+                                  className={`user-select-item ${isSelected ? 'selected' : ''} ${!canEditVisibility ? 'disabled' : ''}`}
+                                  onClick={(e) => {
+                                    if (!canEditVisibility) return;
+                                    // Toggle selection on div click
+                                    if (isSelected) {
+                                      setFormData(prev => ({ ...prev, sharedWithUserIds: prev.sharedWithUserIds.filter(id => id !== au.user.id) }));
+                                    } else {
+                                      setFormData(prev => ({ ...prev, sharedWithUserIds: [...prev.sharedWithUserIds, au.user.id] }));
+                                    }
+                                  }}
+                                >
                                   <input
                                     type="checkbox"
                                     id={`share-${au.user.id}`}
-                                    checked={formData.sharedWithUserIds.includes(au.user.id)}
-                                    onChange={(e) => {
-                                      if (e.target.checked) {
-                                        setFormData(prev => ({ ...prev, sharedWithUserIds: [...prev.sharedWithUserIds, au.user.id] }));
-                                      } else {
-                                        setFormData(prev => ({ ...prev, sharedWithUserIds: prev.sharedWithUserIds.filter(id => id !== au.user.id) }));
-                                      }
-                                    }}
+                                    checked={isSelected}
+                                    onChange={() => { }} // Handled by div click
+                                    disabled={!canEditVisibility || createMutation.isPending || updateMutation.isPending}
+                                    style={{ pointerEvents: 'none' }} // Let click pass to div
                                   />
-                                  <label htmlFor={`share-${au.user.id}`} className="user-select-label">
+                                  <div className="user-select-label">
                                     {au.user.avatar ? (
                                       <img src={au.user.avatar} alt="" className="user-avatar-xs" referrerPolicy="no-referrer" />
                                     ) : (
                                       <span className="user-avatar-placeholder-xs">{au.user.name.charAt(0)}</span>
                                     )}
-                                    <span>{au.user.name} ({t(`roles.${au.role}`, au.role)})</span>
-                                  </label>
+                                    <div className="user-info-select">
+                                      <span className="user-name-select">{au.user.name}</span>
+                                      <span className="user-role-select text-xs text-muted">({t(`roles.${au.role}`, au.role)})</span>
+                                    </div>
+                                  </div>
                                 </div>
-                              )
-                            ))}
-                            {(!currentAgenda?.agendaUsers || currentAgenda.agendaUsers.length === 0) && (
-                              <p className="text-sm text-muted italic">{t('noOtherUsers', 'No hay otros usuarios en esta agenda')}</p>
-                            )}
+                              );
+                            })}
+                            {(!currentAgenda?.agendaUsers || currentAgenda.agendaUsers.filter(au => {
+                              if (au.user.id === (event?.creatorId || user?.id)) return false;
+                              if (au.user.id === currentAgenda.ownerId) return false;
+                              if (isLaboral && au.role === 'CHIEF') return false;
+                              if (isLaboral && au.role !== 'EMPLOYEE') return false;
+                              return true;
+                            }).length === 0) && (
+                                <p className="text-sm text-muted italic">{t('noOtherUsers', 'No hay usuarios disponibles para compartir')}</p>
+                              )}
                           </div>
                         </div>
                       </div>
@@ -649,19 +703,15 @@ function CreateEventModal({ agenda, agendas = [], onClose, initialDate = null, e
             {/* Color Picker */}
             <div className="form-group">
               <label>{t('colorLabel', 'Color')}</label>
-              <div className="color-options-grid">
-                {EVENT_COLORS.map(color => (
+              <div className="color-picker">
+                {(agenda.googleCalendarId ? GOOGLE_EVENT_COLORS : EVENT_COLORS).map((color) => (
                   <button
                     key={color}
                     type="button"
-                    className={`color-swatch-btn ${formData.color === color ? 'active' : ''}`}
+                    className={`color-option ${formData.color === color ? 'selected' : ''}`}
                     style={{ backgroundColor: color }}
-                    onClick={() => setFormData(prev => ({ ...prev, color }))}
-                    aria-label={color}
-                    title={color}
-                  >
-                    {formData.color === color && <Check size={16} />}
-                  </button>
+                    onClick={() => setFormData({ ...formData, color })}
+                  />
                 ))}
               </div>
             </div>

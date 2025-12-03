@@ -9,6 +9,8 @@ import SetPassword from './pages/Auth/SetPassword';
 import { getToken } from './utils/auth';
 import { DateFnsLocaleProvider } from './contexts/LocaleContext';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { SocketProvider } from './contexts/SocketContext';
+import { ToastProvider } from './contexts/ToastContext';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!getToken());
@@ -44,31 +46,34 @@ function App() {
     );
   }
 
-
   return (
     <SettingsProvider>
       <DateFnsLocaleProvider>
-        <Routes>
-          <Route
-            path="/login"
-            element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />}
-          />
-          <Route
-            path="/register"
-            element={!isAuthenticated ? <Register onRegister={handleLogin} /> : <Navigate to="/dashboard" />}
-          />
-          <Route path="/verify" element={<Verify onLogin={handleLogin} />} />
-          <Route
-            path="/dashboard/*"
-            element={isAuthenticated ? <Dashboard key={sessionKey} sessionKey={sessionKey} onLogout={handleLogout} /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/"
-            element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />}
-          />
-          <Route path="/google-callback" element={<GoogleCallback onLogin={handleLogin} />} />
-          <Route path="/set-password" element={<SetPassword onLogin={handleLogin} />} />
-        </Routes>
+        <SocketProvider>
+          <ToastProvider>
+            <Routes>
+              <Route
+                path="/login"
+                element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />}
+              />
+              <Route
+                path="/register"
+                element={!isAuthenticated ? <Register onRegister={handleLogin} /> : <Navigate to="/dashboard" />}
+              />
+              <Route path="/verify" element={<Verify onLogin={handleLogin} />} />
+              <Route
+                path="/dashboard/*"
+                element={isAuthenticated ? <Dashboard key={sessionKey} sessionKey={sessionKey} onLogout={handleLogout} /> : <Navigate to="/login" />}
+              />
+              <Route
+                path="/"
+                element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />}
+              />
+              <Route path="/google-callback" element={<GoogleCallback onLogin={handleLogin} />} />
+              <Route path="/set-password" element={<SetPassword onLogin={handleLogin} />} />
+            </Routes>
+          </ToastProvider>
+        </SocketProvider>
       </DateFnsLocaleProvider>
     </SettingsProvider>
   );
