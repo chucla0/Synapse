@@ -331,7 +331,7 @@ async function watchCalendar(userId) {
   }
 
   const channelId = uuidv4();
-  const webhookUrl = `${process.env.API_URL} /api/integrations / google / webhook`;
+  const webhookUrl = `${process.env.FRONTEND_URL}/api/integrations/google/webhook`;
 
   const response = await calendar.events.watch({
     calendarId: 'primary',

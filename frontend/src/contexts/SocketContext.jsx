@@ -24,8 +24,31 @@ export const SocketProvider = ({ children }) => {
             return;
         }
 
+        // Determine Socket URL
+        let socketUrl = import.meta.env.VITE_API_URL;
+
+        // If VITE_API_URL is not set:
+        // - In Production: Default to '/' (current origin), assuming Nginx handles proxying
+        // - In Development: Default to 'http://localhost:3000'
+        if (!socketUrl) {
+            socketUrl = import.meta.env.PROD ? '/' : 'http://localhost:3000';
+        } else {
+            // If VITE_API_URL is set (e.g. "https://api.example.com/api"), 
+            // we usually want to connect to the root ("https://api.example.com") for Socket.IO
+            // unless the backend explicitly serves socket.io under /api/socket.io (uncommon with standard Nginx setup)
+            try {
+                if (socketUrl.startsWith('http')) {
+                    const urlObj = new URL(socketUrl);
+                    socketUrl = urlObj.origin;
+                }
+            } catch (e) {
+                console.warn('Invalid VITE_API_URL for socket, falling back to default', e);
+                socketUrl = import.meta.env.PROD ? '/' : 'http://localhost:3000';
+            }
+        }
+
         // Initialize socket connection
-        const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:3000', {
+        const newSocket = io(socketUrl, {
             auth: {
                 token: token
             },
@@ -33,6 +56,7 @@ export const SocketProvider = ({ children }) => {
             reconnection: true,
             reconnectionAttempts: 5,
             reconnectionDelay: 1000,
+            path: '/socket.io/' // Explicitly set path (default is /socket.io/, but good to be explicit)
         });
 
         newSocket.on('connect', () => {
