@@ -1,6 +1,5 @@
-```javascript
 const { google } = require('googleapis');
-const prisma = require('../../utils/prisma');
+const prisma = require('../../lib/prisma');
 const { v4: uuidv4 } = require('uuid');
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -121,7 +120,7 @@ async function importGoogleCalendar(userId) {
       await prisma.agenda.deleteMany({
         where: { id: { in: idsToDelete } }
       });
-      console.log(`Deleted ${ idsToDelete.length } duplicate Google Agendas for user ${ userId }`);
+      console.log(`Deleted ${idsToDelete.length} duplicate Google Agendas for user ${userId}`);
     }
 
     // Ensure googleCalendarId is set and color is updated
@@ -332,7 +331,7 @@ async function watchCalendar(userId) {
   }
 
   const channelId = uuidv4();
-  const webhookUrl = `${ process.env.API_URL } /api/integrations / google / webhook`;
+  const webhookUrl = `${process.env.API_URL} /api/integrations / google / webhook`;
 
   const response = await calendar.events.watch({
     calendarId: 'primary',
@@ -407,16 +406,16 @@ async function syncByChannelId(channelId, io) {
   });
 
   if (!agenda) {
-    console.warn(`No agenda found for channel ${ channelId }`);
+    console.warn(`No agenda found for channel ${channelId}`);
     return;
   }
 
-  console.log(`Syncing Google Calendar for user ${ agenda.ownerId } via webhook`);
+  console.log(`Syncing Google Calendar for user ${agenda.ownerId} via webhook`);
   const result = await importGoogleCalendar(agenda.ownerId);
 
   // Emit socket event
   if (io) {
-    io.to(`user:${ agenda.ownerId } `).emit('agenda:updated', {
+    io.to(`user:${agenda.ownerId} `).emit('agenda:updated', {
       agendaId: result.agendaId,
       action: 'imported'
     });
@@ -424,8 +423,6 @@ async function syncByChannelId(channelId, io) {
 }
 
 module.exports = {
-  getAuthUrl,
-  handleCallback,
   importGoogleCalendar,
   createGoogleEvent,
   updateGoogleEvent,

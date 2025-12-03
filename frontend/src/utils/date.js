@@ -86,8 +86,24 @@ export function groupEventsByDay(events) {
   const grouped = {};
 
   events.forEach(event => {
-    const start = new Date(event.startTime);
-    const end = new Date(event.endTime);
+    let start = new Date(event.startTime);
+    let end = new Date(event.endTime);
+
+    // Fix for All-Day events:
+    // Force them to align with local midnight boundaries to prevent timezone shifts
+    // from creating "ghost" segments on the next day.
+    if (event.isAllDay) {
+      start.setHours(0, 0, 0, 0);
+
+      // If end is exactly midnight (or close to it due to timezone), align it.
+      // Google sends exclusive end date (e.g. 17th 00:00 for a 16th event).
+      // We ensure it snaps to midnight.
+      end.setHours(0, 0, 0, 0);
+
+      // If start and end are equal after snapping (shouldn't happen for valid Google events, 
+      // but possible if data is weird), ensure at least 1 day duration?
+      // No, let's trust the data. If start=end, loop won't run, but isSameDay will be true.
+    }
 
     if (isSameDay(start, end)) {
       const dateKey = format(start, 'yyyy-MM-dd');
