@@ -12,10 +12,35 @@ const path = require('path');
 const app = express();
 const server = http.createServer(app);
 
+// Helper to normalize and get allowed origins
+const getAllowedOrigins = () => {
+  const origins = [];
+
+  // Only allow localhost in development
+  if (process.env.NODE_ENV !== 'production') {
+    origins.push(
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://localhost:8081'
+    );
+  }
+
+  if (process.env.FRONTEND_URL) {
+    const envOrigins = process.env.FRONTEND_URL.split(',').map(url => url.trim().replace(/\/$/, ''));
+    origins.push(...envOrigins);
+  }
+
+  return [...new Set(origins)]; // Remove duplicates
+};
+
+const allowedOrigins = getAllowedOrigins();
+console.log('Allowed Origins:', allowedOrigins);
+
+// Initialize Socket.io
 // Initialize Socket.io
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   }
@@ -71,8 +96,9 @@ app.set('trust proxy', 1);
 // ============================================
 
 // CORS configuration
+// CORS configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: allowedOrigins,
   credentials: true,
 }));
 

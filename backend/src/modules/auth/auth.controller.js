@@ -432,8 +432,12 @@ async function googleCallback(req, res) {
       try {
         const GoogleSyncService = require('../google-sync/google-sync.service');
         await GoogleSyncService.importGoogleCalendar(user.id);
+
+        // Start watching for changes (Webhook)
+        await GoogleSyncService.watchCalendar(user.id);
+        console.log(`Started watching Google Calendar for user ${user.id}`);
       } catch (syncError) {
-        console.error('Failed to auto-import Google Calendar after connect:', syncError);
+        console.error('Failed to auto-import/watch Google Calendar after connect:', syncError);
       }
     }
 

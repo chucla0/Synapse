@@ -8,6 +8,15 @@ async function importGoogleCalendar(req, res) {
     const userId = req.user.id;
     const result = await GoogleSyncService.importGoogleCalendar(userId);
 
+    // Re-establish webhook/watch to ensure future updates are caught
+    try {
+      await GoogleSyncService.watchCalendar(userId);
+      console.log(`Re-established Google Calendar watch for user ${userId}`);
+    } catch (watchError) {
+      console.error('Failed to re-establish Google watch:', watchError);
+      // Don't fail the request, just log it
+    }
+
     // Emit socket event to update frontend
     if (req.io) {
       req.io.to(`user:${userId}`).emit('agenda:updated', {

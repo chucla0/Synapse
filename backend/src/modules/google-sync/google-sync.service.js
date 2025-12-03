@@ -331,7 +331,18 @@ async function watchCalendar(userId) {
   }
 
   const channelId = uuidv4();
-  const webhookUrl = `${process.env.FRONTEND_URL}/api/integrations/google/webhook`;
+
+  // Determine the public URL for the webhook
+  let publicUrl = process.env.FRONTEND_URL;
+  if (publicUrl && publicUrl.includes(',')) {
+    // If multiple URLs, prefer the one that is NOT localhost, or just the first one
+    const urls = publicUrl.split(',').map(u => u.trim());
+    publicUrl = urls.find(u => !u.includes('localhost')) || urls[0];
+  }
+  // Remove trailing slash if present
+  publicUrl = publicUrl ? publicUrl.replace(/\/$/, '') : '';
+
+  const webhookUrl = `${publicUrl}/api/integrations/google/webhook`;
 
   const response = await calendar.events.watch({
     calendarId: 'primary',
