@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react';
 import { getDayHours, groupEventsByDay, calculateEventLayout } from '../../utils/date';
 import { format } from 'date-fns';
 import { useDateFnsLocale } from '../../contexts/LocaleContext';
@@ -10,6 +11,28 @@ function DayView({ date, events, agendaColor, onEventClick, onTimeSlotClick }) {
   const dateKey = format(date, 'yyyy-MM-dd');
   const dayEvents = groupEventsByDay(events)[dateKey] || [];
   const positionedEvents = calculateEventLayout(dayEvents);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const scrollToTime = () => {
+      const element = document.getElementById('time-slot-7');
+      if (element) {
+        element.scrollIntoView({ block: 'start' });
+      }
+    };
+
+    // Attempt immediately
+    scrollToTime();
+
+    // Attempt after delays to ensure layout and override browser restoration
+    const t1 = setTimeout(scrollToTime, 10);
+    const t2 = setTimeout(scrollToTime, 100);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, []);
 
   return (
     <div className="day-view">
@@ -19,10 +42,10 @@ function DayView({ date, events, agendaColor, onEventClick, onTimeSlotClick }) {
         </div>
       </div>
 
-      <div className="day-grid-container">
+      <div className="day-grid-container" ref={containerRef}>
         <div className="day-timeline">
           {hours.map(hour => (
-            <div key={hour} className="timeline-hour">
+            <div key={hour} id={`time-slot-${hour}`} className="timeline-hour">
               {format(new Date().setHours(hour, 0), 'p', { locale })}
             </div>
           ))}

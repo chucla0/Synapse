@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react';
 import { getWeekDays, formatTime, groupEventsByDay, isSameDay, calculateEventLayout } from '../../utils/date';
 import { format } from 'date-fns';
 import { useDateFnsLocale } from '../../contexts/LocaleContext';
@@ -72,12 +73,34 @@ function WeekView({ date, events, agendaColor, onEventClick, weekStartsOn = 1, o
   const locale = useDateFnsLocale();
   const weekDays = getWeekDays(date, { weekStartsOn });
   const groupedEvents = groupEventsByDay(events);
+  const containerRef = useRef(null);
 
   const timeFormatStr = settings.display.timeFormat === '24h' ? 'HH:mm' : 'h:mm a';
 
+  useEffect(() => {
+    const scrollToTime = () => {
+      const element = document.getElementById('time-slot-7');
+      if (element) {
+        element.scrollIntoView({ block: 'start' });
+      }
+    };
+
+    // Attempt immediately
+    scrollToTime();
+
+    // Attempt after delays to ensure layout and override browser restoration
+    const t1 = setTimeout(scrollToTime, 10);
+    const t2 = setTimeout(scrollToTime, 100);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, []);
+
   return (
     <div className="week-view">
-      <div className="week-grid-container">
+      <div className="week-grid-container" ref={containerRef}>
         {/* Header is now inside the scrollable container for perfect alignment */}
         <div className="week-header">
           <div className="week-timeline-spacer" />
@@ -98,7 +121,7 @@ function WeekView({ date, events, agendaColor, onEventClick, weekStartsOn = 1, o
         <div className="week-body">
           <div className="week-timeline">
             {Array.from({ length: 24 }, (_, hour) => (
-              <div key={hour} className="timeline-hour">
+              <div key={hour} id={`time-slot-${hour}`} className="timeline-hour">
                 {format(new Date().setHours(hour, 0), timeFormatStr, { locale })}
               </div>
             ))}
