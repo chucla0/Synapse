@@ -343,6 +343,7 @@ async function watchCalendar(userId) {
   publicUrl = publicUrl ? publicUrl.replace(/\/$/, '') : '';
 
   const webhookUrl = `${publicUrl}/api/integrations/google/webhook`;
+  console.log(`Registering Google Webhook URL: ${webhookUrl}`);
 
   const response = await calendar.events.watch({
     calendarId: 'primary',

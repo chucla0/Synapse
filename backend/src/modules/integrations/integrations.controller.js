@@ -51,6 +51,8 @@ async function handleGoogleWebhook(req, res) {
     const expiration = req.headers['x-goog-channel-expiration'];
 
     console.log(`Received Google Webhook: Channel=${channelId}, State=${resourceState}`);
+    console.log('Webhook Headers:', JSON.stringify(req.headers, null, 2));
+    console.log('Webhook Body:', JSON.stringify(req.body, null, 2));
 
     if (resourceState === 'sync') {
       // Initial sync confirmation
