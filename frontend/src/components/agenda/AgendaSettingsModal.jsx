@@ -400,6 +400,24 @@ function AgendaSettingsModal({ agenda, onClose }) {
               )}
 
               <div className="danger-zone">
+                {agenda.googleCalendarId && (
+                  <div className="sync-status-section" style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#f0f9ff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+                    <h4 style={{ margin: '0 0 10px 0', color: '#0369a1' }}>{t('googleSyncStatus', 'Estado de Sincronización Google')}</h4>
+                    <div style={{ fontSize: '0.9rem', color: '#334155' }}>
+                      <p><strong>ID Calendario:</strong> {agenda.googleCalendarId}</p>
+                      <p><strong>Webhook Activo:</strong> {agenda.googleChannelId ? 'Sí' : 'No'}</p>
+                      {agenda.googleChannelExpiration && (
+                        <p><strong>Expira:</strong> {new Date(agenda.googleChannelExpiration).toLocaleString()}</p>
+                      )}
+                      {!agenda.googleChannelId && (
+                        <p style={{ color: '#ef4444', marginTop: '5px' }}>
+                          ⚠️ {t('webhookNotActive', 'El webhook no está activo. Los cambios en Google no se reflejarán automáticamente.')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <h4>{t('dangerZoneTitle', 'Zona de Peligro')}</h4>
 
                 {canManageAgenda() ? (
