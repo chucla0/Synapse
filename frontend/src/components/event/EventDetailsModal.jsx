@@ -7,10 +7,12 @@ import { Edit2, X, Calendar, MapPin, AlignLeft, User, Lock, Paperclip, Link as L
 import api from '../../utils/api';
 import { getUser } from '../../utils/auth';
 import UserProfileModal from '../user/UserProfileModal';
+import { useSettings } from '../../contexts/SettingsContext';
 import './EventDetailsModal.css';
 
 function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDelete }) {
   const { t } = useTranslation();
+  const { settings } = useSettings();
   const locale = useDateFnsLocale();
   const queryClient = useQueryClient();
   const currentUser = getUser();
@@ -24,7 +26,8 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
     : agenda;
 
   const formatDate = (date) => {
-    return format(new Date(date), 'PPP p', { locale });
+    const timeFormatStr = settings.display.timeFormat === '24h' ? 'HH:mm' : 'h:mm a';
+    return format(new Date(date), `PPP ${timeFormatStr}`, { locale });
   };
 
   const approveMutation = useMutation({

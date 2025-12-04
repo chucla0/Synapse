@@ -255,7 +255,7 @@ function CalendarView({ agenda, agendas = [] }) {
   const { data: eventsData, isLoading } = useQuery({
     queryKey: ['events', agenda.id, currentDate, viewType],
     queryFn: async () => {
-      const params = {};
+      const params = { summary: 'true' };
       if (agenda.id !== 'all_events') {
         params.agendaId = agenda.id;
       }
@@ -366,6 +366,16 @@ function CalendarView({ agenda, agendas = [] }) {
     } catch (error) {
       console.error('Error fetching event details:', error);
     }
+  };
+
+  const handleEventResize = (event, newEndTime) => {
+    const eventId = event.originalEventId || event.id;
+    updateMutation.mutate({
+      eventId,
+      data: {
+        endTime: newEndTime.toISOString()
+      }
+    });
   };
 
   const getInitialDateForCreateEvent = () => {
@@ -498,6 +508,7 @@ function CalendarView({ agenda, agendas = [] }) {
                   agendaColor={agenda.color}
                   onEventClick={handleEventClick}
                   onTimeSlotClick={handleTimeSlotClick}
+                  onEventResize={handleEventResize}
                 />
               )}
               {viewType === VIEW_TYPES.WEEK && (
@@ -508,6 +519,7 @@ function CalendarView({ agenda, agendas = [] }) {
                   onEventClick={handleEventClick}
                   weekStartsOn={weekStartsOn}
                   onTimeSlotClick={handleTimeSlotClick}
+                  onEventResize={handleEventResize}
                 />
               )}
               {viewType === VIEW_TYPES.MONTH && (

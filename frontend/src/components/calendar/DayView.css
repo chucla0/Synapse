@@ -47,7 +47,9 @@
   font-size: 0.75rem;
   color: var(--text-muted);
   text-align: right;
-  border-bottom: 1px solid var(--border);
+  position: relative;
+  top: -0.6em;
+  /* Align text center with the grid line */
 }
 
 .day-grid {
@@ -59,7 +61,7 @@
 
 .day-hour-slot {
   height: 60px;
-  border-bottom: 1px dashed var(--border);
+  border-top: 1px dashed var(--border);
   /* Changed to dashed */
   position: relative;
 }
@@ -89,6 +91,13 @@
   /* Added */
 }
 
+.day-event.resizing {
+  transform: none !important;
+  transition: none !important;
+  z-index: 100 !important;
+  box-shadow: var(--shadow-card-hover);
+}
+
 .event-title {
   font-weight: 600;
   margin-bottom: 2px;
@@ -100,11 +109,44 @@
 .event-time {
   opacity: 0.9;
   font-size: 0.75rem;
-  /* Added */
+}
+
+/* Short Event Styling (< 45 mins) */
+.day-event.short-event {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  gap: 8px;
+}
+
+.day-event.short-event .event-title {
+  margin-bottom: 0;
+  flex: 1;
+}
+
+.day-event.short-event .event-time {
+  font-size: 0.7rem;
+  white-space: nowrap;
 }
 
 .day-event.pending-approval {
   border: 2px dashed rgba(0, 0, 0, 0.2);
   background-color: rgba(255, 255, 255, 0.5) !important;
   opacity: 0.8;
+}
+
+.resize-handle {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  cursor: ns-resize;
+  z-index: 20;
+}
+
+.resize-handle:hover {
+  background: rgba(0, 0, 0, 0.1);
 }

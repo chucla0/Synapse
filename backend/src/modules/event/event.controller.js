@@ -50,9 +50,58 @@ async function getAllEvents(req, res) {
       where.AND.push({ status });
     }
 
+    const isSummary = req.query.summary === 'true';
+
     const events = await prisma.event.findMany({
       where,
-      include: {
+      select: isSummary ? {
+        id: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        isAllDay: true,
+        color: true,
+        status: true,
+        isPrivate: true,
+        isRecurring: true,
+        recurrenceRule: true,
+        creatorId: true,
+        agendaId: true,
+        visibleToStudents: true,
+        // Relations needed for permission checks
+        agenda: {
+          select: { id: true, name: true, color: true, type: true, ownerId: true }
+        },
+        creator: {
+          select: { id: true }
+        },
+        sharedWithUsers: {
+          select: { id: true }
+        },
+        // Minimal counts
+        _count: {
+          select: { attachments: true, links: true }
+        }
+      } : {
+        // Full selection (default)
+        id: true,
+        title: true,
+        description: true,
+        location: true,
+        startTime: true,
+        endTime: true,
+        isAllDay: true,
+        status: true,
+        isRecurring: true,
+        recurrenceRule: true,
+        color: true,
+        isPrivate: true,
+        timezone: true,
+        visibleToStudents: true,
+        creatorId: true,
+        agendaId: true,
+        createdAt: true,
+        updatedAt: true,
         agenda: {
           select: { id: true, name: true, color: true, type: true, ownerId: true },
         },
@@ -64,7 +113,9 @@ async function getAllEvents(req, res) {
         },
         _count: {
           select: { attachments: true, links: true }
-        }
+        },
+        attachments: true,
+        links: true
       },
       orderBy: { startTime: 'asc' }
     });

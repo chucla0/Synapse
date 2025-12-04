@@ -69,8 +69,10 @@ function App() {
                 path="/"
                 element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />}
               />
-              <Route path="/google-callback" element={<GoogleCallback onLogin={handleLogin} />} />
+              <Route path="/google-callback" element={<GoogleCallback onLogin={handleLogin} isAuthenticated={isAuthenticated} />} />
               <Route path="/set-password" element={<SetPassword onLogin={handleLogin} />} />
+              {/* Catch-all route for 404 handling */}
+              <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
             </Routes>
           </ToastProvider>
         </SocketProvider>

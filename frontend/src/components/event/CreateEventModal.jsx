@@ -7,6 +7,7 @@ import { RRule } from 'rrule';
 import AnimatedCheckbox from '../ui/AnimatedCheckbox';
 import CustomDatePicker from '../ui/CustomDatePicker';
 import { getUser } from '../../utils/auth';
+import { useSettings } from '../../contexts/SettingsContext';
 import './CreateEventModal.css';
 
 
@@ -42,8 +43,12 @@ const GOOGLE_EVENT_COLORS = [
 
 function CreateEventModal({ agenda, agendas = [], onClose, initialDate = null, event = null }) {
   const { t } = useTranslation();
+  const { settings } = useSettings();
   const queryClient = useQueryClient();
   const user = getUser();
+
+  const timeFormatStr = settings.display.timeFormat === '24h' ? 'HH:mm' : 'h:mm aa';
+  const dateFormatStr = settings.display.timeFormat === '24h' ? "d MMMM, yyyy HH:mm" : "d MMMM, yyyy h:mm aa";
 
   // If agenda is 'all_events', default to the first real agenda, or the event's agenda if editing
   const [selectedAgendaId, setSelectedAgendaId] = useState(() => {
@@ -392,7 +397,8 @@ function CreateEventModal({ agenda, agendas = [], onClose, initialDate = null, e
                   onChange={(date) => handleDateChange('startTime', date)}
                   showTimeSelect={!formData.isAllDay}
                   timeIntervals={10}
-                  dateFormat={formData.isAllDay ? "d MMMM, yyyy" : "d MMMM, yyyy h:mm aa"}
+                  dateFormat={formData.isAllDay ? "d MMMM, yyyy" : dateFormatStr}
+                  timeFormat={timeFormatStr}
                   disabled={createMutation.isPending}
                 />
                 {errors.startTime && <span className="error-message">{errors.startTime}</span>}
@@ -405,7 +411,8 @@ function CreateEventModal({ agenda, agendas = [], onClose, initialDate = null, e
                   onChange={(date) => handleDateChange('endTime', date)}
                   showTimeSelect={!formData.isAllDay}
                   timeIntervals={10}
-                  dateFormat={formData.isAllDay ? "d MMMM, yyyy" : "d MMMM, yyyy h:mm aa"}
+                  dateFormat={formData.isAllDay ? "d MMMM, yyyy" : dateFormatStr}
+                  timeFormat={timeFormatStr}
                   disabled={createMutation.isPending}
                 />
                 {errors.endTime && <span className="error-message">{errors.endTime}</span>}

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { setAuthData } from '../../utils/auth';
 import api from '../../utils/api';
 
-export default function GoogleCallback({ onLogin }) {
+export default function GoogleCallback({ onLogin, isAuthenticated }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -32,22 +32,31 @@ export default function GoogleCallback({ onLogin }) {
         try {
           // Store tokens first to allow api calls to work
           setAuthData({ accessToken, refreshToken });
-          
+
           // Fetch user profile
           const response = await api.get('/auth/profile');
           const user = response.data.user;
-          
+
           // Update auth data with user
           setAuthData({ accessToken, refreshToken, user });
 
           if (needsPassword === 'true') {
             navigate('/set-password');
           } else {
-            if (onLogin) onLogin();
+            // Only trigger login state update if not already authenticated
+            // This prevents unnecessary re-renders/remounts of Dashboard
+            if (onLogin && !isAuthenticated) {
+              onLogin();
+            }
+
+            const action = searchParams.get('action');
+            if (action === 'import_google') {
+              localStorage.setItem('synapse_pending_import', 'true');
+            }
+
             navigate('/dashboard');
           }
         } catch (err) {
-          console.error('Error fetching profile:', err);
           navigate('/login?error=profile_fetch_failed');
         }
       } else {

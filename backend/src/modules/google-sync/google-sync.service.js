@@ -68,7 +68,7 @@ const GOOGLE_COLORS_REVERSE = Object.entries(GOOGLE_COLORS).reduce((acc, [id, he
  * Import events from Google Calendar (Backfill)
  * Creates a "Google Calendar" agenda if it doesn't exist
  */
-async function importGoogleCalendar(userId) {
+async function importGoogleCalendar(userId, io) {
   const calendar = await getAuthenticatedClient(userId);
 
   // 1. Find or Create "Google Calendar" Agenda
@@ -133,6 +133,11 @@ async function importGoogleCalendar(userId) {
     });
   }
 
+  // Emit start event immediately to show modal
+  if (io) {
+    io.to(`user:${userId}`).emit('google:import:start', { total: 0 });
+  }
+
   // 2. Fetch Events (Last 30 days to next year)
   const now = new Date();
   const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -155,7 +160,18 @@ async function importGoogleCalendar(userId) {
     }
     pageToken = response.data.nextPageToken;
   } while (pageToken);
+
   let importedCount = 0;
+  const totalEvents = events.length;
+
+  // Update total in frontend
+  if (io) {
+    io.to(`user:${userId}`).emit('google:import:progress', {
+      processed: 0,
+      total: totalEvents,
+      percentage: 0
+    });
+  }
 
   // 3. Create Events in Synapse
   for (const googleEvent of events) {
@@ -205,9 +221,36 @@ async function importGoogleCalendar(userId) {
           googleEventId: googleEvent.id
         }
       });
-      importedCount++;
     }
     importedCount++;
+
+    // Emit progress event every 5 items or on the last item
+    if (io && (importedCount % 5 === 0 || importedCount === totalEvents)) {
+      io.to(`user:${userId}`).emit('google:import:progress', {
+        processed: importedCount,
+        total: totalEvents,
+        percentage: Math.round((importedCount / totalEvents) * 100)
+      });
+    }
+  }
+
+  // 4. Delete events that were removed in Google Calendar (within the fetch window)
+  const fetchedGoogleEventIds = events.map(e => e.id);
+
+  const deleted = await prisma.event.deleteMany({
+    where: {
+      agendaId: agenda.id,
+      googleEventId: { notIn: fetchedGoogleEventIds }, // Not in the list we just fetched
+      startTime: { gte: oneMonthAgo }, // Only consider events within the window we fetched
+      googleEventId: { not: null } // Ensure it's a Google event
+    }
+  });
+
+  console.log(`Deleted ${deleted.count} events that were removed from Google Calendar`);
+
+  // Emit complete event
+  if (io) {
+    io.to(`user:${userId}`).emit('google:import:complete', { total: totalEvents });
   }
 
   return { importedCount, agendaId: agenda.id };

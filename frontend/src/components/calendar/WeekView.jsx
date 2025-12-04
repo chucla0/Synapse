@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { getWeekDays, formatTime, groupEventsByDay, isSameDay, calculateEventLayout } from '../../utils/date';
 import { format } from 'date-fns';
 import { useDateFnsLocale } from '../../contexts/LocaleContext';
@@ -29,10 +29,96 @@ const DraggableWeekEvent = ({ event, agendaColor, onEventClick, locale, timeForm
     transition: isDragging ? 'none' : undefined,
   };
 
+  const durationMinutes = (new Date(event.endTime) - new Date(event.startTime)) / (1000 * 60);
+  const isShortEvent = durationMinutes < 45;
+
+  const timeRef = useRef(null);
+  const [isResizing, setIsResizing] = useState(false);
+
+  const handleResizeStart = (e) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent drag start
+
+    setIsResizing(true);
+    e.target.setPointerCapture(e.pointerId);
+
+    const startY = e.clientY;
+    const startHeight = Math.max(parseFloat(event.style.height), 20);
+    const pixelsPerMinute = 60 / 60; // 60px per 60 mins = 1px per minute
+
+    const handleMouseMove = (moveEvent) => {
+      const deltaY = moveEvent.clientY - startY;
+
+      // Snap deltaY to 15 minute increments (15px)
+      // 60px = 60min => 15px = 15min
+      const snappedDeltaY = Math.round(deltaY / 15) * 15;
+
+      const newHeight = Math.max(20, startHeight + snappedDeltaY);
+
+      // Update visual height immediately with snapped value
+      const element = document.getElementById(`event-${event.id}`);
+      if (element) {
+        element.style.height = `${newHeight}px`;
+      }
+
+      // Update time text immediately
+      if (timeRef.current) {
+        const minutesDelta = Math.round(snappedDeltaY / pixelsPerMinute); // Should be exact multiple of 15
+        const newEndTime = new Date(new Date(event.endTime).getTime() + minutesDelta * 60000);
+
+        // Only update if valid time
+        if (newEndTime > new Date(event.startTime)) {
+          const newDurationMinutes = (newEndTime - new Date(event.startTime)) / (1000 * 60);
+          const isNowShort = newDurationMinutes < 45;
+
+          const timeStr = `${format(new Date(event.startTime), timeFormatStr, { locale })} - ${format(newEndTime, timeFormatStr, { locale })}`;
+
+          element.title = `${event.title}\n${timeStr}`;
+          if (timeRef.current) {
+            timeRef.current.innerText = timeStr;
+          }
+        }
+      }
+    };
+
+    const handleMouseUp = (upEvent) => {
+      e.target.releasePointerCapture(e.pointerId);
+      setIsResizing(false);
+
+      document.removeEventListener('pointermove', handleMouseMove);
+      document.removeEventListener('pointerup', handleMouseUp);
+
+      const deltaY = upEvent.clientY - startY;
+      const minutesDelta = Math.round(deltaY / pixelsPerMinute / 15) * 15; // Snap to 15 mins
+
+      if (minutesDelta !== 0) {
+        const newEndTime = new Date(new Date(event.endTime).getTime() + minutesDelta * 60000);
+        // Ensure end time > start time
+        if (newEndTime > new Date(event.startTime)) {
+          // Call parent handler
+          // We need to pass this prop down
+          if (event.onResize) event.onResize(newEndTime);
+        } else {
+          // Revert visual change
+          const element = document.getElementById(`event-${event.id}`);
+          if (element) element.style.height = `${startHeight}px`;
+        }
+      } else {
+        // Revert visual change if no snap change
+        const element = document.getElementById(`event-${event.id}`);
+        if (element) element.style.height = `${startHeight}px`;
+      }
+    };
+
+    document.addEventListener('pointermove', handleMouseMove);
+    document.addEventListener('pointerup', handleMouseUp);
+  };
+
   return (
     <div
       ref={setNodeRef}
-      className={`week-event ${event.status === 'PENDING_APPROVAL' ? 'pending-approval' : ''}`}
+      id={`event-${event.id}`}
+      className={`week-event ${event.status === 'PENDING_APPROVAL' ? 'pending-approval' : ''} ${isShortEvent ? 'short-event' : ''} ${isResizing ? 'resizing' : ''}`}
       style={style}
       title={`${event.title}\n${format(new Date(event.startTime), timeFormatStr, { locale })} - ${format(new Date(event.endTime), timeFormatStr, { locale })}`}
       {...listeners}
@@ -43,9 +129,16 @@ const DraggableWeekEvent = ({ event, agendaColor, onEventClick, locale, timeForm
       }}
     >
       <div className="event-title">{event.title}</div>
-      <div className="event-time">
-        {format(new Date(event.startTime), timeFormatStr, { locale })}
+      <div className="event-time" ref={timeRef}>
+        {`${format(new Date(event.startTime), timeFormatStr, { locale })} - ${format(new Date(event.endTime), timeFormatStr, { locale })}`}
       </div>
+
+      {/* Resize Handle */}
+      <div
+        className="resize-handle"
+        onPointerDown={handleResizeStart}
+        onClick={(e) => e.stopPropagation()}
+      />
     </div>
   );
 };
@@ -68,7 +161,7 @@ const DroppableWeekSlot = ({ day, hour, children, onClick }) => {
   );
 };
 
-function WeekView({ date, events, agendaColor, onEventClick, weekStartsOn = 1, onTimeSlotClick }) {
+function WeekView({ date, events, agendaColor, onEventClick, weekStartsOn = 1, onTimeSlotClick, onEventResize }) {
   const { settings } = useSettings();
   const locale = useDateFnsLocale();
   const weekDays = getWeekDays(date, { weekStartsOn });
@@ -149,16 +242,15 @@ function WeekView({ date, events, agendaColor, onEventClick, weekStartsOn = 1, o
                   ))}
 
                   {/* Render events */}
-                  {positionedEvents.map(event => (
-                    <DraggableWeekEvent
-                      key={event.id}
-                      event={event}
-                      agendaColor={agendaColor}
-                      onEventClick={onEventClick}
-                      locale={locale}
-                      timeFormatStr={timeFormatStr}
-                    />
-                  ))}
+                  {positionedEvents.map(event => <DraggableWeekEvent
+                    key={event.id}
+                    event={{ ...event, onResize: (newEndTime) => onEventResize && onEventResize(event, newEndTime) }}
+                    agendaColor={agendaColor}
+                    onEventClick={onEventClick}
+                    locale={locale}
+                    timeFormatStr={timeFormatStr}
+                  />
+                  )}
                 </div>
               );
             })}

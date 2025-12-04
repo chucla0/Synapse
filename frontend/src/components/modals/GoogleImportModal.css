@@ -1,0 +1,77 @@
+.google-import-modal {
+    max-width: 450px;
+    width: 100%;
+}
+
+.import-status-text {
+    margin-bottom: var(--spacing-md);
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 12px;
+    background-color: var(--bg-hover);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: var(--spacing-sm);
+    border: 1px solid var(--border);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: var(--accent);
+    transition: width 0.3s ease-out;
+    border-radius: 6px;
+}
+
+.progress-percentage {
+    text-align: right;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.import-success,
+.import-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) 0;
+    text-align: center;
+}
+
+.success-icon {
+    width: 48px;
+    height: 48px;
+    background-color: var(--success);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.error-icon {
+    width: 48px;
+    height: 48px;
+    background-color: var(--error);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.error-details {
+    color: var(--error);
+    font-size: 0.9rem;
+    margin-top: -8px;
+}

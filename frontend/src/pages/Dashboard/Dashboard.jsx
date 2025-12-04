@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Settings, ChevronDown, Palette, ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
@@ -13,6 +13,7 @@ import CreateAgendaModal from '../../components/agenda/CreateAgendaModal';
 import ProfileSettingsModal from '../../components/settings/ProfileSettingsModal';
 import AgendaSettingsModal from '../../components/agenda/AgendaSettingsModal';
 import WebSettingsModal from '../../components/settings/WebSettingsModal';
+import GoogleImportModal from '../../components/modals/GoogleImportModal';
 import Home from '../Home/Home';
 import './Dashboard.css';
 
@@ -30,7 +31,7 @@ const typeOrder = {
   'COLABORATIVA': 5,
 };
 
-function Dashboard({ onLogout, sessionKey }) {
+export default function Dashboard({ onLogout, sessionKey }) {
   const { t, i18n } = useTranslation();
   const [selectedAgenda, setSelectedAgenda] = useState(null);
   const [showCreateAgenda, setShowCreateAgenda] = useState(false);
@@ -65,6 +66,20 @@ function Dashboard({ onLogout, sessionKey }) {
       document.removeEventListener('click', handleClickOutside);
     };
   }, [showLanguageDropdown, showSortDropdown]);
+
+  // Trigger Google Import if requested via localStorage (more robust than location.state)
+  useEffect(() => {
+    const pendingImport = localStorage.getItem('synapse_pending_import');
+
+    if (pendingImport === 'true') {
+      // Clear flag immediately
+      localStorage.removeItem('synapse_pending_import');
+
+      // Trigger import
+      api.post('/integrations/google/import')
+        .catch(err => console.error('Failed to trigger Google import:', err));
+    }
+  }, []); // Run once on mount
 
   // Fetch agendas
   const { data: agendasData, isLoading: agendasLoading } = useQuery({
@@ -607,6 +622,9 @@ function Dashboard({ onLogout, sessionKey }) {
           existingAgendas={agendas}
         />
       )}
+
+      <GoogleImportModal />
+
       {showProfileSettings && (
         <WebSettingsModal
           onClose={() => setShowProfileSettings(false)}
@@ -629,4 +647,4 @@ function Dashboard({ onLogout, sessionKey }) {
   );
 }
 
-export default Dashboard;
+

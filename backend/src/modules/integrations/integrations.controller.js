@@ -6,7 +6,7 @@ const GoogleSyncService = require('../google-sync/google-sync.service');
 async function importGoogleCalendar(req, res) {
   try {
     const userId = req.user.id;
-    const result = await GoogleSyncService.importGoogleCalendar(userId);
+    const result = await GoogleSyncService.importGoogleCalendar(userId, req.io);
 
     // Re-establish webhook/watch to ensure future updates are caught
     try {
@@ -33,6 +33,14 @@ async function importGoogleCalendar(req, res) {
     });
   } catch (error) {
     console.error('Import Google Calendar error:', error);
+
+    // Emit error event to frontend
+    if (req.io && req.user) {
+      req.io.to(`user:${req.user.id}`).emit('google:import:error', {
+        message: error.message || 'Failed to import Google Calendar'
+      });
+    }
+
     res.status(500).json({
       error: 'Failed to import Google Calendar',
       message: error.message

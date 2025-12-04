@@ -126,10 +126,11 @@
   color: var(--text-secondary);
   text-align: right;
   display: flex;
-  align-items: start;
+  align-items: flex-start;
   justify-content: flex-end;
-  transform: translateY(-50%);
-  /* Center label on the line */
+  position: relative;
+  top: -0.6em;
+  /* Align text center with the grid line */
 }
 
 /* The Grid of Days (Columns 2-8) */
@@ -153,7 +154,7 @@
 .week-hour-slot {
   height: 60px;
   /* Match timeline-hour height */
-  border-bottom: 1px solid var(--border);
+  border-top: 1px solid var(--border);
   box-sizing: border-box;
 }
 
@@ -184,6 +185,14 @@
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
+.week-event.resizing {
+  transform: none !important;
+  transition: none !important;
+  z-index: 100 !important;
+  filter: brightness(0.95);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
 .week-event .event-title {
   font-weight: 700;
   font-size: 0.85rem;
@@ -198,6 +207,26 @@
   font-size: 0.7rem;
   opacity: 0.8;
   font-weight: 500;
+}
+
+/* Short Event Styling (< 45 mins) */
+.week-event.short-event {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px;
+  gap: 8px;
+}
+
+.week-event.short-event .event-title {
+  margin-bottom: 0;
+  flex: 1;
+}
+
+.week-event.short-event .event-time {
+  font-size: 0.7rem;
+  white-space: nowrap;
 }
 
 .week-event.pending-approval {
@@ -222,4 +251,20 @@
   background-color: var(--bg-hover);
   box-shadow: inset 0 0 0 2px var(--accent);
   animation: dragOverPulse 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+}
+
+.resize-handle {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  cursor: ns-resize;
+  /* background: rgba(0,0,0,0.1); */
+  /* Optional: visible handle */
+  z-index: 20;
+}
+
+.resize-handle:hover {
+  background: rgba(0, 0, 0, 0.1);
 }

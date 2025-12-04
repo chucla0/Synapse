@@ -408,41 +408,18 @@ async function googleCallback(req, res) {
     // Check if user needs to set a password
     const needsPassword = !user.password;
 
-    // If this was a "Connect Calendar" action, trigger the import immediately
+    // If this was a "Connect Calendar" action, pass a flag to frontend to trigger import
+    let actionParam = '';
     if (req.query.state === 'connect_calendar') {
-      // Verify that the connected Google account matches the logged-in user's email
-      // req.user is the user found/created by passport based on the Google profile returned
-      // We need to ensure this user is the SAME as the one who initiated the request.
-      // However, passport strategy finds the user by googleId or email.
-      // If the user logged in with 'A' and connects 'B', passport might return user 'B' if it exists, 
-      // or create a new user 'B'.
-      // BUT, we want to link to the EXISTING session user.
-      // The issue is that passport.authenticate replaces req.user with the one from the strategy.
+      actionParam = '&action=import_google';
 
-      // Since we can't easily access the original session user here without custom passport logic,
-      // we rely on the fact that we passed login_hint.
-      // But to be safe, if we wanted strict enforcement, we'd need to pass the original user ID in the 'state' param
-      // and verify it here.
-      // For now, let's assume login_hint does its job on the frontend.
-
-      // Wait, actually, if the emails don't match, we should probably reject it if we could.
-      // But since we are in the callback, the damage (auth) is done.
-      // Let's rely on login_hint for UX and trust the user.
-
-      try {
-        const GoogleSyncService = require('../google-sync/google-sync.service');
-        await GoogleSyncService.importGoogleCalendar(user.id);
-
-        // Start watching for changes (Webhook)
-        await GoogleSyncService.watchCalendar(user.id);
-        console.log(`Started watching Google Calendar for user ${user.id}`);
-      } catch (syncError) {
-        console.error('Failed to auto-import/watch Google Calendar after connect:', syncError);
-      }
+      // We still want to ensure the watch is set up, but maybe better to do it all in the import flow?
+      // Actually, let's let the frontend trigger the full import flow which includes setting up the watch.
+      // So we do NOTHING here except signal the frontend.
     }
 
     // Redirect to frontend with tokens
-    res.redirect(`${frontendUrl}/google-callback?accessToken=${accessToken}&refreshToken=${refreshToken}&needsPassword=${needsPassword}`);
+    res.redirect(`${frontendUrl}/google-callback?accessToken=${accessToken}&refreshToken=${refreshToken}&needsPassword=${needsPassword}${actionParam}`);
 
   } catch (error) {
     console.error('Google callback error:', error);
