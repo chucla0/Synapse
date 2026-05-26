@@ -8,6 +8,7 @@ Welcome to the Synapse Agenda documentation. This guide provides a comprehensive
 Understand the core design, technology stack, and logical structure of the system.
 - **[Data Models](./architecture/models.md)**: ERD, Enums, and database structure.
 - **[System Flows](./architecture/flows.md)**: Authentication, Google Sync, and Notification logic.
+- **[🧪 Testing & CI/CD](./architecture/testing.md)**: Automated tests and GitHub Actions.
 
 ### [🚀 Deployment](./deployment/README.md)
 Guides for setting up Synapse in various environments.

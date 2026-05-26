@@ -30,6 +30,7 @@ Detailed documentation is available in the [**/docs**](./docs/README.md) directo
 
 - [**🏗️ Architecture**](./docs/architecture/README.md): System design, tech stack, and diagrams.
 - [**📊 Data Models**](./docs/architecture/models.md): Database schema and ERD.
+- [**🧪 Testing & CI/CD**](./docs/architecture/testing.md): Automated tests and GitHub Actions logic.
 - [**🔄 System Flows**](./docs/architecture/flows.md): Logic for Auth, Google Sync, and Notifications.
 - [**🚀 Deployment Guides**](./docs/deployment/README.md): Setup for Dev, Docker, and Cloud.
 - [**🔌 API Reference**](./docs/api/endpoints.md): List of backend endpoints.
