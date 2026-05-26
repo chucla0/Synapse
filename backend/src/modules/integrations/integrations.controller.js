@@ -4,48 +4,46 @@ const GoogleSyncService = require('../google-sync/google-sync.service');
  * Import Google Calendar events
  */
 async function importGoogleCalendar(req, res) {
-  try {
-    const userId = req.user.id;
-    const result = await GoogleSyncService.importGoogleCalendar(userId, req.io);
+  const userId = req.user.id;
 
-    // Re-establish webhook/watch to ensure future updates are caught
+  // Respond immediately to avoid timeout (502 Bad Gateway on Render)
+  res.json({
+    message: 'Google Calendar import started in background'
+  });
+
+  // Run the heavy lifting in the background
+  (async () => {
     try {
-      await GoogleSyncService.watchCalendar(userId);
-      console.log(`Re-established Google Calendar watch for user ${userId}`);
-    } catch (watchError) {
-      console.error('Failed to re-establish Google watch:', watchError);
-      // Don't fail the request, just log it
+      console.log(`[Background] Starting Google Calendar import for user ${userId}`);
+      const result = await GoogleSyncService.importGoogleCalendar(userId, req.io);
+
+      // Re-establish webhook/watch to ensure future updates are caught
+      try {
+        await GoogleSyncService.watchCalendar(userId);
+        console.log(`[Background] Re-established Google Calendar watch for user ${userId}`);
+      } catch (watchError) {
+        console.error('[Background] Failed to re-establish Google watch:', watchError);
+      }
+
+      // Emit final socket event to update frontend
+      if (req.io) {
+        req.io.to(`user:${userId}`).emit('agenda:updated', {
+          agendaId: result.agendaId,
+          action: 'imported'
+        });
+      }
+      console.log(`[Background] Google Calendar import completed for user ${userId}`);
+    } catch (error) {
+      console.error('[Background] Import Google Calendar error:', error);
+
+      // Emit error event to frontend via sockets since the HTTP request is already closed
+      if (req.io) {
+        req.io.to(`user:${userId}`).emit('google:import:error', {
+          message: error.message || 'Failed to import Google Calendar'
+        });
+      }
     }
-
-    // Emit socket event to update frontend
-    if (req.io) {
-      req.io.to(`user:${userId}`).emit('agenda:updated', {
-        agendaId: result.agendaId,
-        action: 'imported'
-      });
-      // Also emit event:created if we want to be granular, but agenda:updated should trigger a refetch of events too
-      // based on our frontend logic.
-    }
-
-    res.json({
-      message: 'Google Calendar imported successfully',
-      ...result
-    });
-  } catch (error) {
-    console.error('Import Google Calendar error:', error);
-
-    // Emit error event to frontend
-    if (req.io && req.user) {
-      req.io.to(`user:${req.user.id}`).emit('google:import:error', {
-        message: error.message || 'Failed to import Google Calendar'
-      });
-    }
-
-    res.status(500).json({
-      error: 'Failed to import Google Calendar',
-      message: error.message
-    });
-  }
+  })();
 }
 
 /**
