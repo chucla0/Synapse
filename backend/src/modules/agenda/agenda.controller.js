@@ -63,7 +63,7 @@ async function getAllAgendas(req, res) {
     console.error('Get agendas error:', error);
     res.status(500).json({
       error: 'Failed to fetch agendas',
-      message: 'Internal server error'
+      message: error.message || 'Internal server error'
     });
   }
 }
@@ -110,7 +110,7 @@ async function createAgenda(req, res) {
     console.error('Create agenda error:', error);
     res.status(500).json({
       error: 'Failed to create agenda',
-      message: 'Internal server error'
+      message: error.message || 'Internal server error'
     });
   }
 }
@@ -174,7 +174,7 @@ async function getAgendaById(req, res) {
     console.error('Get agenda error:', error);
     res.status(500).json({
       error: 'Failed to fetch agenda',
-      message: 'Internal server error'
+      message: error.message || 'Internal server error'
     });
   }
 }
@@ -240,7 +240,7 @@ async function updateAgenda(req, res) {
     console.error('Update agenda error:', error);
     res.status(500).json({
       error: 'Failed to update agenda',
-      message: 'Internal server error'
+      message: error.message || 'Internal server error'
     });
   }
 }
@@ -305,7 +305,7 @@ async function deleteAgenda(req, res) {
     console.error('Delete agenda error:', error);
     res.status(500).json({
       error: 'Failed to delete agenda',
-      message: 'Internal server error'
+      message: error.message || 'Internal server error'
     });
   }
 }
@@ -404,7 +404,7 @@ async function addUserToAgenda(req, res) {
     console.error('Add user to agenda error:', error);
     res.status(500).json({
       error: 'Failed to invite user',
-      message: 'Internal server error'
+      message: error.message || 'Internal server error'
     });
   }
 }
@@ -517,7 +517,7 @@ async function removeUserFromAgenda(req, res) {
     console.error('Remove user from agenda error:', error);
     res.status(500).json({
       error: 'Failed to remove user from agenda',
-      message: 'Internal server error'
+      message: error.message || 'Internal server error'
     });
   }
 }
@@ -627,7 +627,7 @@ async function updateUserRole(req, res) {
     console.error('Update user role error:', error);
     res.status(500).json({
       error: 'Failed to update user role',
-      message: 'Internal server error'
+      message: error.message || 'Internal server error'
     });
   }
 }
@@ -765,7 +765,7 @@ async function leaveAgenda(req, res) {
 
   } catch (error) {
     console.error('Leave agenda error:', error);
-    res.status(500).json({ error: 'Failed to leave agenda', message: 'Internal server error' });
+    res.status(500).json({ error: 'Failed to leave agenda', message: error.message || 'Internal server error' });
   }
 }
 

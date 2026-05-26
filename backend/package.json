@@ -21,25 +21,25 @@
   "author": "iizan.cruzz@gmail.com",
   "license": "MIT",
   "dependencies": {
-    "@prisma/client": "^5.7.0",
-    "axios": "^1.13.2",
+    "@prisma/client": "^5.22.0",
+    "axios": "^1.16.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "express": "^4.18.2",
+    "express": "^5.2.1",
     "express-validator": "^7.0.1",
     "googleapis": "^128.0.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
-    "nodemailer": "^6.9.7",
+    "nodemailer": "^8.0.9",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "rrule": "^2.8.1",
     "socket.io": "^4.8.1",
-    "uuid": "^9.0.1"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2",
-    "prisma": "^5.7.0"
+    "prisma": "^5.22.0"
   }
 }

@@ -62,7 +62,7 @@ async function authenticateToken(req, res, next) {
     console.error('Authentication error:', error);
     return res.status(500).json({ 
       error: 'Authentication failed',
-      message: 'Internal server error'
+      message: error.message || 'Internal server error'
     });
   }
 }
@@ -127,7 +127,7 @@ function requireAgendaRole(allowedRoles) {
       console.error('Role check error:', error);
       return res.status(500).json({ 
         error: 'Permission check failed',
-        message: 'Internal server error'
+        message: error.message || 'Internal server error'
       });
     }
   };
