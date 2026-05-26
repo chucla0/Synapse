@@ -25,10 +25,8 @@ export const SocketProvider = ({ children }) => {
         }
 
         // Determine Socket URL
-        // In production with Nginx proxying /socket.io, it's best to use the current origin (relative path)
-        // This avoids Mixed Content issues (http vs https) and CORS issues.
-        // We only use VITE_API_URL in development or if explicitly needed.
-        let socketUrl = import.meta.env.PROD ? undefined : (import.meta.env.VITE_API_URL || 'http://localhost:3000');
+        // In production with Vercel/Render, we MUST use VITE_API_URL if they are on different domains.
+        const socketUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? undefined : 'http://localhost:3000');
 
         // Initialize socket connection
         // passing 'undefined' as url makes io() connect to window.location (current host)

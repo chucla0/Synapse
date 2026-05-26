@@ -375,8 +375,8 @@ async function watchCalendar(userId) {
 
   const channelId = uuidv4();
 
-  // Determine the public URL for the webhook
-  let publicUrl = process.env.FRONTEND_URL;
+  // Determine the public URL for the webhook (MUST be the backend URL)
+  let publicUrl = process.env.BACKEND_URL || process.env.RENDER_EXTERNAL_URL || process.env.VITE_API_URL || process.env.FRONTEND_URL;
   if (publicUrl && publicUrl.includes(',')) {
     // If multiple URLs, prefer the one that is NOT localhost, or just the first one
     const urls = publicUrl.split(',').map(u => u.trim());
