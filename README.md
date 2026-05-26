@@ -26,9 +26,13 @@ Access the app at `http://localhost:5173`.
 
 ## 📚 Documentation
 
-- [**Architecture & Database**](./docs/ARCHITECTURE.md): System design, data models, and permissions.
-- [**API Reference**](./docs/API.md): List of backend endpoints.
-- [**User Manual & Testing**](./docs/MANUAL.md): Guides for features and testing flows.
+Detailed documentation is available in the [**/docs**](./docs/README.md) directory:
+
+- [**🏗️ Architecture**](./docs/architecture/README.md): System design, tech stack, and diagrams.
+- [**📊 Data Models**](./docs/architecture/models.md): Database schema and ERD.
+- [**🔄 System Flows**](./docs/architecture/flows.md): Logic for Auth, Google Sync, and Notifications.
+- [**🚀 Deployment Guides**](./docs/deployment/README.md): Setup for Dev, Docker, and Cloud.
+- [**🔌 API Reference**](./docs/api/endpoints.md): List of backend endpoints.
 
 ## ✨ Key Features
 
