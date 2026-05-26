@@ -5,9 +5,6 @@
 
 */
 -- AlterTable
-ALTER TABLE "agendas" ADD COLUMN     "googleCalendarId" TEXT;
-
--- AlterTable
 ALTER TABLE "events" ADD COLUMN     "googleEventId" TEXT;
 
 -- AlterTable
