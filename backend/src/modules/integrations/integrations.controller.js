@@ -1,4 +1,5 @@
 const GoogleSyncService = require('../google-sync/google-sync.service');
+const prisma = require('../../lib/prisma');
 
 /**
  * Import Google Calendar events
@@ -87,7 +88,44 @@ async function handleGoogleWebhook(req, res) {
   }
 }
 
+/**
+ * Disconnect Google Calendar
+ */
+async function disconnectGoogle(req, res) {
+  try {
+    const userId = req.user.id;
+
+    // Stop watching calendar
+    try {
+      await GoogleSyncService.stopWatchingCalendar(userId);
+    } catch (e) {
+      console.warn('Failed to stop Google calendar watch during disconnect:', e);
+    }
+
+    // Clear Google tokens and metadata from user
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        googleId: null,
+        googleAccessToken: null,
+        googleRefreshToken: null
+      }
+    });
+
+    // Optionally: You could also delete the "Google Calendar" agenda
+    // But maybe the user wants to keep the imported events?
+    // Let's just clear the sync metadata but keep the data.
+
+    res.json({ message: 'Google Calendar disconnected successfully' });
+
+  } catch (error) {
+    console.error('Disconnect Google error:', error);
+    res.status(500).json({ error: 'Failed to disconnect Google Calendar', message: error.message });
+  }
+}
+
 module.exports = {
   importGoogleCalendar,
-  handleGoogleWebhook
+  handleGoogleWebhook,
+  disconnectGoogle
 };

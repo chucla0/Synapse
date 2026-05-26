@@ -78,6 +78,7 @@ async function getAllEvents(req, res) {
         sharedWithUsers: {
           select: { id: true }
         },
+        exceptions: true,
         // Minimal counts
         _count: {
           select: { attachments: true, links: true }
@@ -111,6 +112,7 @@ async function getAllEvents(req, res) {
         sharedWithUsers: {
           select: { id: true, name: true, email: true, avatar: true }
         },
+        exceptions: true,
         _count: {
           select: { attachments: true, links: true }
         },
@@ -354,44 +356,55 @@ async function createEvent(req, res) {
       });
     }
 
-    // Check for time conflicts (only for confirmed events)
+    // Check for time conflicts (improved: checks same agenda OR same user in ANY agenda)
     const conflicts = await prisma.event.findMany({
       where: {
-        agendaId,
-        creatorId: userId,
         status: 'CONFIRMED',
         OR: [
+          { agendaId },
+          { creatorId: userId }
+        ],
+        AND: [
           {
-            AND: [
-              { startTime: { lte: new Date(startTime) } },
-              { endTime: { gte: new Date(startTime) } }
-            ]
-          },
-          {
-            AND: [
-              { startTime: { lte: new Date(endTime) } },
-              { endTime: { gte: new Date(endTime) } }
-            ]
-          },
-          {
-            AND: [
-              { startTime: { gte: new Date(startTime) } },
-              { endTime: { lte: new Date(endTime) } }
+            OR: [
+              {
+                AND: [
+                  { startTime: { lte: new Date(startTime) } },
+                  { endTime: { gt: new Date(startTime) } }
+                ]
+              },
+              {
+                AND: [
+                  { startTime: { lt: new Date(endTime) } },
+                  { endTime: { gte: new Date(endTime) } }
+                ]
+              },
+              {
+                AND: [
+                  { startTime: { gte: new Date(startTime) } },
+                  { endTime: { lte: new Date(endTime) } }
+                ]
+              }
             ]
           }
         ]
+      },
+      include: {
+        agenda: { select: { name: true } }
       }
     });
 
     if (conflicts.length > 0) {
       return res.status(409).json({
         error: 'Time conflict',
-        message: 'You have another event scheduled at this time',
+        message: 'There is another event scheduled at this time',
         conflicts: conflicts.map(e => ({
           id: e.id,
           title: e.title,
           startTime: e.startTime,
-          endTime: e.endTime
+          endTime: e.endTime,
+          agendaName: e.agenda.name,
+          conflictType: e.agendaId === agendaId ? 'AGENDA_CONFLICT' : 'USER_CONFLICT'
         }))
       });
     }
@@ -611,6 +624,62 @@ async function updateEvent(req, res) {
           console.log('[UpdateEvent] Denied: Educativa role not professor/teacher');
           return res.status(403).json({ error: 'Permission denied', message: 'Only professors can update events', debug: `Educativa role: ${userRole}` });
         }
+      }
+    }
+
+    // Check for time conflicts if time is changing
+    if (updateData.startTime || updateData.endTime) {
+      const startTime = updateData.startTime ? new Date(updateData.startTime) : event.startTime;
+      const endTime = updateData.endTime ? new Date(updateData.endTime) : event.endTime;
+
+      const conflicts = await prisma.event.findMany({
+        where: {
+          id: { not: eventId }, // Exclude self
+          status: 'CONFIRMED',
+          OR: [
+            { agendaId: event.agendaId },
+            { creatorId: userId }
+          ],
+          AND: [
+            {
+              OR: [
+                {
+                  AND: [
+                    { startTime: { lte: startTime } },
+                    { endTime: { gt: startTime } }
+                  ]
+                },
+                {
+                  AND: [
+                    { startTime: { lt: endTime } },
+                    { endTime: { gte: endTime } }
+                  ]
+                },
+                {
+                  AND: [
+                    { startTime: { gte: startTime } },
+                    { endTime: { lte: endTime } }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        include: { agenda: { select: { name: true } } }
+      });
+
+      if (conflicts.length > 0) {
+        return res.status(409).json({
+          error: 'Time conflict',
+          message: 'This update would create a conflict with another event',
+          conflicts: conflicts.map(c => ({
+            id: c.id,
+            title: c.title,
+            startTime: c.startTime,
+            endTime: c.endTime,
+            agendaName: c.agenda.name
+          }))
+        });
       }
     }
 
@@ -1072,6 +1141,102 @@ async function rejectEvent(req, res) {
   }
 }
 
+/**
+ * Search events across all accessible agendas
+ */
+async function searchEvents(req, res) {
+  try {
+    const userId = req.user.id;
+    const { q } = req.query;
+
+    if (!q) {
+      return res.status(400).json({ error: 'Search query is required' });
+    }
+
+    const events = await prisma.event.findMany({
+      where: {
+        AND: [
+          {
+            OR: [
+              { agenda: { ownerId: userId } },
+              { agenda: { agendaUsers: { some: { userId } } } }
+            ]
+          },
+          {
+            OR: [
+              { title: { contains: q, mode: 'insensitive' } },
+              { description: { contains: q, mode: 'insensitive' } },
+              { location: { contains: q, mode: 'insensitive' } }
+            ]
+          }
+        ]
+      },
+      include: {
+        agenda: { select: { name: true, color: true } }
+      },
+      orderBy: { startTime: 'desc' },
+      take: 50
+    });
+
+    res.json({ events });
+
+  } catch (error) {
+    console.error('Search events error:', error);
+    res.status(500).json({ error: 'Failed to search events', message: error.message });
+  }
+}
+
+/**
+ * Delete a specific occurrence of a recurring event (Creates an Exception)
+ */
+async function deleteEventOccurrence(req, res) {
+  try {
+    const { eventId } = req.params;
+    const { occurrenceDate } = req.body; // ISO string of the date to exclude
+    const userId = req.user.id;
+
+    if (!occurrenceDate) {
+      return res.status(400).json({ error: 'Occurrence date is required' });
+    }
+
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      include: { agenda: true }
+    });
+
+    if (!event) return res.status(404).json({ error: 'Event not found' });
+
+    // Permission check (same as deleteEvent)
+    const isCreator = event.creatorId === userId;
+    const isAgendaOwner = event.agenda.ownerId === userId;
+
+    if (!isAgendaOwner && !isCreator) {
+      // Basic check, could be more granular per agenda role
+      return res.status(403).json({ error: 'Permission denied' });
+    }
+
+    // Create exception
+    const exception = await prisma.exception.create({
+      data: {
+        eventId,
+        exceptionDate: new Date(occurrenceDate),
+        reason: req.body.reason || 'Deleted occurrence'
+      }
+    });
+
+    // Emit socket event so frontend refetches and updates the view
+    if (req.io) {
+      req.io.to(`user:${userId}`).emit('event:updated', { eventId, action: 'occurrence_deleted' });
+    }
+
+    res.json({ message: 'Occurrence deleted successfully', exception });
+
+  } catch (error) {
+    console.error('Delete occurrence error:', error);
+    res.status(500).json({ error: 'Failed to delete occurrence', message: error.message });
+  }
+}
+
 module.exports = {
   getAllEvents,
   getEventById,
@@ -1079,5 +1244,7 @@ module.exports = {
   updateEvent,
   deleteEvent,
   approveEvent,
-  rejectEvent
+  rejectEvent,
+  searchEvents,
+  deleteEventOccurrence
 };

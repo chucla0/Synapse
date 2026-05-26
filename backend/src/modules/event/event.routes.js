@@ -13,6 +13,12 @@ router.use(authenticateToken);
 router.get('/', eventController.getAllEvents);
 
 /**
+ * GET /api/events/search
+ * Search events across all accessible agendas
+ */
+router.get('/search', eventController.searchEvents);
+
+/**
  * GET /api/events/:eventId
  * Get event by ID
  */
@@ -35,6 +41,12 @@ router.put('/:eventId', eventController.updateEvent);
  * Delete event
  */
 router.delete('/:eventId', eventController.deleteEvent);
+
+/**
+ * POST /api/events/:eventId/occurrence
+ * Delete a specific occurrence of a recurring event (exception)
+ */
+router.post('/:eventId/occurrence', eventController.deleteEventOccurrence);
 
 /**
  * POST /api/events/:eventId/approve

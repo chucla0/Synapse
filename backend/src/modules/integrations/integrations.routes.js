@@ -10,6 +10,12 @@ const { authenticateToken } = require('../../middleware/auth');
 router.post('/google/import', authenticateToken, integrationsController.importGoogleCalendar);
 
 /**
+ * DELETE /api/integrations/google
+ * Disconnect Google Calendar account
+ */
+router.delete('/google', authenticateToken, integrationsController.disconnectGoogle);
+
+/**
  * POST /api/integrations/google/webhook
  * Handle Google Calendar push notifications
  */

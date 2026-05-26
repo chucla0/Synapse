@@ -78,6 +78,7 @@ model User {
   bio       String?
   links     Json?
   status    UserStatus @default(AVAILABLE)
+  timezone  String     @default("UTC")
   workingHours Json?
 
   // Relations
