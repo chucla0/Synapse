@@ -526,14 +526,14 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
   const renderHelpSettings = () => (
     <div className="settings-group">
       <div className="help-links">
-        <a href="#" className="help-link-item" onClick={(e) => e.preventDefault()}>
+        <Link to="/guide" className="help-link-item" onClick={onClose}>
           <span>{t('userGuide', 'Guía de Usuario')}</span>
           <ChevronRight size={16} />
-        </a>
-        <a href="#" className="help-link-item" onClick={(e) => e.preventDefault()}>
+        </Link>
+        <Link to="/support" className="help-link-item" onClick={onClose}>
           <span>{t('contactSupport', 'Contacto y Soporte')}</span>
           <ChevronRight size={16} />
-        </a>
+        </Link>
         <Link to="/terms" className="help-link-item" onClick={onClose}>
           <span>{t('termsOfService', 'Términos de Servicio')}</span>
           <ChevronRight size={16} />

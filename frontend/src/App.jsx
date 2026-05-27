@@ -8,6 +8,8 @@ import GoogleCallback from './pages/Auth/GoogleCallback';
 import SetPassword from './pages/Auth/SetPassword';
 import TermsOfService from './pages/Legal/TermsOfService';
 import PrivacyPolicy from './pages/Legal/PrivacyPolicy';
+import UserGuide from './pages/Legal/UserGuide';
+import Support from './pages/Legal/Support';
 import DevNoticeModal from './components/ui/DevNoticeModal';
 import { getToken } from './utils/auth';
 import { DateFnsLocaleProvider } from './contexts/LocaleContext';
@@ -76,6 +78,8 @@ function App() {
               <Route path="/set-password" element={<SetPassword onLogin={handleLogin} />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/guide" element={<UserGuide />} />
+              <Route path="/support" element={<Support />} />
               {/* Catch-all route for 404 handling */}
               <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
             </Routes>

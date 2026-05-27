@@ -52,3 +52,40 @@
   line-height: 1.6;
   color: var(--text-secondary);
 }
+
+.support-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
+}
+
+.support-card {
+  background-color: var(--bg-card);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  text-align: center;
+  transition: transform 0.2s;
+}
+
+.support-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent);
+}
+
+.support-icon {
+  color: var(--accent);
+  margin-bottom: var(--spacing-md);
+  width: 32px;
+  height: 32px;
+}
+
+.support-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.support-card p {
+  font-size: 0.9rem;
+}
