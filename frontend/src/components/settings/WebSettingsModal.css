@@ -708,3 +708,150 @@ body[data-theme='dark'] .delete-confirm-box {
   border-color: #EF4444;
   /* Red for Away */
 }
+/* --- Mobile Responsiveness for WebSettingsModal --- */
+@media (max-width: 768px) {
+  .modal-content.web-settings-modal {
+    width: 95vw;
+    height: 90vh;
+  }
+
+  .web-settings-body {
+    flex-direction: column;
+  }
+
+  .settings-sidebar {
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: var(--spacing-sm);
+    gap: var(--spacing-xs);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .settings-sidebar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .settings-nav-item {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.8rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .settings-nav-item span {
+    display: none; /* Hide text if too crowded, or keep it but ensure scroll */
+  }
+  
+  /* Show text but keep it compact */
+  .settings-nav-item span {
+    display: inline;
+    font-size: 0.75rem;
+  }
+
+  .settings-content {
+    padding: var(--spacing-md);
+    overflow-y: auto;
+  }
+
+  .settings-section-title {
+    font-size: 1.25rem;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .setting-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+
+  .setting-control {
+    width: 100%;
+    justify-content: flex-start;
+    min-width: auto;
+  }
+
+  .accent-color-selector {
+    justify-content: flex-start;
+    max-width: 100%;
+  }
+
+  .integration-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+
+  .integration-card .btn {
+    width: 100%;
+  }
+
+  .profile-form {
+    max-width: 100%;
+  }
+
+  .avatar-upload-area {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .link-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-xs);
+  }
+
+  .working-hours-inputs {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .time-separator {
+    margin-top: 0;
+    text-align: center;
+    width: 100%;
+  }
+
+  .danger-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-md);
+  }
+
+  .danger-item .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .web-settings-header {
+    padding: var(--spacing-md);
+  }
+  
+  .web-settings-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .settings-sidebar {
+    padding: var(--spacing-xs);
+  }
+
+  .settings-nav-item {
+    padding: 6px 10px;
+  }
+
+  .settings-nav-item span {
+    display: none; /* Icon only for very small screens */
+  }
+
+  /* Or better, keep text but make it even smaller */
+  .settings-nav-item span {
+    display: inline;
+    font-size: 0.7rem;
+  }
+}
