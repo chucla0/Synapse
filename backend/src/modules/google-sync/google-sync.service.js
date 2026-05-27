@@ -3,6 +3,7 @@ const prisma = require('../../lib/prisma');
 const { v4: uuidv4 } = require('uuid');
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+
 /**
  * Get authenticated Google Calendar client for a user
  */
@@ -27,14 +28,21 @@ async function getAuthenticatedClient(userId) {
     refresh_token: user.googleRefreshToken
   });
 
-  // Listen for token updates (refresh)
+  // Handle token refresh
   oauth2Client.on('tokens', async (tokens) => {
-    if (tokens.access_token) {
+    if (tokens.refresh_token) {
       await prisma.user.update({
         where: { id: userId },
         data: {
           googleAccessToken: tokens.access_token,
           googleRefreshToken: tokens.refresh_token || undefined // refresh_token might not be returned
+        }
+      });
+    } else {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          googleAccessToken: tokens.access_token
         }
       });
     }
@@ -236,21 +244,35 @@ async function importGoogleCalendar(userId, io) {
 
   // 4. Delete events that were removed in Google Calendar (within the fetch window)
   const fetchedGoogleEventIds = events.map(e => e.id);
+  
+  console.log(`[GoogleSync] Fetch complete. Total items from Google: ${events.length}`);
+  console.log(`[GoogleSync] Cleaning up events for agenda ${agenda.id} not in the fetched list...`);
 
-  const deleted = await prisma.event.deleteMany({
+  const deleteQuery = {
     where: {
       agendaId: agenda.id,
-      googleEventId: { notIn: fetchedGoogleEventIds }, // Not in the list we just fetched
-      startTime: { gte: oneMonthAgo }, // Only consider events within the window we fetched
-      googleEventId: { not: null } // Ensure it's a Google event
+      googleEventId: { 
+        notIn: fetchedGoogleEventIds,
+        not: null 
+      },
+      startTime: { gte: oneMonthAgo }
     }
-  });
+  };
 
-  console.log(`Deleted ${deleted.count} events that were removed from Google Calendar`);
+  const countBeforeDelete = await prisma.event.count({ where: deleteQuery.where });
+  console.log(`[GoogleSync] Found ${countBeforeDelete} local events to potentially delete (not in fetched list).`);
+
+  const deleted = await prisma.event.deleteMany(deleteQuery);
+
+  console.log(`[GoogleSync] Cleanup finished. Deleted ${deleted.count} events that were no longer in Google Calendar.`);
 
   // Emit complete event
   if (io) {
-    io.to(`user:${userId}`).emit('google:import:complete', { total: totalEvents });
+    io.to(`user:${userId}`).emit('google:import:complete', { 
+      total: totalEvents,
+      imported: importedCount,
+      deleted: deleted.count
+    });
   }
 
   return { importedCount, agendaId: agenda.id };
