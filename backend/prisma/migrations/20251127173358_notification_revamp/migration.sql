@@ -17,6 +17,7 @@ CREATE TABLE "users" (
     "password" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "avatar" TEXT,
+    "timezone" TEXT NOT NULL DEFAULT 'UTC',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
