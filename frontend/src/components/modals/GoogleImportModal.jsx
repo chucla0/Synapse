@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useSocket } from '../../contexts/SocketContext';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import './GoogleImportModal.css';
 
 export default function GoogleImportModal() {
     const { socket } = useSocket();
     const { t } = useTranslation();
+    const queryClient = useQueryClient();
     const [isOpen, setIsOpen] = useState(false);
     const [progress, setProgress] = useState(0);
     const [processed, setProcessed] = useState(0);
@@ -34,6 +36,9 @@ export default function GoogleImportModal() {
         const onComplete = () => {
             setStatus('completed');
             setProgress(100);
+            // Invalidate queries to refresh data
+            queryClient.invalidateQueries({ queryKey: ['agendas'] });
+            queryClient.invalidateQueries({ queryKey: ['events'] });
         };
 
         const onError = (data) => {
