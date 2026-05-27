@@ -66,6 +66,8 @@ async function getCroppedImg(imageSrc, pixelCrop) {
   });
 }
 
+import { Link } from 'react-router-dom';
+
 function WebSettingsModal({ onClose, initialTab = 'display' }) {
   const { t } = useTranslation();
   const { settings, updateSetting } = useSettings();
@@ -532,14 +534,14 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
           <span>{t('contactSupport', 'Contacto y Soporte')}</span>
           <ChevronRight size={16} />
         </a>
-        <a href="#" className="help-link-item" onClick={(e) => e.preventDefault()}>
+        <Link to="/terms" className="help-link-item" onClick={onClose}>
           <span>{t('termsOfService', 'Términos de Servicio')}</span>
           <ChevronRight size={16} />
-        </a>
-        <a href="#" className="help-link-item" onClick={(e) => e.preventDefault()}>
+        </Link>
+        <Link to="/privacy" className="help-link-item" onClick={onClose}>
           <span>{t('privacyPolicy', 'Política de Privacidad')}</span>
           <ChevronRight size={16} />
-        </a>
+        </Link>
       </div>
 
       <div className="version-info">

@@ -1,0 +1,118 @@
+.dev-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: var(--spacing-md);
+}
+
+.dev-modal-content {
+  background-color: var(--bg-card);
+  width: 500px;
+  max-width: 100%;
+  border-radius: var(--radius-lg);
+  position: relative;
+  box-shadow: var(--shadow-xl);
+  animation: modalScaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+}
+
+.dev-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  z-index: 10;
+}
+
+.dev-modal-header {
+  padding: var(--spacing-xl) var(--spacing-xl) var(--spacing-md);
+  text-align: center;
+}
+
+.dev-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  background-color: var(--accent-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--spacing-md);
+}
+
+.dev-icon {
+  color: var(--accent);
+}
+
+.dev-modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.dev-modal-body {
+  padding: 0 var(--spacing-xl) var(--spacing-xl);
+}
+
+.dev-intro {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-lg);
+  line-height: 1.5;
+}
+
+.dev-info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.dev-info-item {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: var(--bg-main);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.item-icon {
+  flex-shrink: 0;
+  color: var(--accent);
+  margin-top: 2px;
+}
+
+.dev-info-item h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: var(--text-main);
+}
+
+.dev-info-item p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.dev-modal-footer {
+  padding: var(--spacing-lg) var(--spacing-xl) var(--spacing-xl);
+}
+
+@keyframes modalScaleUp {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}

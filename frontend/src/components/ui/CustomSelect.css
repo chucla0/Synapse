@@ -52,7 +52,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card-hover);
-  z-index: 1000;
+  z-index: 10000; /* Increased to stay above modal containers */
   padding: var(--spacing-xs);
   animation: slideDown 0.2s ease-out;
 }

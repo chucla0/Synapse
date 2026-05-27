@@ -87,7 +87,7 @@
 .settings-content {
   flex: 1;
   padding: var(--spacing-xl);
-  overflow-y: auto;
+  overflow-y: visible; /* Changed from auto to allow dropdowns to overflow */
   background-color: var(--bg-card);
 }
 

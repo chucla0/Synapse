@@ -6,6 +6,9 @@ import Verify from './pages/Auth/Verify';
 import Dashboard from './pages/Dashboard/Dashboard';
 import GoogleCallback from './pages/Auth/GoogleCallback';
 import SetPassword from './pages/Auth/SetPassword';
+import TermsOfService from './pages/Legal/TermsOfService';
+import PrivacyPolicy from './pages/Legal/PrivacyPolicy';
+import DevNoticeModal from './components/ui/DevNoticeModal';
 import { getToken } from './utils/auth';
 import { DateFnsLocaleProvider } from './contexts/LocaleContext';
 import { SettingsProvider } from './contexts/SettingsContext';
@@ -71,9 +74,12 @@ function App() {
               />
               <Route path="/google-callback" element={<GoogleCallback onLogin={handleLogin} isAuthenticated={isAuthenticated} />} />
               <Route path="/set-password" element={<SetPassword onLogin={handleLogin} />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
               {/* Catch-all route for 404 handling */}
               <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
             </Routes>
+            <DevNoticeModal />
           </ToastProvider>
         </SocketProvider>
       </DateFnsLocaleProvider>
