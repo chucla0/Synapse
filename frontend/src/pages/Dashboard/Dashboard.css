@@ -711,6 +711,9 @@
 .modal-content {
   max-width: 500px;
   width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
   /* Ensure card styles are applied if not inherited */
   background: var(--bg-card);
   border-radius: var(--radius-lg);
@@ -718,6 +721,13 @@
   box-shadow: var(--shadow-card);
   border: 1px solid var(--border);
   animation: modalBounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@media (max-width: 640px) {
+  .modal-content {
+    padding: var(--spacing-md);
+    width: 95%;
+  }
 }
 
 .modal-content h2 {
@@ -752,4 +762,85 @@
   /* Subtle red glow */
   border-color: #F87171;
   /* Lighter red on hover */
+}
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .dashboard {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    z-index: 2000;
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .sidebar.collapsed {
+    transform: translateX(-100%);
+    width: 280px; /* Keep width same but translate out */
+  }
+
+  .main-content {
+    width: 100%;
+    height: 100vh;
+    padding-top: 60px; /* Space for the floating toggle button */
+  }
+
+  .btn-sidebar-toggle {
+    left: 15px !important;
+    top: 15px !important;
+    transform: none !important;
+    z-index: 2001;
+    position: fixed;
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(2px);
+    z-index: 1500;
+    animation: fadeIn 0.3s ease;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .home-container {
+    padding: var(--spacing-md);
+  }
+  
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-pills {
+    overflow-x: auto;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .filter-pill {
+    white-space: nowrap;
+    padding: 0.5rem;
+  }
 }

@@ -116,3 +116,56 @@
   from { opacity: 0; transform: scale(0.9); }
   to { opacity: 1; transform: scale(1); }
 }
+
+@media (max-width: 640px) {
+  .dev-modal-content {
+    width: 95%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    margin: var(--spacing-md);
+  }
+
+  .dev-modal-header {
+    padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-sm);
+  }
+
+  .dev-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .dev-modal-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .dev-modal-body {
+    padding: 0 var(--spacing-lg) var(--spacing-md);
+    overflow-y: auto;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dev-intro {
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .dev-info-item {
+    padding: var(--spacing-sm);
+    gap: var(--spacing-sm);
+  }
+
+  .dev-info-item h4 {
+    font-size: 0.9rem;
+  }
+
+  .dev-info-item p {
+    font-size: 0.8rem;
+  }
+
+  .dev-modal-footer {
+    padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
+  }
+}

@@ -40,7 +40,7 @@ export default function Dashboard({ onLogout, sessionKey }) {
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [editingAgenda, setEditingAgenda] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Default to open
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768); // Default based on screen width
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState('name_asc'); // 'name_asc', 'name_desc', 'date_desc', 'date_asc'
   const [currentView, setCurrentView] = useState('agendas'); // 'home', 'agendas'
@@ -51,6 +51,27 @@ export default function Dashboard({ onLogout, sessionKey }) {
   const { accentColor } = useTheme();
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  // Close sidebar on mobile when window is resized
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 768) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Close sidebar on mobile when a view or agenda is selected
+  useEffect(() => {
+    if (window.innerWidth <= 768) {
+      setIsSidebarOpen(false);
+    }
+  }, [currentView, selectedAgenda]);
 
   const isAnyModalOpen = showCreateAgenda || showProfileSettings || showWebSettings || editingAgenda;
 
@@ -294,6 +315,11 @@ export default function Dashboard({ onLogout, sessionKey }) {
 
   return (
     <div className={`dashboard ${!isSidebarOpen ? 'sidebar-collapsed' : ''}`}>
+      {/* Sidebar Overlay for Mobile */}
+      {isSidebarOpen && window.innerWidth <= 768 && (
+        <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />
+      )}
+
       {/* Sidebar */}
       <aside className={`sidebar ${!isSidebarOpen ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
