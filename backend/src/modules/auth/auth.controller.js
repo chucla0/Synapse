@@ -257,20 +257,29 @@ async function getProfile(req, res) {
 async function updateProfile(req, res) {
   try {
     const userId = req.user.id;
-    const { name, avatar, currentPassword, newPassword } = req.body;
+    const { name, avatar, currentPassword, newPassword, bio, links, status, workingHours, timezone } = req.body;
 
     const updateData = {};
     const currentUser = await prisma.user.findUnique({ where: { id: userId } });
 
     if (name) updateData.name = name;
+    if (bio !== undefined) updateData.bio = bio;
+    if (links !== undefined) updateData.links = links;
+    if (status !== undefined) updateData.status = status;
+    if (workingHours !== undefined) updateData.workingHours = workingHours;
+    if (timezone !== undefined) updateData.timezone = timezone;
 
     // If a new avatar is provided, delete the old one first.
     if (avatar !== undefined) {
-      if (currentUser.avatar && currentUser.avatar !== avatar) {
+      if (currentUser.avatar && currentUser.avatar !== avatar && currentUser.avatar.startsWith('/uploads/avatars/')) {
+        const fs = require('fs');
+        const path = require('path');
         const oldAvatarPath = path.join(__dirname, '../../public', currentUser.avatar);
-        fs.unlink(oldAvatarPath, (err) => {
-          if (err) console.error(`Failed to delete old avatar: ${oldAvatarPath}`, err);
-        });
+        if (fs.existsSync(oldAvatarPath)) {
+          fs.unlink(oldAvatarPath, (err) => {
+            if (err) console.error(`Failed to delete old avatar: ${oldAvatarPath}`, err);
+          });
+        }
       }
       updateData.avatar = avatar;
     }
