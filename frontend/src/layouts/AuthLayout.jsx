@@ -11,6 +11,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
   const { updateSetting } = useSettings();
 
   const handleLanguageChange = (lang) => {
+    i18n.changeLanguage(lang);
     updateSetting('display', 'language', lang);
   };
 
