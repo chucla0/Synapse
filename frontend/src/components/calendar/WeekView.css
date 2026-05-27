@@ -268,3 +268,34 @@
 .resize-handle:hover {
   background: rgba(0, 0, 0, 0.1);
 }
+/* Mobile Responsiveness for WeekView */
+@media (max-width: 768px) {
+  .week-header {
+    font-size: 0.75rem;
+  }
+  
+  .week-day-header {
+    padding: var(--spacing-xs);
+  }
+
+  .time-column {
+    width: 40px;
+    font-size: 0.65rem;
+  }
+
+  .week-event {
+    font-size: 0.65rem;
+    padding: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .week-header-day-name {
+    display: block;
+    font-size: 0.6rem;
+  }
+  
+  .week-header-day-number {
+    font-size: 0.8rem;
+  }
+}

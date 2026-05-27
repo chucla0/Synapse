@@ -844,3 +844,36 @@
     padding: 0.5rem;
   }
 }
+
+/* Compact Sidebar Footer */
+.sidebar-footer {
+  padding: var(--spacing-md);
+  gap: var(--spacing-sm);
+}
+
+.sidebar-footer .btn {
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: 0.85rem;
+}
+
+.language-switcher {
+  margin-bottom: var(--spacing-xs);
+}
+
+.sidebar-scrollable-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Fix for buttons cutting off */
+.btn {
+  white-space: nowrap;
+  min-width: max-content;
+}
+
+@media (max-width: 480px) {
+  .btn-sidebar-toggle {
+    width: 28px;
+    height: 28px;
+  }
+}

@@ -135,3 +135,39 @@
     flex: 1;
   }
 }
+@media (max-width: 640px) {
+  .calendar-header {
+    padding: var(--spacing-md);
+    gap: var(--spacing-sm);
+  }
+
+  .nav-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
+  .calendar-title {
+    font-size: 0.95rem;
+    min-width: auto;
+  }
+
+  .view-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-controls {
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+  
+  .calendar-nav {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .calendar-header {
+    position: relative; /* Allow scrolling if needed, or just stack more */
+  }
+}

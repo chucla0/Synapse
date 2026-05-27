@@ -368,149 +368,173 @@ export default function Dashboard({ onLogout, sessionKey }) {
               {t('myAgendas')}
             </button>
           </div>
-
-          {currentView === 'agendas' && (
-            <div className="agenda-search-container">
-              <input
-                type="text"
-                placeholder={t('searchPlaceholder')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
-              <div className="sort-dropdown-container">
-                <div className="custom-dropdown" onClick={(e) => e.stopPropagation()}>
-                  <button
-                    className="dropdown-toggle"
-                    onClick={() => setShowSortDropdown(!showSortDropdown)}
-                    style={{ borderColor: accentColor }}
-                  >
-                    {sortOrder === 'name_asc' && t('sortBy_name_asc')}
-                    {sortOrder === 'name_desc' && t('sortBy_name_desc')}
-                    {sortOrder === 'date_desc' && t('sortBy_date_desc')}
-                    {sortOrder === 'date_asc' && t('sortBy_date_asc')}
-                    {sortOrder === 'type' && t('sortBy_type')}
-                    <span className="dropdown-arrow"><ChevronDown size={16} /></span>
-                  </button>
-                  {showSortDropdown && (
-                    <ul className="dropdown-menu">
-                      <li
-                        className={`dropdown-item ${sortOrder === 'name_asc' ? 'active' : ''}`}
-                        onClick={() => {
-                          setSortOrder('name_asc');
-                          setShowSortDropdown(false);
-                        }}
-                        style={sortOrder === 'name_asc' ? { backgroundColor: accentColor, color: 'white' } : {}}
-                      >
-                        {t('sortBy_name_asc')}
-                      </li>
-                      <li
-                        className={`dropdown-item ${sortOrder === 'name_desc' ? 'active' : ''}`}
-                        onClick={() => {
-                          setSortOrder('name_desc');
-                          setShowSortDropdown(false);
-                        }}
-                        style={sortOrder === 'name_desc' ? { backgroundColor: accentColor, color: 'white' } : {}}
-                      >
-                        {t('sortBy_name_desc')}
-                      </li>
-                      <li
-                        className={`dropdown-item ${sortOrder === 'date_desc' ? 'active' : ''}`}
-                        onClick={() => {
-                          setSortOrder('date_desc');
-                          setShowSortDropdown(false);
-                        }}
-                        style={sortOrder === 'date_desc' ? { backgroundColor: accentColor, color: 'white' } : {}}
-                      >
-                        {t('sortBy_date_desc')}
-                      </li>
-                      <li
-                        className={`dropdown-item ${sortOrder === 'date_asc' ? 'active' : ''}`}
-                        onClick={() => {
-                          setSortOrder('date_asc');
-                          setShowSortDropdown(false);
-                        }}
-                        style={sortOrder === 'date_asc' ? { backgroundColor: accentColor, color: 'white' } : {}}
-                      >
-                        {t('sortBy_date_asc')}
-                      </li>
-                      <li
-                        className={`dropdown-item ${sortOrder === 'type' ? 'active' : ''}`}
-                        onClick={() => {
-                          setSortOrder('type');
-                          setShowSortDropdown(false);
-                        }}
-                        style={sortOrder === 'type' ? { backgroundColor: accentColor, color: 'white' } : {}}
-                      >
-                        {t('sortBy_type')}
-                      </li>
-                    </ul>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
         </nav>
 
-        {currentView === 'agendas' && (
-          <div className="sidebar-scrollable-content">
-            <ul className="agenda-list">
-              {/* All Events Option */}
-              {agendas.length > 0 && (
-                <li className={`agenda-item ${selectedAgenda === ALL_EVENTS_AGENDA_ID ? 'active' : ''}`}>
-                  <div className="agenda-item-main" onClick={() => setSelectedAgenda(ALL_EVENTS_AGENDA_ID)}>
-                    <span
-                      className="agenda-color"
-                      style={{ backgroundColor: allEventsAgenda.color }}
-                    />
-                    <span className="agenda-name">{allEventsAgenda.name}</span>
+        <div className="sidebar-scrollable-content">
+          {currentView === 'agendas' && (
+            <>
+              <div className="agenda-search-container">
+                <input
+                  type="text"
+                  placeholder={t('searchPlaceholder')}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="search-input"
+                />
+                <div className="sort-dropdown-container">
+                  <div className="custom-dropdown" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      className="dropdown-toggle"
+                      onClick={() => setShowSortDropdown(!showSortDropdown)}
+                      style={{ borderColor: accentColor }}
+                    >
+                      {sortOrder === 'name_asc' && t('sortBy_name_asc')}
+                      {sortOrder === 'name_desc' && t('sortBy_name_desc')}
+                      {sortOrder === 'date_desc' && t('sortBy_date_desc')}
+                      {sortOrder === 'date_asc' && t('sortBy_date_asc')}
+                      {sortOrder === 'type' && t('sortBy_type')}
+                      <span className="dropdown-arrow"><ChevronDown size={16} /></span>
+                    </button>
+                    {showSortDropdown && (
+                      <ul className="dropdown-menu">
+                        <li
+                          className={`dropdown-item ${sortOrder === 'name_asc' ? 'active' : ''}`}
+                          onClick={() => {
+                            setSortOrder('name_asc');
+                            setShowSortDropdown(false);
+                          }}
+                          style={sortOrder === 'name_asc' ? { backgroundColor: accentColor, color: 'white' } : {}}
+                        >
+                          {t('sortBy_name_asc')}
+                        </li>
+                        <li
+                          className={`dropdown-item ${sortOrder === 'name_desc' ? 'active' : ''}`}
+                          onClick={() => {
+                            setSortOrder('name_desc');
+                            setShowSortDropdown(false);
+                          }}
+                          style={sortOrder === 'name_desc' ? { backgroundColor: accentColor, color: 'white' } : {}}
+                        >
+                          {t('sortBy_name_desc')}
+                        </li>
+                        <li
+                          className={`dropdown-item ${sortOrder === 'date_desc' ? 'active' : ''}`}
+                          onClick={() => {
+                            setSortOrder('date_desc');
+                            setShowSortDropdown(false);
+                          }}
+                          style={sortOrder === 'date_desc' ? { backgroundColor: accentColor, color: 'white' } : {}}
+                        >
+                          {t('sortBy_date_desc')}
+                        </li>
+                        <li
+                          className={`dropdown-item ${sortOrder === 'date_asc' ? 'active' : ''}`}
+                          onClick={() => {
+                            setSortOrder('date_asc');
+                            setShowSortDropdown(false);
+                          }}
+                          style={sortOrder === 'date_asc' ? { backgroundColor: accentColor, color: 'white' } : {}}
+                        >
+                          {t('sortBy_date_asc')}
+                        </li>
+                        <li
+                          className={`dropdown-item ${sortOrder === 'type' ? 'active' : ''}`}
+                          onClick={() => {
+                            setSortOrder('type');
+                            setShowSortDropdown(false);
+                          }}
+                          style={sortOrder === 'type' ? { backgroundColor: accentColor, color: 'white' } : {}}
+                        >
+                          {t('sortBy_type')}
+                        </li>
+                      </ul>
+                    )}
                   </div>
-                </li>
-              )}
+                </div>
+              </div>
 
-              {/* Pinned Google Calendar */}
-              {agendas.find(a => a.googleCalendarId || a.name === 'Google Calendar') && (() => {
-                const googleAgenda = agendas.find(a => a.googleCalendarId || a.name === 'Google Calendar');
-                return (
-                  <li className={`agenda-item ${selectedAgenda === googleAgenda.id ? 'active' : ''}`}>
-                    <div className="agenda-item-main" onClick={() => setSelectedAgenda(googleAgenda.id)}>
+              <ul className="agenda-list">
+                {/* All Events Option */}
+                {agendas.length > 0 && (
+                  <li className={`agenda-item ${selectedAgenda === ALL_EVENTS_AGENDA_ID ? 'active' : ''}`}>
+                    <div className="agenda-item-main" onClick={() => setSelectedAgenda(ALL_EVENTS_AGENDA_ID)}>
                       <span
                         className="agenda-color"
-                        style={{ backgroundColor: googleAgenda.color }}
+                        style={{ backgroundColor: allEventsAgenda.color }}
                       />
-                      <span className="agenda-name">{googleAgenda.name}</span>
+                      <span className="agenda-name">{allEventsAgenda.name}</span>
                     </div>
-                    <button
-                      className="btn-agenda-settings"
-                      onClick={() => setEditingAgenda(googleAgenda)}
-                      title={t('agendaSettings')}
-                    >
-                      <Settings size={16} />
-                    </button>
                   </li>
-                );
-              })()}
-            </ul>
+                )}
 
-            {agendasLoading ? (
-              <div className="loading-agendas">{t('loading')}</div>
-            ) : filteredAgendas.filter(a => !a.googleCalendarId && a.name !== 'Google Calendar').length === 0 ? (
-              <p className="text-sm text-muted">{t('noAgendasFound')}</p>
-            ) : sortOrder === 'type' ? (
-              Object.entries(
-                filteredAgendas
-                  .filter(a => !a.googleCalendarId && a.name !== 'Google Calendar')
-                  .reduce((acc, agenda) => {
-                    const type = agenda.type;
-                    if (!acc[type]) acc[type] = [];
-                    acc[type].push(agenda);
-                    return acc;
-                  }, {})
-              ).map(([type, typeAgendas]) => (
-                <div key={type} className="agenda-group">
-                  <h4 className="agenda-group-title">{t(`agendaType_${type}`, type)}</h4>
-                  <ul className="agenda-list">
-                    {typeAgendas.map(agenda => (
+                {/* Pinned Google Calendar */}
+                {agendas.find(a => a.googleCalendarId || a.name === 'Google Calendar') && (() => {
+                  const googleAgenda = agendas.find(a => a.googleCalendarId || a.name === 'Google Calendar');
+                  return (
+                    <li className={`agenda-item ${selectedAgenda === googleAgenda.id ? 'active' : ''}`}>
+                      <div className="agenda-item-main" onClick={() => setSelectedAgenda(googleAgenda.id)}>
+                        <span
+                          className="agenda-color"
+                          style={{ backgroundColor: googleAgenda.color }}
+                        />
+                        <span className="agenda-name">{googleAgenda.name}</span>
+                      </div>
+                      <button
+                        className="btn-agenda-settings"
+                        onClick={() => setEditingAgenda(googleAgenda)}
+                        title={t('agendaSettings')}
+                      >
+                        <Settings size={16} />
+                      </button>
+                    </li>
+                  );
+                })()}
+              </ul>
+
+              {agendasLoading ? (
+                <div className="loading-agendas">{t('loading')}</div>
+              ) : filteredAgendas.filter(a => !a.googleCalendarId && a.name !== 'Google Calendar').length === 0 ? (
+                <p className="text-sm text-muted">{t('noAgendasFound')}</p>
+              ) : sortOrder === 'type' ? (
+                Object.entries(
+                  filteredAgendas
+                    .filter(a => !a.googleCalendarId && a.name !== 'Google Calendar')
+                    .reduce((acc, agenda) => {
+                      const type = agenda.type;
+                      if (!acc[type]) acc[type] = [];
+                      acc[type].push(agenda);
+                      return acc;
+                    }, {})
+                ).map(([type, typeAgendas]) => (
+                  <div key={type} className="agenda-group">
+                    <h4 className="agenda-group-title">{t(`agendaType_${type}`, type)}</h4>
+                    <ul className="agenda-list">
+                      {typeAgendas.map(agenda => (
+                        <li key={agenda.id} className={`agenda-item ${selectedAgenda === agenda.id ? 'active' : ''}`}>
+                          <div className="agenda-item-main" onClick={() => setSelectedAgenda(agenda.id)}>
+                            <span
+                              className="agenda-color"
+                              style={{ backgroundColor: agenda.color }}
+                            />
+                            <span className="agenda-name">{agenda.name}</span>
+                          </div>
+                          <button
+                            className="btn-agenda-settings"
+                            onClick={() => setEditingAgenda(agenda)}
+                            title={t('agendaSettings')}
+                          >
+                            <Settings size={16} />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))
+              ) : (
+                <ul className="agenda-list">
+                  {filteredAgendas
+                    .filter(a => !a.googleCalendarId && a.name !== 'Google Calendar')
+                    .map(agenda => (
                       <li key={agenda.id} className={`agenda-item ${selectedAgenda === agenda.id ? 'active' : ''}`}>
                         <div className="agenda-item-main" onClick={() => setSelectedAgenda(agenda.id)}>
                           <span
@@ -528,42 +552,18 @@ export default function Dashboard({ onLogout, sessionKey }) {
                         </button>
                       </li>
                     ))}
-                  </ul>
-                </div>
-              ))
-            ) : (
-              <ul className="agenda-list">
-                {filteredAgendas
-                  .filter(a => !a.googleCalendarId && a.name !== 'Google Calendar')
-                  .map(agenda => (
-                    <li key={agenda.id} className={`agenda-item ${selectedAgenda === agenda.id ? 'active' : ''}`}>
-                      <div className="agenda-item-main" onClick={() => setSelectedAgenda(agenda.id)}>
-                        <span
-                          className="agenda-color"
-                          style={{ backgroundColor: agenda.color }}
-                        />
-                        <span className="agenda-name">{agenda.name}</span>
-                      </div>
-                      <button
-                        className="btn-agenda-settings"
-                        onClick={() => setEditingAgenda(agenda)}
-                        title={t('agendaSettings')}
-                      >
-                        <Settings size={16} />
-                      </button>
-                    </li>
-                  ))}
-              </ul>
-            )}
+                </ul>
+              )}
 
-            <button
-              className="btn btn-primary btn-block mt-2"
-              onClick={() => setShowCreateAgenda(true)}
-            >
-              {t('newAgenda')}
-            </button>
-          </div>
-        )}
+              <button
+                className="btn btn-primary btn-block mt-2"
+                onClick={() => setShowCreateAgenda(true)}
+              >
+                {t('newAgenda')}
+              </button>
+            </>
+          )}
+        </div>
 
         <div className="sidebar-footer">
           <div className="language-switcher">

@@ -150,3 +150,19 @@
 .resize-handle:hover {
   background: rgba(0, 0, 0, 0.1);
 }
+/* Mobile Responsiveness for DayView */
+@media (max-width: 640px) {
+  .day-header h3 {
+    font-size: 1rem;
+  }
+  
+  .time-slot-label {
+    width: 50px;
+    font-size: 0.7rem;
+  }
+
+  .day-event {
+    font-size: 0.75rem;
+    padding: var(--spacing-xs);
+  }
+}
