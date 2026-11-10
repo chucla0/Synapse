@@ -83,7 +83,7 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
   });
 
   // Fetch agendas to check if Google Calendar is actually connected
-  const { data: agendasData } = useQuery({
+  const { data: agendasData, isLoading: agendasLoading } = useQuery({
     queryKey: ['agendas'],
     queryFn: async () => (await api.get('/agendas')).data,
   });
@@ -463,7 +463,7 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
           <div className="integration-meta">
             <h4>Google Calendar</h4>
             <span className={`integration-status-badge ${isGoogleConnected ? 'connected' : ''}`}>
-              {isGoogleConnected ? t('connected', 'Conectado') : t('disconnected', 'Desconectado')}
+              {agendasLoading ? t('loading', 'Cargando...') : isGoogleConnected ? t('connected', 'Conectado') : t('disconnected', 'Desconectado')}
             </span>
           </div>
         </div>
@@ -479,6 +479,7 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
           ) : (
             <button
               className="btn btn-primary btn-sm"
+              disabled={agendasLoading}
               onClick={() => {
                 const loginHint = currentUser?.email ? `&login_hint=${encodeURIComponent(currentUser.email)}` : '';
                 window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/auth/google/connect?${loginHint}`;
