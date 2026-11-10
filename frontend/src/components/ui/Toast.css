@@ -33,7 +33,7 @@
 }
 
 /* Dark mode support */
-:global(body.dark-mode) .toast {
+.dark-theme .toast {
     background: rgba(30, 41, 59, 0.9);
     color: #f1f5f9;
     border: 1px solid rgba(255, 255, 255, 0.05);
@@ -110,7 +110,7 @@
     background: rgba(0, 0, 0, 0.05);
 }
 
-:global(body.dark-mode) .toast-close:hover {
+.dark-theme .toast-close:hover {
     background: rgba(255, 255, 255, 0.1);
 }
 
