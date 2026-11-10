@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useToast } from '../../contexts/ToastContext';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { useDateFnsLocale } from '../../contexts/LocaleContext';
@@ -15,6 +16,7 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
   const { settings } = useSettings();
   const locale = useDateFnsLocale();
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const currentUser = getUser();
   const [selectedUserProfile, setSelectedUserProfile] = useState(null);
 
@@ -37,7 +39,7 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
       onClose();
     },
     onError: (error) => {
-      alert(t('error_approving', 'Error al aprobar: ') + (error.response?.data?.message || error.message));
+      addToast(t('error_approving', 'Error al aprobar: ') + (error.response?.data?.message || error.message), 'error');
     }
   });
 
@@ -48,7 +50,7 @@ function EventDetailsModal({ event, agenda, agendas = [], onClose, onEdit, onDel
       onClose();
     },
     onError: (error) => {
-      alert(t('error_rejecting', 'Error al rechazar: ') + (error.response?.data?.message || error.message));
+      addToast(t('error_rejecting', 'Error al rechazar: ') + (error.response?.data?.message || error.message), 'error');
     }
   });
 

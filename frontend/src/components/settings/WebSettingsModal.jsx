@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useToast } from '../../contexts/ToastContext';
 import { useTranslation } from 'react-i18next';
 import {
   X,
@@ -73,6 +74,7 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
   const { settings, updateSetting } = useSettings();
   const { theme, setTheme, accentId, setAccentId, availableColors } = useTheme();
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const currentUser = getUser();
 
   // Fetch fresh user profile to get hasPassword flag
@@ -150,7 +152,7 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
     onSuccess: (data) => {
       setUser(data.data.user);
       queryClient.invalidateQueries({ queryKey: ['agendas'] });
-      alert(t('profileUpdated'));
+      addToast(t('profileUpdated'), 'success');
     },
     onError: (error) => {
       const message = error.response?.data?.message || t('profileUpdateError');
@@ -213,11 +215,11 @@ function WebSettingsModal({ onClose, initialTab = 'display' }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agendas'] });
       queryClient.invalidateQueries({ queryKey: ['events'] });
-      alert(t('googleCalendarSuccess'));
+      addToast(t('googleCalendarSuccess'), 'success');
     },
     onError: (error) => {
       console.error(error);
-      alert(t('syncError'));
+      addToast(t('syncError'), 'error');
     }
   });
 

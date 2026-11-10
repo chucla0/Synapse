@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useToast } from '../../contexts/ToastContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import Cropper from 'react-easy-crop';
@@ -51,6 +52,7 @@ async function getCroppedImg(imageSrc, pixelCrop) {
 function ProfileSettingsModal({ onClose }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const currentUser = getUser();
 
   const [formData, setFormData] = useState({
@@ -149,7 +151,7 @@ function ProfileSettingsModal({ onClose }) {
       queryClient.invalidateQueries({ queryKey: ['agendas'] });
       // Show success message (maybe reuse errors state for success or add new state)
       // For now, let's just alert or log
-      alert(t('googleCalendarSuccess'));
+      addToast(t('googleCalendarSuccess'), 'success');
     },
     onError: (error) => {
       const message = error.response?.data?.message || 'Error al sincronizar';

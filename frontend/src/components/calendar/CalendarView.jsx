@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useToast } from '../../contexts/ToastContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { format, startOfWeek, endOfWeek, addMinutes, setHours, setMinutes } from 'date-fns';
@@ -37,6 +38,7 @@ function CalendarView({ agenda, agendas = [] }) {
   const { settings, getWeekStartDay } = useSettings();
   const locale = useDateFnsLocale();
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
 
@@ -112,7 +114,7 @@ function CalendarView({ agenda, agendas = [] }) {
       console.error('Update event error:', error);
       const message = error.response?.data?.message || error.message;
       const debug = error.response?.data?.debug;
-      alert(`${t('errorUpdatingEvent', 'Error al actualizar el evento')}: ${message}${debug ? ` (${debug})` : ''}`);
+      addToast(`${t('errorUpdatingEvent', 'Error al actualizar el evento')}: ${message}${debug ? ` (${debug})` : ''}`, 'error');
       // Invalidate to revert any optimistic UI if present (though we don't have optimistic UI here yet, the drag might have left artifacts if we had them)
       queryClient.invalidateQueries({ queryKey: ['events'] });
     },
@@ -460,7 +462,7 @@ function CalendarView({ agenda, agendas = [] }) {
                           // Optional: Show success toast
                         } catch (error) {
                           console.error('Sync error:', error);
-                          alert(t('errorSyncing', 'Error al sincronizar'));
+                          addToast(t('errorSyncing', 'Error al sincronizar'), 'error');
                         } finally {
                           const btn = document.getElementById('sync-btn');
                           if (btn) btn.classList.remove('spinning');
