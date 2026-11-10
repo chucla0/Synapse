@@ -24,7 +24,9 @@ jobs:
   deploy:
     name: Deploy to Production (CD)
     needs: verify-build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # Disabled: the SSH server no longer exists. Production runs on Vercel + Render.
+    # Re-enable by restoring: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: false
     runs-on: ubuntu-latest
 
     steps:
