@@ -25,6 +25,8 @@ function App() {
   useEffect(() => {
     // This effect now simply handles the initial loading state
     setIsLoading(false);
+    // Wake the free-tier backend (Render sleeps when idle) so Google login doesn't hit a loading page
+    fetch(`${import.meta.env.VITE_API_URL}/health`).catch(() => {});
   }, []);
 
   const handleLogin = () => {
