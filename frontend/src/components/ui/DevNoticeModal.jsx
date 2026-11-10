@@ -19,20 +19,28 @@ const DevNoticeModal = () => {
     setIsOpen(false);
   };
 
+  // Close with Escape (keyboard users)
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onKeyDown = (e) => { if (e.key === 'Escape') handleClose(); };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
     <div className="dev-modal-overlay">
-      <div className="dev-modal-content">
-        <button className="dev-modal-close" onClick={handleClose}>
-          <X size={20} />
+      <div className="dev-modal-content" role="dialog" aria-modal="true" aria-labelledby="dev-notice-title">
+        <button className="dev-modal-close" onClick={handleClose} aria-label={t('dev_notice_button', 'Entendido, continuar')}>
+          <X size={20} aria-hidden="true" />
         </button>
         
         <div className="dev-modal-header">
           <div className="dev-icon-wrapper">
             <Rocket className="dev-icon" size={32} />
           </div>
-          <h2>{t('dev_notice_title', 'Demo personal')}</h2>
+          <h2 id="dev-notice-title">{t('dev_notice_title', 'Demo personal')}</h2>
         </div>
 
         <div className="dev-modal-body">

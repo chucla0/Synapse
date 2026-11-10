@@ -535,3 +535,16 @@ body[data-density="compact"] .month-day {
   min-height: 80px;
   /* Compact month cells */
 }
+/* Accessibility & touch polish */
+button, a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

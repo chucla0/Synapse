@@ -194,3 +194,8 @@
     background: rgba(30, 41, 59, 0.85);
     border-color: rgba(255, 255, 255, 0.12);
 }
+
+.dev-modal-overlay,
+.dev-modal-content {
+    overscroll-behavior: contain;
+}
