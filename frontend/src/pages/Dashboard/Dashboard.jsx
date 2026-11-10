@@ -98,6 +98,14 @@ export default function Dashboard({ onLogout, sessionKey }) {
 
       // Trigger import
       api.post('/integrations/google/import')
+        .then(() => {
+          // The import runs in the background and its socket event can fire before this
+          // socket has joined the user room, so also refetch a few times to be sure.
+          [3000, 8000, 15000].forEach((ms) => setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ['agendas'] });
+            queryClient.invalidateQueries({ queryKey: ['events'] });
+          }, ms));
+        })
         .catch(err => console.error('Failed to trigger Google import:', err));
     }
   }, []); // Run once on mount

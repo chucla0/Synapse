@@ -41,7 +41,7 @@ export default function GoogleCallback({ onLogin, isAuthenticated }) {
           setAuthData({ accessToken, refreshToken, user });
 
           if (needsPassword === 'true') {
-            navigate('/set-password');
+            navigate('/set-password', { replace: true });
           } else {
             // Only trigger login state update if not already authenticated
             // This prevents unnecessary re-renders/remounts of Dashboard
@@ -54,7 +54,7 @@ export default function GoogleCallback({ onLogin, isAuthenticated }) {
               localStorage.setItem('synapse_pending_import', 'true');
             }
 
-            navigate('/dashboard');
+            navigate('/dashboard', { replace: true }); // replace: keep tokens out of browser history
           }
         } catch (err) {
           navigate('/login?error=profile_fetch_failed');
