@@ -169,3 +169,28 @@
     padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
   }
 }
+
+/* Persistent "personal demo" pill: never blocks clicks */
+.demo-badge {
+    position: fixed;
+    left: 50%;
+    bottom: 8px;
+    transform: translateX(-50%);
+    z-index: 900;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    line-height: 1.4;
+    white-space: nowrap;
+    color: #475569;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(100, 116, 139, 0.25);
+    backdrop-filter: blur(6px);
+    pointer-events: none;
+}
+
+.dark-theme .demo-badge {
+    color: #cbd5e1;
+    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(255, 255, 255, 0.12);
+}

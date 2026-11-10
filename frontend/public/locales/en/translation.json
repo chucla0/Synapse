@@ -116,7 +116,7 @@
   "auth_bento_main_title": "Total Synchronization",
   "auth_bento_main_desc": "Your work, personal, and academic life in one place, but intelligently separated.",
   "auth_bento_privacy_title": "Ironclad Privacy",
-  "auth_bento_privacy_desc": "End-to-end encryption. Your data belongs to you.",
+  "auth_bento_privacy_desc": "Your data is yours. This is a demo: use test data.",
   "auth_bento_speed_title": "Speed",
   "auth_bento_speed_desc": "Fluid interface.",
   "auth_bento_collab_title": "Collaboration",
@@ -143,8 +143,8 @@
   "auth_feature_notifications_desc": "Stay on top of what's important. Receive alerts about event changes, invitations, and new messages in real time.",
   "auth_feature_dnd_title": "Intuitive Drag & Drop",
   "auth_feature_dnd_desc": "Reorganize your life with a simple gesture. Drag and drop events to change dates and times instantly.",
-  "auth_security_title": "Your privacy is our priority",
-  "auth_security_desc": "We know your agenda contains your life. That's why we use state-of-the-art encryption to ensure your data is yours alone. Robust security, total peace of mind.",
+  "auth_security_title": "Your privacy matters",
+  "auth_security_desc": "Synapse is a personal demo project. Please don't store sensitive information: it may be deleted at any time.",
   "auth_footer": "© 2025 Synapse Agenda. Designed for the future.",
   "sortBy_name_asc": "A-Z",
   "sortBy_name_desc": "Z-A",
@@ -331,5 +331,15 @@
     "away": "Away",
     "busy": "Busy",
     "offline": "Offline"
-  }
+  },
+  "dev_notice_title": "Personal demo",
+  "dev_notice_intro": "Synapse is a personal portfolio project, built to practise and show what I can do. It is not a commercial product.",
+  "dev_notice_data_title": "Use test data",
+  "dev_notice_data_desc": "Data may be deleted at any time and there are no guarantees of availability or privacy.",
+  "dev_notice_render_title": "Render cold start",
+  "dev_notice_render_desc": "I use Render's free tier. If the site has been idle, the server can take up to 1 minute to wake up.",
+  "dev_notice_google_title": "Google and Calendar",
+  "dev_notice_google_desc": "You can sign in with Google and import your Google Calendar to try the sync. It is only used for the demo.",
+  "dev_notice_button": "Got it, continue",
+  "demo_banner": "Personal demo · test project"
 }

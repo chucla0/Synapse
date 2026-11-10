@@ -80,7 +80,11 @@ router.get('/google/connect', (req, res, next) => {
  */
 router.get(
   '/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: '/login' }),
+  passport.authenticate('google', {
+    session: false,
+    // Must point to the frontend: a relative '/login' would resolve on the API host (404)
+    failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=auth_failed`
+  }),
   authController.googleCallback
 );
 

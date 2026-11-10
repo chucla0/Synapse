@@ -116,7 +116,7 @@
   "auth_bento_main_title": "Sincronización Total",
   "auth_bento_main_desc": "Tu vida laboral, personal y académica en un solo lugar, pero inteligentemente separadas.",
   "auth_bento_privacy_title": "Privacidad Blindada",
-  "auth_bento_privacy_desc": "Encriptación de extremo a extremo. Tus datos son tuyos.",
+  "auth_bento_privacy_desc": "Tus datos son tuyos. Es una demo: usa datos de prueba.",
   "auth_bento_speed_title": "Velocidad",
   "auth_bento_speed_desc": "Interfaz fluida.",
   "auth_bento_collab_title": "Colaboración",
@@ -158,8 +158,8 @@
   "syncingButton": "Sincronizando...",
   "connectButton": "Conectar",
   "googleCalendarSuccess": "Calendario de Google importado correctamente",
-  "auth_security_title": "Tu privacidad es nuestra prioridad",
-  "auth_security_desc": "Sabemos que tu agenda contiene tu vida. Por eso utilizamos encriptación de última generación para asegurar que tus datos sean solo tuyos. Seguridad robusta, tranquilidad total.",
+  "auth_security_title": "Tu privacidad importa",
+  "auth_security_desc": "Synapse es un proyecto personal de demostración. No guardes información sensible: puede borrarse en cualquier momento.",
   "auth_footer": "© 2025 Synapse Agenda. Diseñado para el futuro.",
   "sortBy_name_asc": "A-Z",
   "sortBy_name_desc": "Z-A",
@@ -354,5 +354,15 @@
     "away": "Ausente",
     "busy": "Ocupado",
     "offline": "Desconectado"
-  }
+  },
+  "dev_notice_title": "Demo personal",
+  "dev_notice_intro": "Synapse es un proyecto personal de portfolio, creado para practicar y enseñar lo que sé hacer. No es un producto comercial.",
+  "dev_notice_data_title": "Usa datos de prueba",
+  "dev_notice_data_desc": "Los datos pueden borrarse en cualquier momento y no se ofrecen garantías de disponibilidad ni de privacidad.",
+  "dev_notice_render_title": "Arranque en Render",
+  "dev_notice_render_desc": "Uso la versión gratuita de Render. Si el sitio ha estado inactivo, el servidor puede tardar hasta 1 minuto en despertar.",
+  "dev_notice_google_title": "Google y Calendar",
+  "dev_notice_google_desc": "Puedes entrar con Google e importar tu Google Calendar para probar la sincronización. Solo se usa para la demo.",
+  "dev_notice_button": "Entendido, continuar",
+  "demo_banner": "Demo personal · proyecto de prueba"
 }
