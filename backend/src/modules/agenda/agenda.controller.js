@@ -52,9 +52,14 @@ async function getAllAgendas(req, res) {
     });
 
     // Combine and format results
+    // The owner can also have an AgendaUser row, so skip member entries already owned
+    // (otherwise e.g. the imported Google Calendar agenda is returned twice).
+    const ownedIds = new Set(ownedAgendas.map(a => a.id));
     const allAgendas = [
       ...ownedAgendas.map(agenda => ({ ...agenda, userRole: 'OWNER' })),
-      ...memberAgendas.map(({ agenda, role }) => ({ ...agenda, userRole: role }))
+      ...memberAgendas
+        .filter(({ agenda }) => !ownedIds.has(agenda.id))
+        .map(({ agenda, role }) => ({ ...agenda, userRole: role }))
     ];
 
     res.json({ agendas: allAgendas });
