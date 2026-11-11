@@ -2,6 +2,8 @@
 
 **Advanced Collaborative Calendar & Workflow Manager**
 
+> ⚠️ **Personal demo project.** Synapse is a portfolio project built to practise and showcase full-stack development. It is not a commercial product: use test data only, and expect data to be deleted without notice. The backend runs on a free tier, so the first request after a period of inactivity can take up to a minute.
+
 Synapse is a personal full-stack project currently in **active development**. It is designed to be a unified ecosystem where your professional, academic, and personal lives coexist in perfect harmony through intelligent, role-based agendas.
 
 🌐 **[Explore the Live App](https://synapse-eight-brown.vercel.app/)**
@@ -48,4 +50,4 @@ Hi! I'm **Iizan Cruz**, a software engineer passionate about building clean, eff
 📧 **Contact**: iizan.cruzz@gmail.com
 
 ---
-*Disclaimer: This is a beta project. Some features like email notifications are currently disabled as we continue to refine the experience.*
+*Disclaimer: this is a personal demo with no guarantees of availability or privacy. Sign-in with Google and Google Calendar import are available to showcase the sync feature.*

@@ -20,6 +20,11 @@ const TermsOfService = () => {
       
       <main className="legal-content">
         <section>
+          <h2>0. Proyecto de demostración</h2>
+          <p>Synapse es un proyecto personal de portfolio, no un producto comercial. Úselo solo con datos de prueba: se ofrece sin garantías de disponibilidad ni de privacidad y los datos pueden eliminarse en cualquier momento.</p>
+        </section>
+
+        <section>
           <h2>1. Aceptación de los Términos</h2>
           <p>Al acceder y utilizar Synapse Agenda, usted acepta estar sujeto a estos Términos de Servicio. Si no está de acuerdo con alguna parte de estos términos, no podrá utilizar el servicio.</p>
         </section>

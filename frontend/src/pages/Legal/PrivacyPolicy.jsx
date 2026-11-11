@@ -20,6 +20,11 @@ const PrivacyPolicy = () => {
       
       <main className="legal-content">
         <section>
+          <h2>0. Proyecto de demostración</h2>
+          <p>Synapse es un proyecto personal de portfolio, no un producto comercial. Úselo solo con datos de prueba: se ofrece sin garantías de disponibilidad ni de privacidad y los datos pueden eliminarse en cualquier momento.</p>
+        </section>
+
+        <section>
           <h2>1. Información que recopilamos</h2>
           <p>Recopilamos información que usted nos proporciona directamente al crear una cuenta, como su nombre y dirección de correo electrónico.</p>
         </section>
@@ -35,7 +40,12 @@ const PrivacyPolicy = () => {
         </section>
 
         <section>
-          <h2>4. Protección de Datos</h2>
+          <h2>4. Google y Google Calendar</h2>
+          <p>Si inicia sesión con Google o conecta su calendario, usamos su nombre, correo y los eventos de su calendario únicamente para mostrarlos en la aplicación. Puede revocar el acceso en la configuración de su cuenta de Google.</p>
+        </section>
+
+        <section>
+          <h2>5. Protección de Datos</h2>
           <p>Implementamos medidas de seguridad para proteger sus datos personales contra el acceso no autorizado y la divulgación.</p>
         </section>
       </main>
