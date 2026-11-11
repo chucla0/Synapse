@@ -548,3 +548,15 @@ button, a, input, select, textarea {
     scroll-behavior: auto !important;
   }
 }
+
+/* Touch devices: keep tap targets comfortably large (>= 40px) */
+@media (pointer: coarse) {
+  .view-btn,
+  .sidebar .btn,
+  .btn-sidebar-toggle {
+    min-height: 40px;
+  }
+  .btn-sidebar-toggle {
+    min-width: 40px;
+  }
+}
