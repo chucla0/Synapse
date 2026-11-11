@@ -622,6 +622,7 @@ export default function Dashboard({ onLogout, sessionKey }) {
         className="btn-sidebar-toggle"
         onClick={toggleSidebar}
         title={isSidebarOpen ? t('closeSidebar') : t('openSidebar')}
+        aria-label={isSidebarOpen ? t('closeSidebar') : t('openSidebar')}
         disabled={isAnyModalOpen}
       >
         {isSidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
