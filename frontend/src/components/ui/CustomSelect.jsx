@@ -4,7 +4,32 @@ import './CustomSelect.css';
 
 function CustomSelect({ value, onChange, options, placeholder = 'Select...', disabled = false }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [openUp, setOpenUp] = useState(false);
   const containerRef = useRef(null);
+
+  // Open upwards when the list would be clipped below (e.g. inside a scrolling modal)
+  const toggleOpen = () => {
+    if (disabled) return;
+    if (!isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      let bottomLimit = window.innerHeight;
+      let topLimit = 0;
+      for (let p = containerRef.current.parentElement; p; p = p.parentElement) {
+        const overflowY = getComputedStyle(p).overflowY;
+        if (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'hidden') {
+          const pr = p.getBoundingClientRect();
+          bottomLimit = Math.min(bottomLimit, pr.bottom);
+          topLimit = Math.max(topLimit, pr.top);
+          break;
+        }
+      }
+      const needed = Math.min(250, options.length * 38 + 12);
+      const below = bottomLimit - rect.bottom;
+      const above = rect.top - topLimit;
+      setOpenUp(below < needed && above > below);
+    }
+    setIsOpen(!isOpen);
+  };
 
   const selectedOption = options.find(opt => opt.value === value);
 
@@ -29,7 +54,7 @@ function CustomSelect({ value, onChange, options, placeholder = 'Select...', dis
     <div className={`custom-select-container ${disabled ? 'disabled' : ''}`} ref={containerRef}>
       <div 
         className={`custom-select-trigger ${isOpen ? 'is-open' : ''}`} 
-        onClick={() => !disabled && setIsOpen(!isOpen)}
+        onClick={toggleOpen}
       >
         <span className="custom-select-value">
           {selectedOption ? selectedOption.label : placeholder}
@@ -38,7 +63,7 @@ function CustomSelect({ value, onChange, options, placeholder = 'Select...', dis
       </div>
 
       {isOpen && !disabled && (
-        <div className="custom-select-options">
+        <div className={`custom-select-options ${openUp ? 'open-up' : ''}`}>
           {options.map((option) => (
             <div
               key={option.value}

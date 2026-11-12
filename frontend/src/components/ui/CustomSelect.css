@@ -57,6 +57,11 @@
   animation: slideDown 0.2s ease-out;
 }
 
+.custom-select-options.open-up {
+  top: auto;
+  bottom: calc(100% + 4px);
+}
+
 .custom-select-option {
   padding: var(--spacing-sm) var(--spacing-md);
   cursor: pointer;
