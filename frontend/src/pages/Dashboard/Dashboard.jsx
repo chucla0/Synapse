@@ -52,6 +52,12 @@ export default function Dashboard({ onLogout, sessionKey }) {
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
+  // Select an agenda and, on mobile, close the drawer even when it was already selected
+  const selectAgenda = (id) => {
+    setSelectedAgenda(id);
+    if (window.innerWidth <= 768) setIsSidebarOpen(false);
+  };
+
   // Close sidebar on mobile when window is resized
   useEffect(() => {
     const handleResize = () => {
@@ -465,7 +471,7 @@ export default function Dashboard({ onLogout, sessionKey }) {
                 {/* All Events Option */}
                 {agendas.length > 0 && (
                   <li className={`agenda-item ${selectedAgenda === ALL_EVENTS_AGENDA_ID ? 'active' : ''}`}>
-                    <div className="agenda-item-main" onClick={() => setSelectedAgenda(ALL_EVENTS_AGENDA_ID)}>
+                    <div className="agenda-item-main" onClick={() => selectAgenda(ALL_EVENTS_AGENDA_ID)}>
                       <span
                         className="agenda-color"
                         style={{ backgroundColor: allEventsAgenda.color }}
@@ -480,7 +486,7 @@ export default function Dashboard({ onLogout, sessionKey }) {
                   const googleAgenda = agendas.find(a => a.googleCalendarId || a.name === 'Google Calendar');
                   return (
                     <li className={`agenda-item ${selectedAgenda === googleAgenda.id ? 'active' : ''}`}>
-                      <div className="agenda-item-main" onClick={() => setSelectedAgenda(googleAgenda.id)}>
+                      <div className="agenda-item-main" onClick={() => selectAgenda(googleAgenda.id)}>
                         <span
                           className="agenda-color"
                           style={{ backgroundColor: googleAgenda.color }}
@@ -519,7 +525,7 @@ export default function Dashboard({ onLogout, sessionKey }) {
                     <ul className="agenda-list">
                       {typeAgendas.map(agenda => (
                         <li key={agenda.id} className={`agenda-item ${selectedAgenda === agenda.id ? 'active' : ''}`}>
-                          <div className="agenda-item-main" onClick={() => setSelectedAgenda(agenda.id)}>
+                          <div className="agenda-item-main" onClick={() => selectAgenda(agenda.id)}>
                             <span
                               className="agenda-color"
                               style={{ backgroundColor: agenda.color }}
@@ -544,7 +550,7 @@ export default function Dashboard({ onLogout, sessionKey }) {
                     .filter(a => !a.googleCalendarId && a.name !== 'Google Calendar')
                     .map(agenda => (
                       <li key={agenda.id} className={`agenda-item ${selectedAgenda === agenda.id ? 'active' : ''}`}>
-                        <div className="agenda-item-main" onClick={() => setSelectedAgenda(agenda.id)}>
+                        <div className="agenda-item-main" onClick={() => selectAgenda(agenda.id)}>
                           <span
                             className="agenda-color"
                             style={{ backgroundColor: agenda.color }}
