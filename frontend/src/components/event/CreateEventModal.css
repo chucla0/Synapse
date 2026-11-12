@@ -37,6 +37,13 @@
   gap: var(--spacing-lg);
 }
 
+/* Narrow screens: stack start/end so the date and time are not truncated */
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .modal-actions {
   display: grid;
   place-items: center;
