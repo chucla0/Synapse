@@ -17,12 +17,6 @@ import GoogleImportModal from '../../components/modals/GoogleImportModal';
 import Home from '../Home/Home';
 import './Dashboard.css';
 
-const lngs = {
-  en: { nativeName: 'English' },
-  es: { nativeName: 'Español' },
-  ca: { nativeName: 'Català' }
-};
-
 const typeOrder = {
   'PERSONAL': 1,
   'LABORAL': 2,
@@ -32,12 +26,11 @@ const typeOrder = {
 };
 
 export default function Dashboard({ onLogout, sessionKey }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [selectedAgenda, setSelectedAgenda] = useState(null);
   const [showCreateAgenda, setShowCreateAgenda] = useState(false);
   const [showProfileSettings, setShowProfileSettings] = useState(false);
   const [showWebSettings, setShowWebSettings] = useState(false);
-  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [editingAgenda, setEditingAgenda] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768); // Default based on screen width
@@ -46,7 +39,6 @@ export default function Dashboard({ onLogout, sessionKey }) {
   const [currentView, setCurrentView] = useState('agendas'); // 'home', 'agendas'
   const navigate = useNavigate();
   const user = getUser();
-  const { updateSetting } = useSettings();
 
   const { accentColor } = useTheme();
 
@@ -84,7 +76,6 @@ export default function Dashboard({ onLogout, sessionKey }) {
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = () => {
-      if (showLanguageDropdown) setShowLanguageDropdown(false);
       if (showSortDropdown) setShowSortDropdown(false);
     };
 
@@ -92,7 +83,7 @@ export default function Dashboard({ onLogout, sessionKey }) {
     return () => {
       document.removeEventListener('click', handleClickOutside);
     };
-  }, [showLanguageDropdown, showSortDropdown]);
+  }, [showSortDropdown]);
 
   // Trigger Google Import if requested via localStorage (more robust than location.state)
   useEffect(() => {
@@ -580,33 +571,6 @@ export default function Dashboard({ onLogout, sessionKey }) {
         </div>
 
         <div className="sidebar-footer">
-          <div className="language-switcher">
-            <div className="custom-dropdown" onClick={(e) => e.stopPropagation()}>
-              <button
-                className="dropdown-toggle"
-                onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-              >
-                {lngs[i18n.resolvedLanguage]?.nativeName}
-                <span className="dropdown-arrow"><ChevronDown size={16} /></span>
-              </button>
-              {showLanguageDropdown && (
-                <ul className="dropdown-menu">
-                  {Object.keys(lngs).map((lng) => (
-                    <li
-                      key={lng}
-                      className={`dropdown-item dropdown-item-${lng} ${i18n.resolvedLanguage === lng ? 'active' : ''}`}
-                      onClick={() => {
-                        updateSetting('display', 'language', lng);
-                        setShowLanguageDropdown(false);
-                      }}
-                    >
-                      {lngs[lng].nativeName}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
           <button
             className="btn btn-secondary btn-block"
             onClick={() => setShowWebSettings(true)}
