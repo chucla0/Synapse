@@ -13,7 +13,7 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: JWT_SECRET
-        value: synapse_secret_key_change_me_in_dashboard
+        sync: false
       - key: FRONTEND_URL
         sync: false
       - key: JWT_EXPIRES_IN
