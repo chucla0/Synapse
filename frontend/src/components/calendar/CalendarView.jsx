@@ -180,10 +180,10 @@ function CalendarView({ agenda, agendas = [] }) {
     const targetId = over.id;
 
     // Find original event
-    // If it's a split part, use originalId. If not, use id.
+    // If it's a split part, use originalEventId. If not, use id.
     // Also check active.data.current which contains the segment info
     const draggedEventData = active.data.current;
-    const lookupId = draggedEventData?.originalId || eventId;
+    const lookupId = draggedEventData?.originalEventId || eventId;
 
     const originalEvent = expandedEvents.find(e => e.id === lookupId);
     if (!originalEvent) return;

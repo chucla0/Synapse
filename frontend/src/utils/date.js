@@ -133,11 +133,14 @@ export function groupEventsByDay(events) {
 
         // Create segment
         // We use a composite ID to ensure uniqueness for keys/dnd
-        // We store originalId to trace back to the source event
         grouped[dateKey].push({
           ...event,
           id: `${event.id}_part${part}`,
-          originalId: event.id, // Reference to the ID of the event being split (could be recurrence instance)
+          // Reference to the ID of the event being split (could be recurrence instance).
+          // Must be named originalEventId: every consumer (click/edit/delete/resize in
+          // CalendarView.jsx) reads event.originalEventId to resolve a split segment
+          // back to the real event id before calling the API.
+          originalEventId: event.id,
           startTime: segmentStart.toISOString(),
           endTime: segmentEnd.toISOString(),
           isMultiDayPart: true
