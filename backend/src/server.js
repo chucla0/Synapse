@@ -1,4 +1,5 @@
 const express = require('express');
+const helmet = require('helmet');
 const cors = require('cors');
 const prisma = require('./lib/prisma');
 const passport = require('./config/passport');
@@ -95,7 +96,11 @@ app.set('trust proxy', 1);
 // MIDDLEWARE
 // ============================================
 
-// CORS configuration
+// Security headers. CSP disabled: this API serves no HTML, and a default CSP
+// would also block the Cross-Origin-Resource-Policy header set below for the
+// Gmail image proxy.
+app.use(helmet({ contentSecurityPolicy: false }));
+
 // CORS configuration
 app.use(cors({
   origin: allowedOrigins,

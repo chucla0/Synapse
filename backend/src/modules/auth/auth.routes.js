@@ -1,20 +1,31 @@
 const express = require('express');
 const router = express.Router();
 const passport = require('passport');
+const rateLimit = require('express-rate-limit');
 const authController = require('./auth.controller');
 const { authenticateToken } = require('../../middleware/auth');
+
+// Slow down credential-stuffing / brute-force attempts on login and signup.
+// Keyed by IP (default), not by email, so it can't be used to lock a victim out.
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests', message: 'Too many attempts, please try again later.' },
+});
 
 /**
  * POST /api/auth/login
  * Login with email and password
  */
-router.post('/login', authController.login);
+router.post('/login', authLimiter, authController.login);
 
 /**
  * POST /api/auth/register
  * Register a new user account
  */
-router.post('/register', authController.register);
+router.post('/register', authLimiter, authController.register);
 
 /**
  * POST /api/auth/verify
